@@ -19,3 +19,10 @@ Test
 
     $ rustc -L . --test test/littlewing_test.rs
     $ ./littlewing_test
+
+
+Bench
+-----
+
+    $ rustc -L . --test bench/littlewing_bench.rs
+    $ ./littlewing_bench --bench
