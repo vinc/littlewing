@@ -1,8 +1,20 @@
+extern crate littlewing;
+
 use std::io;
 
-fn usage() {
+fn cmd_usage() {
     println!("Usage:");
     println!("quit    exit this program");
+}
+
+fn cmd_perft() {
+    let game = littlewing::Game;
+    let mut i = 0u;
+    loop {
+        i += 1;
+        let n = game.perft(i);
+        println!("perft({}) -> {}", i, n);
+    }
 }
 
 fn main() {
@@ -14,8 +26,9 @@ fn main() {
         let line = io::stdin().read_line().unwrap();
         let cmd = line.as_slice().trim();
         match cmd {
-            "quit" => break,
-            _      => usage()
+            "quit"  => break,
+            "perft" => cmd_perft(),
+            _       => cmd_usage()
         }
     }
 }
