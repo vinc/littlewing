@@ -1,4 +1,4 @@
-#[deriving(Copy)]
+#[deriving(Copy, PartialEq)]
 pub enum Piece {
     WhitePawn,
     WhiteKnight,

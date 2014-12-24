@@ -1,10 +1,13 @@
+use littlewing::bitboard::Bitboard;
+use littlewing::bitboard::Bitwise;
+use littlewing::fen::FENBuilder;
 use littlewing::piece;
 use littlewing::piece::Piece;
-use littlewing::fen::FENBuilder;
+use littlewing::square::Square;
 
 #[deriving(Copy)]
 pub struct Game {
-    bitboards: [u64, ..12]
+    bitboards: [Bitboard, ..12]
 }
 
 impl Game {
@@ -40,7 +43,7 @@ impl Game {
                     continue
                 }
             };
-            game.bitboards[piece as uint] |= 1 << i;
+            game.bitboards[piece as uint].set(i);
             i += 1;
         }
         game
@@ -53,7 +56,7 @@ impl Game {
                 fen_builder.next_rank();
             }
             for &piece in piece::PIECES.iter() {
-                if self.bitboards[piece as uint] & (1 << i) > 0 {
+                if self.bitboards[piece as uint].get(i) {
                     fen_builder.push(piece);
                     break;
                 }
@@ -75,6 +78,7 @@ impl Game {
 #[cfg(test)]
 mod test {
     use super::Game;
+    use littlewing::square::Square;
 
     #[test]
     fn test_fen() {
