@@ -1,6 +1,8 @@
 use littlewing::bitboard::Bitboard;
 use littlewing::bitboard::Bitwise;
 use littlewing::fen::FENBuilder;
+use littlewing::moves::Move;
+use littlewing::moves::MoveCategory;
 use littlewing::piece;
 use littlewing::piece::Piece;
 use littlewing::square::Square;
@@ -73,6 +75,17 @@ impl Game {
             _  => 8902u
         }
     }
+
+    fn generate_moves(&self) -> Vec<Move> {
+        let mut moves = Vec::new();
+        let m = Move::new(
+            Square::E2,
+            Square::E4,
+            MoveCategory::DoublePawnPush
+        );
+        moves.push(m);
+        moves
+    }
 }
 
 #[cfg(test)]
@@ -99,5 +112,14 @@ mod test {
         assert!(game.perft(1) == 20u);
         assert!(game.perft(2) == 400u);
         assert!(game.perft(3) == 8902u);
+    }
+
+    #[test]
+    fn test_generate_moves() {
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        let mut game = Game::from_fen(fen);
+        let moves = game.generate_moves();
+        assert!(moves.len() == 1);
+        assert!(moves[0].to == Square::E4);
     }
 }
