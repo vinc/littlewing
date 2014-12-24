@@ -8,7 +8,7 @@ fn cmd_usage() {
 }
 
 fn cmd_perft() {
-    let game = littlewing::Game;
+    let game = littlewing::Game::new();
     let mut i = 0u;
     loop {
         i += 1;
