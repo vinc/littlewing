@@ -1,6 +1,7 @@
 extern crate littlewing;
 
 use std::io;
+use littlewing::game::Game;
 
 fn cmd_usage() {
     println!("Usage:");
@@ -8,7 +9,7 @@ fn cmd_usage() {
 }
 
 fn cmd_perft() {
-    let game = littlewing::Game::new();
+    let game = Game::new();
     let mut i = 0u;
     loop {
         i += 1;

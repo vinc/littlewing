@@ -1,0 +1,5 @@
+[package]
+
+name = "littlewing"
+version = "0.0.1"
+authors = ["Vincent Ollivier <v@vinc.cc>"]

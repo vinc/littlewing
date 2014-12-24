@@ -1,7 +1,7 @@
 Little Wing
 ===========
 
-A chess engine written in Rust.
+Someday this will be a chess engine written in Rust.
 
 
 Usage
@@ -9,20 +9,16 @@ Usage
 
     $ git clone https://github.com/vinc/littlewing.git
     $ cd littlewing
-    $ rustc --crate-type=lib src/littlewing.rs
-    $ rustc -L . -o littlewing src/main.rs
-    $ ./littlewing
+    $ cargo run
 
 
 Test
 ----
 
-    $ rustc -L . --test test/littlewing_test.rs
-    $ ./littlewing_test
+    $ cargo test
 
 
 Bench
 -----
 
-    $ rustc -L . --test bench/littlewing_bench.rs
-    $ ./littlewing_bench --bench
+    $ cargo bench
