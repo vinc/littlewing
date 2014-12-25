@@ -98,13 +98,14 @@ impl Game {
     }
 
     pub fn generate_moves(&self) -> Moves {
-        let bitboards = &self.bitboards; // Make self implicite
         let mut moves = Vec::new();
 
-        let side = WHITE;
+        // FIXME: This is done to avoid writing self everywhere
+        let bitboards = &self.bitboards;
+        let side = self.side;
+
         let dirs = [UP, DOWN];
         let ranks = [RANK_3, RANK_6];
-
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
         let pushes = (bitboards[side | PAWN] << dirs[side]) & !occupied;
