@@ -15,7 +15,7 @@ fn bench_game_perft(b: &mut Bencher) {
 
 #[bench]
 fn bench_game_generate_moves(b: &mut Bencher) {
-    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
     let mut game = Game::from_fen(fen);
 
     b.iter(|| {
