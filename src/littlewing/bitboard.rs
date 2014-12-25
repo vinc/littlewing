@@ -32,7 +32,7 @@ impl BitwiseOperations for Bitboard {
     fn ffs(&self) -> uint {
         let bb = *self;
         let debruijn64 = 0x03f79d71b4cb0a89u64;
-        let i = ((bb & -bb) * debruijn64) >> 58;
+        let i = ((bb & -bb) * debruijn64) >> 58; // Intentional unsigned negation
         INDEX64[i as uint]
     }
     fn debug(&self) {

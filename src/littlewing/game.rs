@@ -2,7 +2,6 @@ use littlewing::common::*;
 
 use littlewing::bitboard::BitwiseOperations;
 use littlewing::fen::FENBuilder;
-use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::moves::MovesOperations;
 
@@ -89,7 +88,7 @@ impl Game {
             return n
         }
 
-        for m in self.generate_moves().iter() {
+        for _ in self.generate_moves().iter() {
             // TODO: play move
             n += 1 + self.perft(depth - 1);
         }
@@ -146,7 +145,7 @@ mod test {
     #[test]
     fn test_perft() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
-        let mut game = Game::from_fen(fen);
+        let game = Game::from_fen(fen);
         assert!(game.perft(1) == 16u); // FIXME
         assert!(game.perft(2) == 272u); // FIXME
         //assert!(game.perft(1) == 20u);
@@ -157,7 +156,7 @@ mod test {
     #[test]
     fn test_generate_moves() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
-        let mut game = Game::from_fen(fen);
+        let game = Game::from_fen(fen);
         let moves = game.generate_moves();
         assert!(moves.len() == 16);
     }
