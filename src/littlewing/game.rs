@@ -1,14 +1,10 @@
-use littlewing::piece;
-use littlewing::piece::*;
+use littlewing::common::*;
 
-use littlewing::bitboard;
-use littlewing::bitboard::Bitboard;
 use littlewing::bitboard::BitwiseOperations;
 use littlewing::fen::FENBuilder;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::moves::MovesOperations;
-use littlewing::moves::MoveCategory;
 
 const UP:    uint = 8u;
 const DOWN:  uint = -8u;
@@ -17,13 +13,13 @@ const RIGHT: uint = 1u;
 
 #[deriving(Copy)]
 pub struct Game {
-    bitboards: [Bitboard, ..14]
+    bitboards: [Bitboard, ..16] // FIXME: 2 elements are not used
 }
 
 impl Game {
     pub fn new() -> Game {
         Game {
-            bitboards: [0, ..14]
+            bitboards: [0, ..16]
         }
     }
 
@@ -72,7 +68,7 @@ impl Game {
             if i > 0 && i % 8 == 0 {
                 fen_builder.next_rank();
             }
-            for &piece in piece::PIECES.iter() {
+            for &piece in PIECES.iter() {
                 if self.bitboards[piece as uint].get(i) {
                     fen_builder.push(piece);
                     break;
@@ -105,17 +101,17 @@ impl Game {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
         let pushes = (bitboards[WHITE_PAWN] << 8) & !occupied;
-        moves.add_moves(pushes, UP, MoveCategory::QuietMove);
+        moves.add_moves(pushes, UP, QUIET_MOVE);
 
-        let double_pushes = ((pushes & bitboard::RANK_3) << 8) & !occupied;
-        moves.add_moves(double_pushes, UP + UP, MoveCategory::DoublePawnPush);
+        let double_pushes = ((pushes & RANK_3) << 8) & !occupied;
+        moves.add_moves(double_pushes, UP + UP, DOUBLE_PAWN_PUSH);
 
         /*
         let left_attacks = (bitboards[WHITE_PAWN] << 7) & bitboards[BLACK];
-        moves.add_moves(left_attacks, UP + LEFT, MoveCategory::Capture);
+        moves.add_moves(left_attacks, UP + LEFT, CAPTURE);
 
         let right_attacks = (bitboards[WHITE_PAWN] << 9) & bitboards[BLACK];
-        moves.add_moves(right_attacks, UP + RIGHT, MoveCategory::Capture);
+        moves.add_moves(right_attacks, UP + RIGHT, CAPTURE);
         */
 
         moves
@@ -125,7 +121,6 @@ impl Game {
 #[cfg(test)]
 mod test {
     use super::Game;
-    use littlewing::moves::MoveCategory;
 
     #[test]
     fn test_fen() {

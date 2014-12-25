@@ -1,7 +1,5 @@
-use littlewing::bitboard::Bitboard;
+use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
-use littlewing::piece::Piece;
-use littlewing::square::Square;
 
 #[deriving(Copy, PartialEq)]
 pub enum MoveCategory {
@@ -23,17 +21,17 @@ pub enum MoveCategory {
 }
 
 pub struct Move {
-    pub from: Square,
-    pub to: Square,
-    pub category: MoveCategory
+    from: Square,
+    to: Square,
+    _type: MoveType // FIXME
 }
 
 impl Move {
-    pub fn new(f: Square, t: Square, mc: MoveCategory) -> Move {
+    pub fn new(f: Square, t: Square, mt: MoveType) -> Move {
         Move {
             from: f,
             to: t,
-            category: mc
+            _type: mt
         }
     }
 }
@@ -41,15 +39,15 @@ impl Move {
 pub type Moves = Vec<Move>;
 
 pub trait MovesOperations {
-    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mc: MoveCategory);
+    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mt: MoveType);
 }
 
 impl MovesOperations for Moves {
-    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mc: MoveCategory) {
+    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mt: MoveType) {
         while targets != 0 {
             let to = targets.ffs();
             let from = to - dir;
-            let m = Move::new(from, to, mc);
+            let m = Move::new(from, to, mt);
             self.push(m);
             targets.reset(to);
         }

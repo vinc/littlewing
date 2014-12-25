@@ -1,13 +1,4 @@
-pub type Bitboard = u64;
-
-pub const RANK_1: Bitboard = 0x00000000000000FFu64;
-pub const RANK_2: Bitboard = 0x000000000000FF00u64;
-pub const RANK_3: Bitboard = 0x0000000000FF0000u64;
-pub const RANK_4: Bitboard = 0x00000000FF000000u64;
-pub const RANK_5: Bitboard = 0x000000FF00000000u64;
-pub const RANK_6: Bitboard = 0x0000FF0000000000u64;
-pub const RANK_7: Bitboard = 0x00FF000000000000u64;
-pub const RANK_8: Bitboard = 0xFF00000000000000u64;
+use littlewing::common::*;
 
 const INDEX64: [uint, ..64] = [
      0,  1, 48,  2, 57, 49, 28,  3,

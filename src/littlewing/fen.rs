@@ -1,6 +1,5 @@
 use std;
-use littlewing::piece;
-use littlewing::piece::Piece;
+use littlewing::common::*;
 
 pub struct FENBuilder {
     count: uint,
@@ -30,19 +29,19 @@ impl FENBuilder {
     pub fn push(&mut self, piece: Piece) {
         self.reset_count();
         let c = match piece {
-            piece::WHITE_PAWN   => 'p',
-            piece::WHITE_KNIGHT => 'n',
-            piece::WHITE_BISHOP => 'b',
-            piece::WHITE_ROOK   => 'r',
-            piece::WHITE_QUEEN  => 'q',
-            piece::WHITE_KING   => 'k',
-            piece::BLACK_PAWN   => 'P',
-            piece::BLACK_KNIGHT => 'N',
-            piece::BLACK_BISHOP => 'B',
-            piece::BLACK_ROOK   => 'R',
-            piece::BLACK_QUEEN  => 'Q',
-            piece::BLACK_KING   => 'K',
-            _                   => '?' // FIXME
+            WHITE_PAWN   => 'p',
+            WHITE_KNIGHT => 'n',
+            WHITE_BISHOP => 'b',
+            WHITE_ROOK   => 'r',
+            WHITE_QUEEN  => 'q',
+            WHITE_KING   => 'k',
+            BLACK_PAWN   => 'P',
+            BLACK_KNIGHT => 'N',
+            BLACK_BISHOP => 'B',
+            BLACK_ROOK   => 'R',
+            BLACK_QUEEN  => 'Q',
+            BLACK_KING   => 'K',
+            _            => '?' // FIXME
         };
         self.fen.push(c);
         self.empty = false;
