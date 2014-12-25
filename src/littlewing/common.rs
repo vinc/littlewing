@@ -5,7 +5,7 @@ pub type MoveType = uint;
 pub type Bitboard = u64;
 
 pub const WHITE:  Color = 0;
-pub const BLACK:  Piece = 8;
+pub const BLACK:  Color = 8;
 
 pub const PAWN:   Piece = 1;
 pub const KNIGHT: Piece = 2;
