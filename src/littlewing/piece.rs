@@ -1,49 +1,32 @@
-#[deriving(Copy, PartialEq)]
-pub enum Piece {
-    WhitePawn,
-    WhiteKnight,
-    WhiteBishop,
-    WhiteRook,
-    WhiteQueen,
-    WhiteKing,
-    BlackPawn,
-    BlackKnight,
-    BlackBishop,
-    BlackRook,
-    BlackQueen,
-    BlackKing
-}
+pub type Piece = uint;
+
+pub const WHITE_PAWN:   Piece = 0u;
+pub const WHITE_KNIGHT: Piece = 1u;
+pub const WHITE_BISHOP: Piece = 2u;
+pub const WHITE_ROOK:   Piece = 3u;
+pub const WHITE_QUEEN:  Piece = 4u;
+pub const WHITE_KING:   Piece = 5u;
+pub const BLACK_PAWN:   Piece = 6u;
+pub const BLACK_KNIGHT: Piece = 7u;
+pub const BLACK_BISHOP: Piece = 8u;
+pub const BLACK_ROOK:   Piece = 9u;
+pub const BLACK_QUEEN:  Piece = 10u;
+pub const BLACK_KING:   Piece = 11u;
+
+pub const WHITE:        Piece = 12u;
+pub const BLACK:        Piece = 13u;
 
 pub static PIECES: [Piece, ..12] = [
-    Piece::WhitePawn,
-    Piece::WhiteKnight,
-    Piece::WhiteBishop,
-    Piece::WhiteRook,
-    Piece::WhiteQueen,
-    Piece::WhiteKing,
-    Piece::BlackPawn,
-    Piece::BlackKnight,
-    Piece::BlackBishop,
-    Piece::BlackRook,
-    Piece::BlackQueen,
-    Piece::BlackKing
+    WHITE_PAWN,
+    WHITE_KNIGHT,
+    WHITE_BISHOP,
+    WHITE_ROOK,
+    WHITE_QUEEN,
+    WHITE_KING,
+    BLACK_PAWN,
+    BLACK_KNIGHT,
+    BLACK_BISHOP,
+    BLACK_ROOK,
+    BLACK_QUEEN,
+    BLACK_KING
 ];
-
-impl Piece {
-    pub fn to_char(&self) -> char {
-        match self {
-            &Piece::WhitePawn   => 'p',
-            &Piece::WhiteKnight => 'n',
-            &Piece::WhiteBishop => 'b',
-            &Piece::WhiteRook   => 'r',
-            &Piece::WhiteQueen  => 'q',
-            &Piece::WhiteKing   => 'k',
-            &Piece::BlackPawn   => 'P',
-            &Piece::BlackKnight => 'N',
-            &Piece::BlackBishop => 'B',
-            &Piece::BlackRook   => 'R',
-            &Piece::BlackQueen  => 'Q',
-            &Piece::BlackKing   => 'K'
-        }
-    }
-}

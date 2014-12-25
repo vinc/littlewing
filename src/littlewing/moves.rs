@@ -1,3 +1,5 @@
+use littlewing::bitboard::Bitboard;
+use littlewing::bitboard::BitwiseOperations;
 use littlewing::piece::Piece;
 use littlewing::square::Square;
 
@@ -32,6 +34,24 @@ impl Move {
             from: f,
             to: t,
             category: mc
+        }
+    }
+}
+
+pub type Moves = Vec<Move>;
+
+pub trait MovesOperations {
+    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mc: MoveCategory);
+}
+
+impl MovesOperations for Moves {
+    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mc: MoveCategory) {
+        while targets != 0 {
+            let to = targets.ffs();
+            let from = to - dir;
+            let m = Move::new(from, to, mc);
+            self.push(m);
+            targets.reset(to);
         }
     }
 }
