@@ -13,13 +13,13 @@ const RIGHT: uint = 1u;
 
 #[deriving(Copy)]
 pub struct Game {
-    bitboards: [Bitboard, ..16] // FIXME: 2 elements are not used
+    bitboards: [Bitboard, ..14]
 }
 
 impl Game {
     pub fn new() -> Game {
         Game {
-            bitboards: [0, ..16]
+            bitboards: [0, ..14]
         }
     }
 

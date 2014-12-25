@@ -4,15 +4,18 @@ pub type Square = uint;
 pub type MoveType = uint;
 pub type Bitboard = u64;
 
-pub const WHITE:  Color = 0;
-pub const BLACK:  Color = 8;
+pub const WHITE:  Color = 0b0000;
+pub const BLACK:  Color = 0b0001;
 
-pub const PAWN:   Piece = 1;
-pub const KNIGHT: Piece = 2;
-pub const BISHOP: Piece = 3;
-pub const ROOK:   Piece = 4;
-pub const QUEEN:  Piece = 5;
-pub const KING:   Piece = 6;
+pub const LEAPER: Piece = 0b0000;
+pub const SLIDER: Piece = 0b1000;
+
+pub const PAWN:   Piece = 0b0010;
+pub const KNIGHT: Piece = 0b0100;
+pub const KING:   Piece = 0b0110;
+pub const BISHOP: Piece = 0b1000;
+pub const ROOK:   Piece = 0b1010;
+pub const QUEEN:  Piece = 0b1100;
 
 pub const WHITE_PAWN:   Piece = WHITE | PAWN;
 pub const WHITE_KNIGHT: Piece = WHITE | KNIGHT;
@@ -26,6 +29,7 @@ pub const BLACK_BISHOP: Piece = BLACK | BISHOP;
 pub const BLACK_ROOK:   Piece = BLACK | ROOK;
 pub const BLACK_QUEEN:  Piece = BLACK | QUEEN;
 pub const BLACK_KING:   Piece = BLACK | KING;
+
 
 pub const A1: Square = 0;
 pub const B1: Square = 1;
