@@ -1,25 +1,6 @@
 use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
 
-#[deriving(Copy, PartialEq)]
-pub enum MoveCategory {
-    QuietMove,
-    DoublePawnPush,
-    KingCastle,
-    QueenCastle,
-    Capture,
-    EnPassant,
-    NullMove,
-    KnightPromotion = 8,
-    BishopPromotion,
-    RookPromotion,
-    QueenPromotion,
-    KnightPromotionCapture,
-    BishopPromotionCapture,
-    RookPromotionCapture,
-    QueenPromotionCapture
-}
-
 pub struct Move {
     from: Square,
     to: Square,
