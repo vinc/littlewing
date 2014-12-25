@@ -1,3 +1,4 @@
+extern crate time;
 extern crate littlewing;
 
 use std::io;
@@ -9,12 +10,17 @@ fn cmd_usage() {
 }
 
 fn cmd_perft() {
-    let game = Game::new();
+    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    let game = Game::from_fen(fen);
     let mut i = 0u;
     loop {
         i += 1;
+        let started_at = time::precise_time_s();
         let n = game.perft(i);
-        println!("perft({}) -> {}", i, n);
+        let ended_at = time::precise_time_s();
+        let s = ended_at - started_at;
+        let nps = ((n as f64) / s) as u64;
+        println!("perft({}) -> {} ({} s, {} nps)", i, n, s, nps);
     }
 }
 
