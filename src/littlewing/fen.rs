@@ -60,6 +60,14 @@ impl FENBuilder {
         }
     }
 
+    pub fn set_side(&mut self, c: Color) {
+        self.fen.push(' ');
+        if c == WHITE {
+            self.fen.push('w');
+        } else {
+            self.fen.push('b');
+        }
+    }
     pub fn to_string(&self) -> String {
         self.fen.clone()
     }

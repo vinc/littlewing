@@ -6,27 +6,25 @@ use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::moves::MovesOperations;
 
-const UP:    uint = 8u;
-const DOWN:  uint = -8u;
-const LEFT:  uint = -1u;
-const RIGHT: uint = 1u;
-
 #[deriving(Copy)]
 pub struct Game {
-    bitboards: [Bitboard, ..14]
+    bitboards: [Bitboard, ..14],
+    side: Color
 }
 
 impl Game {
     pub fn new() -> Game {
         Game {
-            bitboards: [0, ..14]
+            bitboards: [0, ..14],
+            side: WHITE
         }
     }
 
     pub fn from_fen(fen: &str) -> Game {
         let mut game = Game::new();
         let mut i = 0u;
-        for c in fen.chars() {
+        let mut fields = fen.words();
+        for c in fields.next().unwrap().chars() {
             let piece = match c {
                 'p' => WHITE_PAWN,
                 'n' => WHITE_KNIGHT,
@@ -40,7 +38,6 @@ impl Game {
                 'R' => BLACK_ROOK,
                 'Q' => BLACK_QUEEN,
                 'K' => BLACK_KING,
-                ' ' => break,
                 '/' => continue,
                 _   => {
                     if '1' <= c && c <= '8' {
@@ -59,6 +56,11 @@ impl Game {
         for p in range(BLACK_PAWN, BLACK_KING + 1) {
             game.bitboards[BLACK] |= game.bitboards[p];
         }
+        game.side = match fields.next().unwrap() {
+            "w" => WHITE,
+            "b" => BLACK,
+            _   => BLACK // FIXME
+        };
         game
     }
 
@@ -76,6 +78,7 @@ impl Game {
             }
             fen_builder.next_file();
         }
+        fen_builder.set_side(self.side);
         fen_builder.to_string()
     }
 
@@ -98,13 +101,17 @@ impl Game {
         let bitboards = &self.bitboards; // Make self implicite
         let mut moves = Vec::new();
 
+        let side = WHITE;
+        let dirs = [UP, DOWN];
+        let ranks = [RANK_3, RANK_6];
+
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
-        let pushes = (bitboards[WHITE_PAWN] << 8) & !occupied;
-        moves.add_moves(pushes, UP, QUIET_MOVE);
+        let pushes = (bitboards[side | PAWN] << dirs[side]) & !occupied;
+        moves.add_moves(pushes, dirs[side], QUIET_MOVE);
 
-        let double_pushes = ((pushes & RANK_3) << 8) & !occupied;
-        moves.add_moves(double_pushes, UP + UP, DOUBLE_PAWN_PUSH);
+        let double_pushes = ((pushes & ranks[side]) << dirs[side]) & !occupied;
+        moves.add_moves(double_pushes, 2 * dirs[side], DOUBLE_PAWN_PUSH);
 
         /*
         let left_attacks = (bitboards[WHITE_PAWN] << 7) & bitboards[BLACK];
@@ -125,9 +132,9 @@ mod test {
     #[test]
     fn test_fen() {
         let fens = [
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
-            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
-            "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
+            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b",
+            "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w"
         ];
         for &fen in fens.iter() {
             let game = Game::from_fen(fen);
@@ -137,7 +144,7 @@ mod test {
 
     #[test]
     fn test_perft() {
-        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
         assert!(game.perft(1) == 16u); // FIXME
         assert!(game.perft(2) == 272u); // FIXME
@@ -148,7 +155,7 @@ mod test {
 
     #[test]
     fn test_generate_moves() {
-        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
         let moves = game.generate_moves();
         assert!(moves.len() == 16);
