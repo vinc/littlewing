@@ -19,8 +19,8 @@ fn cmd_perft() {
         let n = game.perft(i);
         let ended_at = time::precise_time_s();
         let s = ended_at - started_at;
-        let nps = ((n as f64) / s) as u64;
-        println!("perft({}) -> {} ({} s, {} nps)", i, n, s, nps);
+        let nps = (n as f64) / s;
+        println!("perft({}) -> {} ({:.2} s, {:.2e} nps)", i, n, s, nps);
     }
 }
 
