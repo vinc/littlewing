@@ -34,6 +34,7 @@ impl FEN {
             BLACK_ROOK   => 'r',
             BLACK_QUEEN  => 'q',
             BLACK_KING   => 'k',
+            EMPTY        => ' ', // FIXME: not really for FEN format
             _            => '?' // FIXME
         }
     }

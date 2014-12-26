@@ -32,8 +32,8 @@ pub const BLACK_QUEEN:  Piece = BLACK | QUEEN;
 pub const BLACK_KING:   Piece = BLACK | KING;
 
 pub const UP:    uint = 8;
-pub const DOWN:  uint = -8;
-//pub const LEFT:  uint = -1;
+pub const DOWN:  uint = -8; // FIXME: negative value as uint
+//pub const LEFT:  uint = -1; // FIXME: negative value as uint
 pub const RIGHT: uint = 1;
 
 pub const A1: Square = 0;

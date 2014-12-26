@@ -1,6 +1,7 @@
 use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
 
+#[deriving(Copy)]
 pub struct Move {
     pub from: Square,
     pub to: Square,

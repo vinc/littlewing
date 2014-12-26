@@ -11,7 +11,7 @@ fn cmd_usage() {
 
 fn cmd_perft() {
     let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
-    let game = Game::from_fen(fen);
+    let mut game = Game::from_fen(fen);
     let mut i = 0u;
     loop {
         i += 1;

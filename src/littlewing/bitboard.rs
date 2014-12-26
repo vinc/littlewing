@@ -16,7 +16,8 @@ const INDEX64: [uint, ..64] = [
 */
 
 pub trait BitwiseOperations {
-    fn toggle(&mut self, i: uint);
+    fn shift(&self, x: uint) -> Bitboard;
+    fn toggle(&mut self, i: uint); // FIXME: Return instead of update?
     fn set(&mut self, i: uint);
     fn reset(&mut self, i: uint);
     fn get(&self, i: uint) -> bool;
@@ -25,6 +26,13 @@ pub trait BitwiseOperations {
 }
 
 impl BitwiseOperations for Bitboard {
+    fn shift(&self, x: uint) -> Bitboard { // FIXME: Use int instead of uint
+        if x as int > 0 {
+            *self << x
+        } else {
+            *self >> -x
+        }
+    }
     fn toggle(&mut self, i: uint) {
         *self ^= 1 << i
     }

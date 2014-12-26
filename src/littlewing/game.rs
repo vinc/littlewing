@@ -100,16 +100,35 @@ impl Game {
         fen
     }
 
-    pub fn perft(&self, depth: uint) -> uint {
+    fn to_string(&self) -> String {
+        // FIXME: Testing `map` and `fold` for the lulz
+
+        let sep = range(0u, 8)
+            .map(|_| "+---")
+            .fold(String::new(), |r, s| r + s) + "+\n";
+
+        String::new() + sep.as_slice() + range(0u, 8).map(|i| {
+            let rank = range(0u, 8)
+                .map(|j| {
+                    let p = FEN::encode_piece(self.board[8 * (7 - i) + j]);
+                    String::from_chars(['|', ' ', p, ' '].as_slice())
+                })
+                .fold(String::new(), |r, s| r + s.as_slice()) + "|\n";
+            rank + sep.as_slice()
+        }).fold(String::new(), |r, s| r + s.as_slice()).as_slice()
+    }
+
+    pub fn perft(&mut self, depth: uint) -> uint {
         let mut n = 0;
 
         if depth == 0 {
             return n
         }
 
-        for _ in self.generate_moves().iter() {
-            // TODO: play move
+        for &m in self.generate_moves().iter() {
+            self.play_move(m);
             n += 1 + self.perft(depth - 1);
+            self.undo_move(m);
         }
 
         n
@@ -150,10 +169,10 @@ impl Game {
         let ranks = [RANK_3, RANK_6];
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
-        let pushes = (bitboards[side | PAWN] << dirs[side]) & !occupied;
+        let pushes = bitboards[side | PAWN].shift(dirs[side]) & !occupied;
         moves.add_moves(pushes, dirs[side], QUIET_MOVE);
 
-        let double_pushes = ((pushes & ranks[side]) << dirs[side]) & !occupied;
+        let double_pushes = (pushes & ranks[side]).shift(dirs[side]) & !occupied;
         moves.add_moves(double_pushes, 2 * dirs[side], DOUBLE_PAWN_PUSH);
 
         /*
@@ -197,7 +216,7 @@ mod tests {
     #[test]
     fn test_perft() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
-        let game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 16u); // FIXME
         assert_eq!(game.perft(2), 272u); // FIXME
         //assert_eq!(game.perft(1), 20u);
