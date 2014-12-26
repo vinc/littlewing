@@ -1,4 +1,6 @@
+
 use littlewing::common::*;
+use std::num::Int;
 
 const INDEX64: [uint, ..64] = [
      0,  1, 48,  2, 57, 49, 28,  3,
@@ -36,10 +38,13 @@ impl BitwiseOperations for Bitboard {
         *self & (1 << i) > 0
     }
     fn ffs(&self) -> uint {
+        /*
         let bb = *self;
         let debruijn64 = 0x03f79d71b4cb0a89u64;
         let i = ((bb & -bb) * debruijn64) >> 58; // Intentional unsigned negation
         INDEX64[i as uint]
+        */
+        self.trailing_zeros()
     }
     fn debug(&self) {
         //println!("{:016X}", self);
@@ -55,9 +60,45 @@ impl BitwiseOperations for Bitboard {
     }
 }
 
-/*
 #[cfg(test)]
-mod test {
+mod tests {
+    extern crate test;
+    use littlewing::common::*;
+    use std::num::Int;
+    use super::BitwiseOperations;
+    use self::test::Bencher;
+
+    #[test]
+    fn test_ffs() {
+        let bb: Bitboard = 0x0000000000FF0000;
+        assert_eq!(bb.ffs(), 16);
+    }
+
+    #[test]
+    fn test_trailing_zeros() {
+        let bb: Bitboard = 0x0000000000FF0000;
+        assert_eq!(bb.trailing_zeros(), 16);
+    }
+
+    #[bench]
+    fn bench_ffs(b: &mut Bencher) {
+        let bb: Bitboard = 0x0000000000FF0000;
+
+        b.iter(|| {
+            bb.ffs();
+        })
+    }
+
+    #[bench]
+    fn bench_trailing_zeros(b: &mut Bencher) {
+        let bb: Bitboard = 0x0000000000FF0000;
+
+        b.iter(|| {
+            bb.trailing_zeros();
+        })
+    }
+
+    /*
     #[test]
     fn test_toggle() {
         let c = WHITE;
@@ -66,5 +107,5 @@ mod test {
         let c = BLACK;
         assert!(c.toggle() == WHITE);
     }
+    */
 }
-*/
