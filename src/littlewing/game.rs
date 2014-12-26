@@ -36,16 +36,10 @@ impl Game {
                 let p = FEN::decode_piece(c);
                 game.board[sq] = p;
                 game.bitboards[p].set(sq);
+                game.bitboards[p & 1].set(sq); // TODO: p.color()
 
                 1
             };
-        }
-        game.bitboards[WHITE] = 0;
-        for p in range(WHITE_PAWN, WHITE_KING + 1) {
-            game.bitboards[WHITE] |= game.bitboards[p];
-        }
-        for p in range(BLACK_PAWN, BLACK_KING + 1) {
-            game.bitboards[BLACK] |= game.bitboards[p];
         }
         game.side = match fields.next().unwrap() {
             "w" => WHITE,
@@ -176,32 +170,11 @@ impl Game {
         let double_pushes = (pushes & ranks[side]).shift(dirs[side]) & !occupied;
         moves.add_moves(double_pushes, 2 * dirs[side], DOUBLE_PAWN_PUSH);
 
-        let left_attacks = (bitboards[side | PAWN] & !FILE_A).shift(dirs[2 + side]) & bitboards[side ^ 1];
+        let left_attacks = (bitboards[side | PAWN] & !FILE_A).shift(dirs[2 + side]) & bitboards[side ^ 1] & !bitboards[side];
         moves.add_moves(left_attacks, dirs[2 + side], CAPTURE);
-        /*
-        if left_attacks > 0 {
-            println!("left_attacks");
-            println!("{}", self.to_string());
-            bitboards[side | PAWN].debug();
-            left_attacks.debug();
-        }
-        */
 
-        let right_attacks = (bitboards[side | PAWN] & !FILE_H).shift(dirs[4 + side]) & bitboards[side ^ 1];
+        let right_attacks = (bitboards[side | PAWN] & !FILE_H).shift(dirs[4 + side]) & bitboards[side ^ 1] & !bitboards[side];
         moves.add_moves(right_attacks, dirs[4 + side], CAPTURE);
-        /*
-        if right_attacks > 0 {
-            println!("right_attacks");
-            println!("{}", self.to_string());
-            bitboards[side | PAWN].debug();
-            right_attacks.debug();
-        }
-        */
-
-        /*
-        let right_attacks = (bitboards[WHITE_PAWN] << 9) & bitboards[BLACK];
-        moves.add_moves(right_attacks, UP + RIGHT, CAPTURE);
-        */
 
         moves
     }
@@ -251,24 +224,24 @@ mod tests {
         assert_eq!(moves.len(), 16);
 
         // Pawn right capture
-        let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w";
+        let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
         assert_eq!(moves.len(), 2);
-        let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b";
+        let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
         assert_eq!(moves.len(), 2);
 
         // Pawn left capture
-        let fen = "8/8/2k5/2p5/3P4/3K4/8/8 w";
+        let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
-        assert_eq!(moves.len(), 2);
-        let fen = "8/8/2k5/2p5/3P4/3K4/8/8 b";
+        assert_eq!(moves.len(), 3);
+        let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
-        assert_eq!(moves.len(), 2);
+        assert_eq!(moves.len(), 3);
     }
 
     #[test]
