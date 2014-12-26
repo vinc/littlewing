@@ -10,6 +10,7 @@ pub const BLACK:  Color = 0b0001;
 //pub const LEAPER: Piece = 0b0000;
 //pub const SLIDER: Piece = 0b1000;
 
+pub const EMPTY:  Piece = 0b0000;
 pub const PAWN:   Piece = 0b0010;
 pub const KNIGHT: Piece = 0b0100;
 pub const KING:   Piece = 0b0110;

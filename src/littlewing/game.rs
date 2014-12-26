@@ -7,6 +7,7 @@ use littlewing::moves::MovesOperations;
 
 #[deriving(Copy)]
 pub struct Game {
+    board: [Piece, ..64],
     bitboards: [Bitboard, ..14],
     side: Color
 }
@@ -14,6 +15,7 @@ pub struct Game {
 impl Game {
     pub fn new() -> Game {
         Game {
+            board: [EMPTY, ..64],
             bitboards: [0, ..14],
             side: WHITE
         }
@@ -45,6 +47,7 @@ impl Game {
                     continue
                 }
             };
+            game.board[i] = piece;
             game.bitboards[piece].set(i);
             i += 1;
         }
