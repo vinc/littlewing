@@ -108,13 +108,14 @@ impl Game {
             .fold(String::new(), |r, s| r + s) + "+\n";
 
         String::new() + sep.as_slice() + range(0u, 8).map(|i| {
-            let rank = range(0u, 8)
+            range(0u, 8)
                 .map(|j| {
                     let p = FEN::encode_piece(self.board[8 * (7 - i) + j]);
                     String::from_chars(['|', ' ', p, ' '].as_slice())
                 })
-                .fold(String::new(), |r, s| r + s.as_slice()) + "|\n";
-            rank + sep.as_slice()
+                .fold(String::new(), |r, s| {
+                    r + s.as_slice()
+                }) + "|\n" + sep.as_slice()
         }).fold(String::new(), |r, s| r + s.as_slice()).as_slice()
     }
 
