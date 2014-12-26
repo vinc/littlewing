@@ -12,6 +12,7 @@ const INDEX64: [uint, ..64] = [
 ];
 
 pub trait BitwiseOperations {
+    //fn toggle(&mut self, i: uint);
     fn set(&mut self, i: uint);
     fn reset(&mut self, i: uint);
     fn get(&self, i: uint) -> bool;
@@ -20,6 +21,11 @@ pub trait BitwiseOperations {
 }
 
 impl BitwiseOperations for Bitboard {
+    /*
+    fn toggle(&mut self, i: uint) {
+        *self ^= 1 << i
+    }
+    */
     fn set(&mut self, i: uint) {
         *self |= 1 << i
     }
@@ -48,3 +54,17 @@ impl BitwiseOperations for Bitboard {
         println!("");
     }
 }
+
+/*
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_toggle() {
+        let c = WHITE;
+        assert!(c.toggle() == BLACK);
+
+        let c = BLACK;
+        assert!(c.toggle() == WHITE);
+    }
+}
+*/

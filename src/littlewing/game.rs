@@ -2,6 +2,7 @@ use littlewing::common::*;
 
 use littlewing::bitboard::BitwiseOperations;
 use littlewing::fen::FENBuilder;
+use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::moves::MovesOperations;
 
@@ -97,6 +98,18 @@ impl Game {
         }
 
         n
+    }
+
+    pub fn play_move(&mut self, m: Move) {
+        self.board[m.to] = self.board[m.from];
+        self.board[m.from] = EMPTY;
+        self.side ^= 1; // TODO: Define self.side.toggle(0)
+    }
+
+    pub fn undo_move(&mut self, m: Move) {
+        self.board[m.from] = self.board[m.to];
+        self.board[m.to] = EMPTY;
+        self.side ^= 1; // TODO: Define self.side.toggle(0)
     }
 
     pub fn generate_moves(&self) -> Moves {

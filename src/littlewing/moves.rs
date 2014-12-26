@@ -2,8 +2,8 @@ use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
 
 pub struct Move {
-    from: Square,
-    to: Square,
+    pub from: Square,
+    pub to: Square,
     _type: MoveType // FIXME
 }
 
