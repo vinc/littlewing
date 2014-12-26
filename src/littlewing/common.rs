@@ -33,7 +33,7 @@ pub const BLACK_KING:   Piece = BLACK | KING;
 
 pub const UP:    uint = 8;
 pub const DOWN:  uint = -8; // FIXME: negative value as uint
-//pub const LEFT:  uint = -1; // FIXME: negative value as uint
+pub const LEFT:  uint = -1; // FIXME: negative value as uint
 pub const RIGHT: uint = 1;
 
 pub const A1: Square = 0;
@@ -109,12 +109,14 @@ pub const RANK_3: Bitboard = 0x0000000000FF0000;
 pub const RANK_6: Bitboard = 0x0000FF0000000000;
 //pub const RANK_7: Bitboard = 0x00FF000000000000;
 //pub const RANK_8: Bitboard = 0xFF00000000000000;
+pub const FILE_A: Bitboard = 0x0101010101010101;
+pub const FILE_H: Bitboard = 0x8080808080808080;
 
 pub const QUIET_MOVE:               MoveType = 0; 
 pub const DOUBLE_PAWN_PUSH:         MoveType = 1;
 //pub const KING_CASTLE:              MoveType = 2;
 //pub const QUEEN_CASTLE:             MoveType = 3;
-//pub const CAPTURE:                  MoveType = 4;
+pub const CAPTURE:                  MoveType = 4;
 //pub const EN_PASSANT:               MoveType = 5;
 //pub const NULL_MOVE:                MoveType = 6;
 
