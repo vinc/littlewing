@@ -156,26 +156,7 @@ impl Game {
     pub fn generate_moves(&self) -> Moves {
         let mut moves = Vec::new();
 
-        // FIXME: This is done to avoid writing self everywhere
-        let bitboards = &self.bitboards;
-        let side = self.side;
-
-        let dirs = [UP, DOWN, UP + LEFT, DOWN + RIGHT, UP + RIGHT, DOWN + LEFT];
-        let ranks = [RANK_3, RANK_6];
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
-
-        let pushes = bitboards[side | PAWN].shift(dirs[side]) & !occupied;
-        moves.add_moves(pushes, dirs[side], QUIET_MOVE);
-
-        let double_pushes = (pushes & ranks[side]).shift(dirs[side]) & !occupied;
-        moves.add_moves(double_pushes, 2 * dirs[side], DOUBLE_PAWN_PUSH);
-
-        let left_attacks = (bitboards[side | PAWN] & !FILE_A).shift(dirs[2 + side]) & bitboards[side ^ 1] & !bitboards[side];
-        moves.add_moves(left_attacks, dirs[2 + side], CAPTURE);
-
-        let right_attacks = (bitboards[side | PAWN] & !FILE_H).shift(dirs[4 + side]) & bitboards[side ^ 1] & !bitboards[side];
-        moves.add_moves(right_attacks, dirs[4 + side], CAPTURE);
-
+        moves.add_pawn_moves(self.bitboards.as_slice(), self.side);
         moves
     }
 }

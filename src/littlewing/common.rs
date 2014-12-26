@@ -1,5 +1,6 @@
 pub type Bitboard = u64;
 pub type Color = uint;
+pub type Direction = uint; // FIXME: Use `int` instead
 pub type MoveType = uint;
 pub type Piece = uint;
 pub type Square = uint;
@@ -31,10 +32,10 @@ pub const BLACK_ROOK:   Piece = BLACK | ROOK;
 pub const BLACK_QUEEN:  Piece = BLACK | QUEEN;
 pub const BLACK_KING:   Piece = BLACK | KING;
 
-pub const UP:    uint = 8;
-pub const DOWN:  uint = -8; // FIXME: negative value as uint
-pub const LEFT:  uint = -1; // FIXME: negative value as uint
-pub const RIGHT: uint = 1;
+pub const UP:    Direction = 8;
+pub const DOWN:  Direction = -8;
+pub const LEFT:  Direction = -1;
+pub const RIGHT: Direction = 1;
 
 pub const A1: Square = 0;
 //pub const B1: Square = 1;
