@@ -116,14 +116,26 @@ impl Game {
     }
 
     pub fn play_move(&mut self, m: Move) {
-        self.board[m.to] = self.board[m.from];
+        let piece = self.board[m.from];
+
         self.board[m.from] = EMPTY;
+        self.board[m.to] = piece;
+
+        self.bitboards[piece].toggle(m.from);
+        self.bitboards[piece].toggle(m.to);
+
         self.side ^= 1; // TODO: Define self.side.toggle(0)
     }
 
     pub fn undo_move(&mut self, m: Move) {
-        self.board[m.from] = self.board[m.to];
+        let piece = self.board[m.to];
+
+        self.board[m.from] = piece;
         self.board[m.to] = EMPTY;
+
+        self.bitboards[piece].toggle(m.from);
+        self.bitboards[piece].toggle(m.to);
+
         self.side ^= 1; // TODO: Define self.side.toggle(0)
     }
 
@@ -198,6 +210,34 @@ mod tests {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
-        assert!(moves.len() == 16);
+        assert_eq!(moves.len(), 16);
+    }
+
+    #[test]
+    fn test_play_move() {
+        let fens = [
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
+            "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b"
+        ];
+        let m = Move::new(E2, E3, QUIET_MOVE);
+
+        let mut game = Game::from_fen(fens[0]);
+        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        game.play_move(m);
+        assert_eq!(game.to_fen().as_slice(), fens[1]);
+    }
+
+    #[test]
+    fn test_undo_move() {
+        let fens = [
+            "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b",
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"
+        ];
+        let m = Move::new(E2, E3, QUIET_MOVE);
+
+        let mut game = Game::from_fen(fens[0]);
+        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        game.undo_move(m);
+        assert_eq!(game.to_fen().as_slice(), fens[1]);
     }
 }
