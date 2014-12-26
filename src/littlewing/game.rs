@@ -154,7 +154,7 @@ impl Game {
     }
 
     pub fn generate_moves(&self) -> Moves {
-        let mut moves = Vec::new();
+        let mut moves = Vec::with_capacity(64);
 
         moves.add_pawn_moves(self.bitboards.as_slice(), self.side);
         moves

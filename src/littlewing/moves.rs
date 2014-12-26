@@ -36,8 +36,8 @@ impl MovesOperations for Moves {
         }
     }
     fn add_pawn_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        const YDIRS: [Direction, ..2] = [UP, DOWN];
         const XDIRS: [[Direction, ..2], ..2] = [[LEFT, RIGHT], [RIGHT, LEFT]];
+        const YDIRS: [Direction, ..2] = [UP, DOWN];
         const FILES: [Bitboard, ..2] = [FILE_A, FILE_H];
         const RANKS: [Bitboard, ..2] = [RANK_3, RANK_6];
 
@@ -51,7 +51,7 @@ impl MovesOperations for Moves {
         let double_pushes = (pushes & RANKS[side]).shift(ydir) & !occupied;
         self.add_moves(double_pushes, 2 * ydir, DOUBLE_PAWN_PUSH);
 
-        for i in range(0, 2) {
+        for i in range(0, 2) { // LEFT and RIGHT attacks
             let dir = ydir + XDIRS[side][i];
             let attacks =
                 (bitboards[side | PAWN] & !FILES[i]).shift(dir)
