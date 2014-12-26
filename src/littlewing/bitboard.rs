@@ -2,6 +2,7 @@
 use littlewing::common::*;
 use std::num::Int;
 
+/*
 const INDEX64: [uint, ..64] = [
      0,  1, 48,  2, 57, 49, 28,  3,
     61, 58, 50, 42, 38, 29, 17,  4,
@@ -12,9 +13,10 @@ const INDEX64: [uint, ..64] = [
     46, 26, 40, 15, 34, 20, 31, 10,
     25, 14, 19,  9, 13,  8,  7,  6
 ];
+*/
 
 pub trait BitwiseOperations {
-    //fn toggle(&mut self, i: uint);
+    fn toggle(&mut self, i: uint);
     fn set(&mut self, i: uint);
     fn reset(&mut self, i: uint);
     fn get(&self, i: uint) -> bool;
@@ -23,11 +25,9 @@ pub trait BitwiseOperations {
 }
 
 impl BitwiseOperations for Bitboard {
-    /*
     fn toggle(&mut self, i: uint) {
         *self ^= 1 << i
     }
-    */
     fn set(&mut self, i: uint) {
         *self |= 1 << i
     }

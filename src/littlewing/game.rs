@@ -1,7 +1,8 @@
-use littlewing::common::*;
+use std;
 
+use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
-use littlewing::fen::FENBuilder;
+use littlewing::fen::FEN;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::moves::MovesOperations;
@@ -24,33 +25,20 @@ impl Game {
 
     pub fn from_fen(fen: &str) -> Game {
         let mut game = Game::new();
-        let mut i = 0u;
         let mut fields = fen.words();
+        let mut sq = A8;
         for c in fields.next().unwrap().chars() {
-            let piece = match c {
-                'p' => WHITE_PAWN,
-                'n' => WHITE_KNIGHT,
-                'b' => WHITE_BISHOP,
-                'r' => WHITE_ROOK,
-                'q' => WHITE_QUEEN,
-                'k' => WHITE_KING,
-                'P' => BLACK_PAWN,
-                'N' => BLACK_KNIGHT,
-                'B' => BLACK_BISHOP,
-                'R' => BLACK_ROOK,
-                'Q' => BLACK_QUEEN,
-                'K' => BLACK_KING,
-                '/' => continue,
-                _   => {
-                    if '1' <= c && c <= '8' {
-                        i += c.to_digit(10).unwrap();
-                    }
-                    continue
-                }
+            sq += if c == '/' {
+                2 * DOWN
+            } else if '1' <= c && c <= '8' {
+                c.to_digit(10).unwrap()
+            } else {
+                let p = FEN::decode_piece(c);
+                game.board[sq] = p;
+                game.bitboards[p].set(sq);
+
+                1
             };
-            game.board[i] = piece;
-            game.bitboards[piece].set(i);
-            i += 1;
         }
         game.bitboards[WHITE] = 0;
         for p in range(WHITE_PAWN, WHITE_KING + 1) {
@@ -68,21 +56,48 @@ impl Game {
     }
 
     pub fn to_fen(&self) -> String {
-        let mut fen_builder = FENBuilder::new();
-        for i in range(0u, 64) {
-            if i > 0 && i % 8 == 0 {
-                fen_builder.next_rank();
-            }
-            for &piece in PIECES.iter() {
-                if self.bitboards[piece as uint].get(i) {
-                    fen_builder.push(piece);
-                    break;
+        let mut fen = String::new();
+        let mut n = 0u;
+        let mut sq = A8;
+        loop {
+            let p = self.board[sq];
+
+            if p == EMPTY {
+                n += 1;
+            } else {
+                if n > 0 {
+                    let c = std::char::from_digit(n, 10).unwrap();
+                    fen.push(c);
+                    n = 0;
                 }
+                fen.push(FEN::encode_piece(p));
             }
-            fen_builder.next_file();
+
+            if sq == H1 {
+                break;
+            }
+
+            if sq & H1 == H1 { // TODO: is_file_h!(sq)
+                if n > 0 { // TODO: DRY
+                    let c = std::char::from_digit(n, 10).unwrap();
+                    fen.push(c);
+                    n = 0;
+                }
+                fen.push('/');
+                sq += 2 * DOWN;
+            }
+
+            sq += RIGHT;
         }
-        fen_builder.set_side(self.side);
-        fen_builder.to_string()
+
+        fen.push(' ');
+        if self.side == WHITE {
+            fen.push('w');
+        } else {
+            fen.push('b');
+        }
+
+        fen
     }
 
     pub fn perft(&self, depth: uint) -> uint {
@@ -142,11 +157,20 @@ impl Game {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
+    use littlewing::common::*;
+    use littlewing::moves::Move;
     use super::Game;
 
     #[test]
-    fn test_fen() {
+    fn test_from_fen() {
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+        let game = Game::from_fen(fen);
+        assert_eq!(game.board[E2], WHITE_PAWN);
+    }
+
+    #[test]
+    fn test_to_fen() {
         let fens = [
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
             "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b",
@@ -154,7 +178,7 @@ mod test {
         ];
         for &fen in fens.iter() {
             let game = Game::from_fen(fen);
-            assert!(game.to_fen().as_slice() == fen);
+            assert_eq!(game.to_fen().as_slice(), fen);
         }
     }
 
@@ -162,11 +186,11 @@ mod test {
     fn test_perft() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let game = Game::from_fen(fen);
-        assert!(game.perft(1) == 16u); // FIXME
-        assert!(game.perft(2) == 272u); // FIXME
-        //assert!(game.perft(1) == 20u);
-        //assert!(game.perft(2) == 400u);
-        //assert!(game.perft(3) == 8902u);
+        assert_eq!(game.perft(1), 16u); // FIXME
+        assert_eq!(game.perft(2), 272u); // FIXME
+        //assert_eq!(game.perft(1), 20u);
+        //assert_eq!(game.perft(2), 400u);
+        //assert_eq!(game.perft(3), 8902u);
     }
 
     #[test]
