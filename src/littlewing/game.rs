@@ -115,19 +115,16 @@ impl Game {
     }
 
     pub fn perft(&mut self, depth: uint) -> uint {
-        let mut n = 0;
-
         if depth == 0 {
-            return n
+            return 1
+        } else {
+            self.generate_moves().iter().fold(0, |r, &m| {
+                self.play_move(m);
+                let n = self.perft(depth - 1);
+                self.undo_move(m);
+                r + n
+            })
         }
-
-        for &m in self.generate_moves().iter() {
-            self.play_move(m);
-            n += 1 + self.perft(depth - 1);
-            self.undo_move(m);
-        }
-
-        n
     }
 
     pub fn play_move(&mut self, m: Move) {
@@ -194,7 +191,7 @@ mod tests {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 20u);
-        //assert_eq!(game.perft(2), 400u);
+        assert_eq!(game.perft(2), 400u);
         //assert_eq!(game.perft(3), 8902u);
     }
 
