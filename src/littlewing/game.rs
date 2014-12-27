@@ -119,7 +119,7 @@ impl Game {
             return 1
         } else {
             self.generate_moves().iter().fold(0, |r, &m| {
-                self.play_move(m);
+                self.make_move(m);
                 let n = self.perft(depth - 1);
                 self.undo_move(m);
                 r + n
@@ -127,7 +127,7 @@ impl Game {
         }
     }
 
-    pub fn play_move(&mut self, m: Move) {
+    pub fn make_move(&mut self, m: Move) {
         let piece = self.board[m.from];
 
         self.board[m.from] = EMPTY;
@@ -224,7 +224,7 @@ mod tests {
     }
 
     #[test]
-    fn test_play_move() {
+    fn test_make_move() {
         let fens = [
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
             "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b"
@@ -233,7 +233,7 @@ mod tests {
 
         let mut game = Game::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_slice(), fens[0]);
-        game.play_move(m);
+        game.make_move(m);
         assert_eq!(game.to_fen().as_slice(), fens[1]);
     }
 
