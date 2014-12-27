@@ -17,6 +17,8 @@ pub struct Game {
 
 impl Game {
     pub fn new() -> Game {
+        //moves::Init::knight_sqbb();
+        //moves::Init::king_sqbb();
         Game {
             board: [EMPTY, ..64],
             bitboards: [0, ..14],
@@ -156,6 +158,7 @@ impl Game {
 
         moves.add_pawns_moves(self.bitboards.as_slice(), self.side);
         moves.add_knights_moves(self.bitboards.as_slice(), self.side);
+        moves.add_king_moves(self.bitboards.as_slice(), self.side);
         moves
     }
 }
@@ -200,26 +203,31 @@ mod tests {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
+        println!("{}", game.to_string());
         assert_eq!(moves.len(), 20);
 
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
-        assert_eq!(moves.len(), 2);
+        println!("{}", game.to_string());
+        assert_eq!(moves.len(), 9);
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
-        assert_eq!(moves.len(), 2);
+        println!("{}", game.to_string());
+        assert_eq!(moves.len(), 9);
 
         // Pawn left capture
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
+        println!("{}", game.to_string());
         assert_eq!(moves.len(), 3);
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
+        println!("{}", game.to_string());
         assert_eq!(moves.len(), 3);
     }
 
