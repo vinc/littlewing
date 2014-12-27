@@ -6,10 +6,11 @@ use littlewing::game::Game;
 
 #[bench]
 fn bench_game_perft(b: &mut Bencher) {
-    let mut game = Game::new();
+    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+    let mut game = Game::from_fen(fen);
 
     b.iter(|| {
-        game.perft(5);
+        game.perft(4);
     })
 }
 

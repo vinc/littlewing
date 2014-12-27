@@ -3,3 +3,4 @@ mod bitboard;
 mod common;
 mod fen;
 mod moves;
+mod position;

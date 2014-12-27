@@ -7,12 +7,13 @@ use littlewing::moves;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::moves::MovesOperations;
+use littlewing::position::Position;
+use littlewing::position::Stack;
 
-#[deriving(Copy)]
 pub struct Game {
     board: [Piece, ..64],
     bitboards: [Bitboard, ..14],
-    side: Color
+    positions: Vec<Position>
 }
 
 impl Game {
@@ -22,13 +23,14 @@ impl Game {
         Game {
             board: [EMPTY, ..64],
             bitboards: [0, ..14],
-            side: WHITE
+            positions: Vec::with_capacity(512)
         }
     }
 
     pub fn from_fen(fen: &str) -> Game {
         let mut game = Game::new();
         let mut fields = fen.words();
+
         let mut sq = A8;
         for c in fields.next().unwrap().chars() {
             sq += if c == '/' {
@@ -44,11 +46,16 @@ impl Game {
                 1
             };
         }
-        game.side = match fields.next().unwrap() {
+
+        let mut position = Position::new();
+
+        position.side = match fields.next().unwrap() {
             "w" => WHITE,
             "b" => BLACK,
             _   => BLACK // FIXME
         };
+
+        game.positions.push(position);
         game
     }
 
@@ -88,7 +95,7 @@ impl Game {
         }
 
         fen.push(' ');
-        if self.side == WHITE {
+        if self.positions.top().side == WHITE {
             fen.push('w');
         } else {
             fen.push('b');
@@ -138,7 +145,10 @@ impl Game {
         self.bitboards[piece].toggle(m.from);
         self.bitboards[piece].toggle(m.to);
 
-        self.side ^= 1; // TODO: Define self.side.toggle(0)
+        let &mut position = self.positions.top();
+        position.side ^= 1; // TODO: Define self.side.toggle(0)
+
+        self.positions.push(position);
     }
 
     pub fn undo_move(&mut self, m: Move) {
@@ -150,15 +160,17 @@ impl Game {
         self.bitboards[piece].toggle(m.from);
         self.bitboards[piece].toggle(m.to);
 
-        self.side ^= 1; // TODO: Define self.side.toggle(0)
+        self.positions.pop();
     }
 
     pub fn generate_moves(&self) -> Moves {
         let mut moves = Vec::with_capacity(64);
 
-        moves.add_pawns_moves(self.bitboards.as_slice(), self.side);
-        moves.add_knights_moves(self.bitboards.as_slice(), self.side);
-        moves.add_king_moves(self.bitboards.as_slice(), self.side);
+        let bitboards = self.bitboards.as_slice();
+        let side = self.positions.top().side;
+        moves.add_pawns_moves(bitboards, side);
+        moves.add_knights_moves(bitboards, side);
+        moves.add_king_moves(bitboards, side);
         moves
     }
 }
@@ -241,6 +253,7 @@ mod tests {
 
         let mut game = Game::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_slice(), fens[0]);
+
         game.make_move(m);
         assert_eq!(game.to_fen().as_slice(), fens[1]);
     }
@@ -248,14 +261,17 @@ mod tests {
     #[test]
     fn test_undo_move() {
         let fens = [
-            "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b",
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
+            "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b"
         ];
         let m = Move::new(E2, E3, QUIET_MOVE);
 
         let mut game = Game::from_fen(fens[0]);
-        assert_eq!(game.to_fen().as_slice(), fens[0]);
-        game.undo_move(m);
+
+        game.make_move(m);
         assert_eq!(game.to_fen().as_slice(), fens[1]);
+
+        game.undo_move(m);
+        assert_eq!(game.to_fen().as_slice(), fens[0]);
     }
 }
