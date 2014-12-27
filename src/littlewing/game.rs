@@ -17,7 +17,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new() -> Game {
+    fn new() -> Game {
         //moves::Init::knight_sqbb();
         //moves::Init::king_sqbb();
         Game {
