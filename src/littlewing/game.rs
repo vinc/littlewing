@@ -3,6 +3,7 @@ use std;
 use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
 use littlewing::fen::FEN;
+use littlewing::moves;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::moves::MovesOperations;
@@ -156,7 +157,8 @@ impl Game {
     pub fn generate_moves(&self) -> Moves {
         let mut moves = Vec::with_capacity(64);
 
-        moves.add_pawn_moves(self.bitboards.as_slice(), self.side);
+        moves.add_pawns_moves(self.bitboards.as_slice(), self.side);
+        moves.add_knights_moves(self.bitboards.as_slice(), self.side);
         moves
     }
 }
@@ -191,8 +193,7 @@ mod tests {
     fn test_perft() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
-        assert_eq!(game.perft(1), 16u); // FIXME
-        //assert_eq!(game.perft(1), 20u);
+        assert_eq!(game.perft(1), 20u);
         //assert_eq!(game.perft(2), 400u);
         //assert_eq!(game.perft(3), 8902u);
     }
@@ -202,7 +203,7 @@ mod tests {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let game = Game::from_fen(fen);
         let moves = game.generate_moves();
-        assert_eq!(moves.len(), 16);
+        assert_eq!(moves.len(), 20);
 
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b";
