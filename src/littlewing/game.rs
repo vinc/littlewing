@@ -11,8 +11,9 @@ use littlewing::position::Position;
 use littlewing::position::Stack;
 
 pub struct Game {
-    board: [Piece, ..64],
     bitboards: [Bitboard, ..14],
+    board: [Piece, ..64],
+    moves: Vec<Moves>,
     positions: Vec<Position>
 }
 
@@ -21,8 +22,9 @@ impl Game {
         //moves::Init::knight_sqbb();
         //moves::Init::king_sqbb();
         Game {
-            board: [EMPTY, ..64],
             bitboards: [0, ..14],
+            board: [EMPTY, ..64],
+            moves: Vec::with_capacity(256),
             positions: Vec::with_capacity(512)
         }
     }
@@ -30,6 +32,11 @@ impl Game {
     pub fn from_fen(fen: &str) -> Game {
         let mut game = Game::new();
         let mut fields = fen.words();
+
+        // Init moves list
+        for _ in range(0u, 256) {
+            game.moves.push(Vec::with_capacity(256));
+        }
 
         let mut sq = A8;
         for c in fields.next().unwrap().chars() {
@@ -104,6 +111,10 @@ impl Game {
         fen
     }
 
+    fn ply(&self) -> uint {
+        self.positions.len() - 1
+    }
+
     fn to_string(&self) -> String {
         // FIXME: Testing `map` and `fold` for the lulz
 
@@ -127,7 +138,9 @@ impl Game {
         if depth == 0 {
             return 1
         } else {
-            self.generate_moves().iter().fold(0, |r, &m| {
+            let ply = self.ply();
+            self.generate_moves();
+            self.moves[ply].iter().fold(0, |r, &m| {
                 self.make_move(m);
                 let n = self.perft(depth - 1);
                 self.undo_move(m);
@@ -179,15 +192,15 @@ impl Game {
         }
     }
 
-    pub fn generate_moves(&self) -> Moves {
-        let mut moves = Vec::with_capacity(64);
-
+    pub fn generate_moves(&mut self) {
         let bitboards = self.bitboards.as_slice();
         let side = self.positions.top().side;
-        moves.add_pawns_moves(bitboards, side);
-        moves.add_knights_moves(bitboards, side);
-        moves.add_king_moves(bitboards, side);
-        moves
+        let ply = self.ply();
+
+        self.moves[ply].clear();
+        self.moves[ply].add_pawns_moves(bitboards, side);
+        self.moves[ply].add_knights_moves(bitboards, side);
+        self.moves[ply].add_king_moves(bitboards, side);
     }
 }
 
@@ -233,34 +246,41 @@ mod tests {
     #[test]
     fn test_generate_moves() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
-        let game = Game::from_fen(fen);
-        let moves = game.generate_moves();
+        let mut game = Game::from_fen(fen);
+        let ply = game.ply();
+        game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(moves.len(), 20);
+        assert_eq!(game.moves[ply].len(), 20);
 
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b";
-        let game = Game::from_fen(fen);
-        let moves = game.generate_moves();
+        let mut game = Game::from_fen(fen);
+        let ply = game.ply();
+        game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(moves.len(), 9);
+        assert_eq!(game.moves[ply].len(), 9);
+
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w";
-        let game = Game::from_fen(fen);
-        let moves = game.generate_moves();
+        let mut game = Game::from_fen(fen);
+        let ply = game.ply();
+        game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(moves.len(), 9);
+        assert_eq!(game.moves[ply].len(), 9);
 
         // Pawn left capture
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w";
-        let game = Game::from_fen(fen);
-        let moves = game.generate_moves();
+        let mut game = Game::from_fen(fen);
+        let ply = game.ply();
+        game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(moves.len(), 3);
+        assert_eq!(game.moves[ply].len(), 3);
+
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b";
-        let game = Game::from_fen(fen);
-        let moves = game.generate_moves();
+        let mut game = Game::from_fen(fen);
+        let ply = game.ply();
+        game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(moves.len(), 3);
+        assert_eq!(game.moves[ply].len(), 3);
     }
 
     #[test]
@@ -351,10 +371,10 @@ mod tests {
     fn bench_make_move(b: &mut Bencher) {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
-        let moves = game.generate_moves();
+        let m = Move::new(E2, E3, QUIET_MOVE);
 
         b.iter(|| {
-            game.make_move(moves[0]);
+            game.make_move(m);
         })
     }
 }
