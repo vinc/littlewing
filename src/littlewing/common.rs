@@ -70,7 +70,7 @@ pub const E3: Square = 20;
 //pub const G4: Square = 30;
 //pub const H4: Square = 31;
 //pub const A5: Square = 32;
-//pub const B5: Square = 33;
+pub const B5: Square = 33;
 //pub const C5: Square = 34;
 //pub const D5: Square = 35;
 //pub const E5: Square = 36;
@@ -79,7 +79,7 @@ pub const E3: Square = 20;
 //pub const H5: Square = 39;
 //pub const A6: Square = 40;
 //pub const B6: Square = 41;
-//pub const C6: Square = 42;
+pub const C6: Square = 42;
 //pub const D6: Square = 43;
 //pub const E6: Square = 44;
 //pub const F6: Square = 45;
@@ -129,6 +129,8 @@ pub const CAPTURE:                  MoveType = 4;
 //pub const BISHOP_PROMOTION_CAPTURE: MoveType = 13;
 //pub const ROOK_PROMOTION_CAPTURE:   MoveType = 14;
 //pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 15;
+
+pub const PROMOTION:                  MoveType = 8; // Only to test promotion
 
 pub static PIECES: [Piece, ..12] = [
     WHITE_PAWN,

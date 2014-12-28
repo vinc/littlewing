@@ -137,30 +137,46 @@ impl Game {
     }
 
     pub fn make_move(&mut self, m: Move) {
+        let &mut position = self.positions.top();
+
         let piece = self.board[m.from];
+        let capture = self.board[m.to]; // TODO: En passant
 
         self.board[m.from] = EMPTY;
         self.board[m.to] = piece;
 
         self.bitboards[piece].toggle(m.from);
         self.bitboards[piece].toggle(m.to);
+        self.bitboards[position.side].toggle(m.from);
+        self.bitboards[position.side].toggle(m.to);
+        if capture != EMPTY {
+            self.bitboards[capture].toggle(m.to);
+            self.bitboards[position.side ^ 1].toggle(m.to);
+        }
 
-        let &mut position = self.positions.top();
         position.side ^= 1; // TODO: Define self.side.toggle(0)
+        position.capture = capture;
 
         self.positions.push(position);
     }
 
     pub fn undo_move(&mut self, m: Move) {
         let piece = self.board[m.to];
+        let capture = self.positions.top().capture;
+
+        self.positions.pop();
 
         self.board[m.from] = piece;
-        self.board[m.to] = EMPTY;
+        self.board[m.to] = capture;
 
         self.bitboards[piece].toggle(m.from);
         self.bitboards[piece].toggle(m.to);
-
-        self.positions.pop();
+        self.bitboards[self.positions.top().side].toggle(m.from);
+        self.bitboards[self.positions.top().side].toggle(m.to);
+        if capture != EMPTY {
+            self.bitboards[capture].toggle(m.to);
+            self.bitboards[self.positions.top().side ^ 1].toggle(m.to);
+        }
     }
 
     pub fn generate_moves(&self) -> Moves {
@@ -179,6 +195,7 @@ impl Game {
 mod tests {
     use littlewing::common::*;
     use littlewing::moves::Move;
+    use littlewing::position::Stack;
     use super::Game;
 
     #[test]
@@ -206,6 +223,7 @@ mod tests {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 20u);
+        assert_eq!(game.perft(1), 20u); // Test reproductivity
         assert_eq!(game.perft(2), 400u);
         //assert_eq!(game.perft(3), 8902u);
     }
@@ -273,5 +291,37 @@ mod tests {
 
         game.undo_move(m);
         assert_eq!(game.to_fen().as_slice(), fens[0]);
+    }
+
+    #[test]
+    fn test_capture() {
+        let fens = [
+            "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w",
+            "r1bqkbnr/1ppp1ppp/p1B5/4p3/4P3/5N2/PPPP1PPP/RNBQK2R b"
+        ];
+        let m = Move::new(B5, C6, CAPTURE);
+
+        let mut game = Game::from_fen(fens[0]);
+        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        assert_eq!(game.positions.len(), 1);
+        assert_eq!(game.positions.top().capture, EMPTY);
+        assert_eq!(game.positions[0].capture, EMPTY);
+        assert_eq!(game.positions[0].side, WHITE);
+
+        game.make_move(m);
+        assert_eq!(game.to_fen().as_slice(), fens[1]);
+        assert_eq!(game.positions.len(), 2);
+        assert_eq!(game.positions.top().capture, BLACK_KNIGHT);
+        assert_eq!(game.positions[0].capture, EMPTY);
+        assert_eq!(game.positions[0].side, WHITE);
+        assert_eq!(game.positions[1].capture, BLACK_KNIGHT);
+        assert_eq!(game.positions[1].side, BLACK);
+
+        game.undo_move(m);
+        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        assert_eq!(game.positions.len(), 1);
+        assert_eq!(game.positions.top().capture, EMPTY);
+        assert_eq!(game.positions[0].capture, EMPTY);
+        assert_eq!(game.positions[0].side, WHITE);
     }
 }
