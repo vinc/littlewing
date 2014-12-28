@@ -193,6 +193,8 @@ impl Game {
 
 #[cfg(test)]
 mod tests {
+    extern crate test;
+    use self::test::Bencher;
     use littlewing::common::*;
     use littlewing::moves::Move;
     use littlewing::position::Stack;
@@ -323,5 +325,36 @@ mod tests {
         assert_eq!(game.positions.top().capture, EMPTY);
         assert_eq!(game.positions[0].capture, EMPTY);
         assert_eq!(game.positions[0].side, WHITE);
+    }
+
+    #[bench]
+    fn bench_perft(b: &mut Bencher) {
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+        let mut game = Game::from_fen(fen);
+
+        b.iter(|| {
+            game.perft(1);
+        })
+    }
+
+    #[bench]
+    fn bench_generate_moves(b: &mut Bencher) {
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+        let mut game = Game::from_fen(fen);
+
+        b.iter(|| {
+            game.generate_moves();
+        })
+    }
+
+    #[bench]
+    fn bench_make_move(b: &mut Bencher) {
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+        let mut game = Game::from_fen(fen);
+        let moves = game.generate_moves();
+
+        b.iter(|| {
+            game.make_move(moves[0]);
+        })
     }
 }
