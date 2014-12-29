@@ -38,8 +38,7 @@ impl Moves {
         }
     }
     pub fn init(&mut self) {
-        self.init_knight_sqbb();
-        self.init_king_sqbb();
+        self.init_sqbbs();
         for _ in range(0u, MAX_PLY) {
             self.lists.push(Vec::with_capacity(MAX_MOVES));
         }
@@ -127,7 +126,7 @@ impl Moves {
         }
     }
 
-    fn init_knight_sqbb(&mut self) {
+    fn init_sqbbs(&mut self) {
         let ydirs = [UP, DOWN];
         let xdirs = [LEFT, RIGHT];
 
@@ -135,37 +134,30 @@ impl Moves {
             // Use 0x88 board representation to do off the board tests
             let sq88 = sq + (sq & !7);
             for i in range(0, 2) {
-                for j in range(0, 2) {
-                    // A 0x88 board contains 128 squares, that is two boards
-                    // of 64 squares side by side. So UP and DOWN values must
-                    // be doubled.
-                    if (sq88 + 4 * ydirs[i] + xdirs[j]) & 0x88 == 0 {
-                        self.knight_sqbb[sq].set(sq + 2 * ydirs[i] + xdirs[j]);
-                    }
-                    if (sq88 + 2 * ydirs[i] + 2 * xdirs[j]) & 0x88 == 0 {
-                        self.knight_sqbb[sq].set(sq + ydirs[i] + 2 * xdirs[j]);
-                    }
-                }
-            }
-        }
-    }
-    fn init_king_sqbb(&mut self) {
-        let ydirs = [UP, DOWN];
-        let xdirs = [LEFT, RIGHT];
+                // A 0x88 board contains 128 squares, that is two boards
+                // of 64 squares side by side. So UP and DOWN values must
+                // be doubled.
 
-        for sq in range(0, 64) {
-            // Use 0x88 board representation to do off the board tests
-            let sq88 = sq + (sq & !7);
-            for i in range(0, 2) {
+                // Exemple: UP
                 if (sq88 + 2 * ydirs[i]) & 0x88 == 0 {
                     self.king_sqbb[sq].set(sq + ydirs[i]);
                 }
+                // Exemple: LEFT
                 if (sq88 + xdirs[i]) & 0x88 == 0 {
                     self.king_sqbb[sq].set(sq + xdirs[i]);
                 }
                 for j in range(0, 2) {
+                    // Exemple: UP + LEFT
                     if (sq88 + 2 * ydirs[i] + xdirs[j]) & 0x88 == 0 {
                         self.king_sqbb[sq].set(sq + ydirs[i] + xdirs[j]);
+                    }
+                    // Exemple: UP + UP + LEFT
+                    if (sq88 + 4 * ydirs[i] + xdirs[j]) & 0x88 == 0 {
+                        self.knight_sqbb[sq].set(sq + 2 * ydirs[i] + xdirs[j]);
+                    }
+                    // Exemple: UP + LEFT + LEFT
+                    if (sq88 + 2 * ydirs[i] + 2 * xdirs[j]) & 0x88 == 0 {
+                        self.knight_sqbb[sq].set(sq + ydirs[i] + 2 * xdirs[j]);
                     }
                 }
             }
