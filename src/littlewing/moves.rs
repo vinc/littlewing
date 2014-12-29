@@ -209,35 +209,61 @@ impl Move {
     }
 }
 
-pub type Moves = Vec<Move>;
+const MAX_PLY: uint = 256;
+const MAX_MOVES: uint = 256;
 
-pub trait MovesOperations {
-    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mt: MoveType);
-    fn add_moves_from(&mut self, mut targets: Bitboard, from: Direction, mt: MoveType);
-    fn add_pawns_moves(&mut self, bitboards: &[Bitboard], side: Color);
-    fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color);
-    fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color);
+pub struct Moves {
+    lists: Vec<Vec<Move>>,
+    pub ply: uint
 }
 
-impl MovesOperations for Moves {
-    fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mt: MoveType) {
+impl Moves {
+    pub fn new() -> Moves {
+        Moves {
+            lists: Vec::with_capacity(MAX_PLY),
+            ply: 0
+        }
+    }
+    pub fn init(&mut self) {
+        for _ in range(0u, MAX_PLY) {
+            self.lists.push(Vec::with_capacity(MAX_MOVES));
+        }
+    }
+    pub fn inc(&mut self) {
+        self.ply += 1;
+    }
+    pub fn dec(&mut self) {
+        self.ply -= 1;
+    }
+    pub fn clear(&mut self) {
+        self.lists[self.ply].clear()
+    }
+    pub fn len(&self) -> uint {
+        self.lists[self.ply].len()
+    }
+    pub fn get(&self, i: uint) -> Move {
+        self.lists[self.ply][i]
+    }
+    pub fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mt: MoveType) {
         while targets != 0 {
             let to = targets.ffs();
             let from = to - dir;
             let m = Move::new(from, to, mt);
-            self.push(m);
+
+            self.lists[self.ply].push(m);
             targets.reset(to);
         }
     }
-    fn add_moves_from(&mut self, mut targets: Bitboard, from: Direction, mt: MoveType) {
+    pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Direction, mt: MoveType) {
         while targets != 0 {
             let to = targets.ffs();
             let m = Move::new(from, to, mt);
-            self.push(m);
+
+            self.lists[self.ply].push(m);
             targets.reset(to);
         }
     }
-    fn add_pawns_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+    pub fn add_pawns_moves(&mut self, bitboards: &[Bitboard], side: Color) {
         const XDIRS: [[Direction, ..2], ..2] = [[LEFT, RIGHT], [RIGHT, LEFT]];
         const YDIRS: [Direction, ..2] = [UP, DOWN];
         const FILES: [Bitboard, ..2] = [FILE_A, FILE_H];
@@ -261,8 +287,7 @@ impl MovesOperations for Moves {
             self.add_moves(attacks, dir, CAPTURE);
         }
     }
-
-    fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+    pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
         let mut knights = bitboards[side | KNIGHT];
 
         while knights > 0 {
@@ -274,8 +299,7 @@ impl MovesOperations for Moves {
             knights.reset(from);
         }
     }
-
-    fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+    pub fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
         let mut kings = bitboards[side | KING];
 
         while kings > 0 {

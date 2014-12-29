@@ -3,17 +3,15 @@ use std;
 use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
 use littlewing::fen::FEN;
-use littlewing::moves;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
-use littlewing::moves::MovesOperations;
 use littlewing::position::Position;
 use littlewing::position::Stack;
 
 pub struct Game {
     bitboards: [Bitboard, ..14],
     board: [Piece, ..64],
-    moves: Vec<Moves>,
+    moves: Moves,
     positions: Vec<Position>
 }
 
@@ -24,7 +22,7 @@ impl Game {
         Game {
             bitboards: [0, ..14],
             board: [EMPTY, ..64],
-            moves: Vec::with_capacity(256),
+            moves: Moves::new(),
             positions: Vec::with_capacity(512)
         }
     }
@@ -32,11 +30,7 @@ impl Game {
     pub fn from_fen(fen: &str) -> Game {
         let mut game = Game::new();
         let mut fields = fen.words();
-
-        // Init moves list
-        for _ in range(0u, 256) {
-            game.moves.push(Vec::with_capacity(256));
-        }
+        game.moves.init();
 
         let mut sq = A8;
         for c in fields.next().unwrap().chars() {
@@ -136,16 +130,18 @@ impl Game {
 
     pub fn perft(&mut self, depth: uint) -> uint {
         if depth == 0 {
-            return 1
+            1
         } else {
-            let ply = self.ply();
             self.generate_moves();
-            self.moves[ply].iter().fold(0, |r, &m| {
+            let n = self.moves.len();
+            let mut r = 0;
+            for i in range(0u, n) {
+                let m = self.moves.get(i);
                 self.make_move(m);
-                let n = self.perft(depth - 1);
+                r += self.perft(depth - 1);
                 self.undo_move(m);
-                r + n
-            })
+            }
+            r
         }
     }
 
@@ -171,6 +167,7 @@ impl Game {
         position.capture = capture;
 
         self.positions.push(position);
+        self.moves.inc();
     }
 
     pub fn undo_move(&mut self, m: Move) {
@@ -178,6 +175,7 @@ impl Game {
         let capture = self.positions.top().capture;
 
         self.positions.pop();
+        self.moves.dec();
 
         self.board[m.from] = piece;
         self.board[m.to] = capture;
@@ -195,12 +193,11 @@ impl Game {
     pub fn generate_moves(&mut self) {
         let bitboards = self.bitboards.as_slice();
         let side = self.positions.top().side;
-        let ply = self.ply();
 
-        self.moves[ply].clear();
-        self.moves[ply].add_pawns_moves(bitboards, side);
-        self.moves[ply].add_knights_moves(bitboards, side);
-        self.moves[ply].add_king_moves(bitboards, side);
+        self.moves.clear();
+        self.moves.add_pawns_moves(bitboards, side);
+        self.moves.add_knights_moves(bitboards, side);
+        self.moves.add_king_moves(bitboards, side);
     }
 }
 
@@ -245,42 +242,38 @@ mod tests {
 
     #[test]
     fn test_generate_moves() {
+        println!("test_generate_moves()");
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
-        let ply = game.ply();
         game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(game.moves[ply].len(), 20);
+        assert_eq!(game.moves.len(), 20);
 
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b";
         let mut game = Game::from_fen(fen);
-        let ply = game.ply();
         game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(game.moves[ply].len(), 9);
+        assert_eq!(game.moves.len(), 9);
 
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w";
         let mut game = Game::from_fen(fen);
-        let ply = game.ply();
         game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(game.moves[ply].len(), 9);
+        assert_eq!(game.moves.len(), 9);
 
         // Pawn left capture
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w";
         let mut game = Game::from_fen(fen);
-        let ply = game.ply();
         game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(game.moves[ply].len(), 3);
+        assert_eq!(game.moves.len(), 3);
 
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b";
         let mut game = Game::from_fen(fen);
-        let ply = game.ply();
         game.generate_moves();
         println!("{}", game.to_string());
-        assert_eq!(game.moves[ply].len(), 3);
+        assert_eq!(game.moves.len(), 3);
     }
 
     #[test]
