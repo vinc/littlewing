@@ -38,7 +38,7 @@ pub const LEFT:  Direction = -1;
 pub const RIGHT: Direction = 1;
 
 pub const A1: Square = 0;
-//pub const B1: Square = 1;
+pub const B1: Square = 1;
 //pub const C1: Square = 2;
 //pub const D1: Square = 3;
 //pub const E1: Square = 4;

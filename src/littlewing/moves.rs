@@ -23,7 +23,10 @@ impl Move {
 
 pub struct Moves {
     knight_mask: [Bitboard, ..64],
-    king_mask: [Bitboard, ..64],
+    bishop_mask: [Bitboard, ..64],
+    rook_mask:   [Bitboard, ..64],
+    queen_mask:  [Bitboard, ..64],
+    king_mask:   [Bitboard, ..64],
     lists: Vec<Vec<Move>>,
     pub ply: uint
 }
@@ -32,7 +35,10 @@ impl Moves {
     pub fn new() -> Moves {
         Moves {
             knight_mask: [0, ..64],
-            king_mask: [0, ..64],
+            bishop_mask: [0, ..64],
+            rook_mask:   [0, ..64],
+            queen_mask:  [0, ..64],
+            king_mask:   [0, ..64],
             lists: Vec::with_capacity(MAX_PLY),
             ply: 0
         }
@@ -125,41 +131,78 @@ impl Moves {
             kings.reset(from);
         }
     }
+
     fn init_masks(&mut self) {
-        let ydirs = [UP, DOWN];
-        let xdirs = [LEFT, RIGHT];
+        let deltas = [-2u, -1u, 0u, 1u, 2u];
 
-        for sq in range(0, 64) {
-            // Use 0x88 board representation to do off the board tests
-            let sq88 = sq + (sq & !7);
-            for i in range(0, 2) {
-                // A 0x88 board contains 128 squares, that is two boards
-                // of 64 squares side by side. So UP and DOWN values must
-                // be doubled.
-
-                // Example: UP
-                if (sq88 + 2 * ydirs[i]) & 0x88 == 0 {
-                    self.king_mask[sq].set(sq + ydirs[i]);
-                }
-                // Example: LEFT
-                if (sq88 + xdirs[i]) & 0x88 == 0 {
-                    self.king_mask[sq].set(sq + xdirs[i]);
-                }
-                for j in range(0, 2) {
-                    // Example: UP + LEFT
-                    if (sq88 + 2 * ydirs[i] + xdirs[j]) & 0x88 == 0 {
-                        self.king_mask[sq].set(sq + ydirs[i] + xdirs[j]);
-                    }
-                    // Example: UP + UP + LEFT
-                    if (sq88 + 4 * ydirs[i] + xdirs[j]) & 0x88 == 0 {
-                        self.knight_mask[sq].set(sq + 2 * ydirs[i] + xdirs[j]);
-                    }
-                    // Example: UP + LEFT + LEFT
-                    if (sq88 + 2 * ydirs[i] + 2 * xdirs[j]) & 0x88 == 0 {
-                        self.knight_mask[sq].set(sq + ydirs[i] + 2 * xdirs[j]);
+        for x in range(0u, 8) {
+            for y in range(0u, 8) {
+                let from = 8 * x + y;
+                for &i in deltas.iter() {
+                    for &j in deltas.iter() {
+                        for k in range(1u, 7) {
+                            let dx = x + i * k;
+                            let dy = y + j * k;
+                            let to = 8 * dx + dy;
+                            if to == from {
+                                break;
+                            }
+                            if dx < 0 || dx >= 8 || dy < 0 || dy >= 8 {
+                                break; // Out of board
+                            }
+                            if i == -2u || j == -2u || i == 2u || j == 2u {
+                                if i == -1u || j == -1u || i == 1u || j == 1u {
+                                    self.knight_mask[from].set(to);
+                                }
+                                break;
+                            }
+                            if k == 1 {
+                                self.king_mask[from].set(to);
+                            }
+                            if dx < 1 || dx >= 7 || dy < 1 || dy >= 7 {
+                                break; // Edge of the board
+                            }
+                            if i == 0 || j == 0 {
+                                self.rook_mask[from].set(to);
+                            } else {
+                                self.bishop_mask[from].set(to);
+                            }
+                            self.queen_mask[from].set(to);
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use littlewing::common::*;
+    use littlewing::bitboard::BitwiseOperations;
+    use super::Moves;
+
+    #[test]
+    fn test_init_masks() {
+        let mut moves = Moves::new();
+        moves.init_masks();
+
+        moves.king_mask[A1].debug();
+        assert_eq!(moves.king_mask[A1], 0x0000000000000302);
+
+        moves.king_mask[E3].debug();
+        assert_eq!(moves.king_mask[E3], 0x0000000038283800);
+
+        moves.knight_mask[B1].debug();
+        assert_eq!(moves.knight_mask[B1], 0x0000000000050800);
+
+        moves.bishop_mask[A1].debug();
+        assert_eq!(moves.bishop_mask[A1], 0x0040201008040200);
+
+        moves.bishop_mask[E3].debug();
+        assert_eq!(moves.bishop_mask[E3], 0x0000024428002800);
+
+        moves.rook_mask[E3].debug();
+        assert_eq!(moves.rook_mask[E3], 0x00101010106E1000);
     }
 }
