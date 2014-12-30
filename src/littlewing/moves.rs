@@ -159,7 +159,7 @@ impl Moves {
                             if k == 1 {
                                 self.king_mask[from].set(to);
                             }
-                            if dx < 1 || dx >= 7 || dy < 1 || dy >= 7 {
+                            if dx + i < 0 || dx + i >= 8 || dy + j < 0 || dy + j >= 8 {
                                 break; // Edge of the board
                             }
                             if i == 0 || j == 0 {
@@ -204,5 +204,8 @@ mod tests {
 
         moves.rook_mask[E3].debug();
         assert_eq!(moves.rook_mask[E3], 0x00101010106E1000);
+
+        moves.rook_mask[A1].debug();
+        assert_eq!(moves.rook_mask[A1], 0x000101010101017E);
     }
 }

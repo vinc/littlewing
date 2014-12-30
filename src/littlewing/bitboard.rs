@@ -57,7 +57,7 @@ impl BitwiseOperations for Bitboard {
     fn debug(&self) {
         //println!("{:016X}", self);
         //println!("{:064b}", self);
-        println!("DEBUG(bitboard)");
+        println!("DEBUG(bitboard): 0x{:016X}", *self);
         for i in range(0, 8) {
             for j in range(0, 8) {
                 print!("{:b}", self.get(8 * i + j) as uint);
