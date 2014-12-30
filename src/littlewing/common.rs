@@ -5,19 +5,19 @@ pub type MoveType = uint;
 pub type Piece = uint;
 pub type Square = uint;
 
-pub const WHITE:  Color = 0b0000;
-pub const BLACK:  Color = 0b0001;
+pub const WHITE:  Color = 0b0000; // 0
+pub const BLACK:  Color = 0b0001; // 1
 
 //pub const LEAPER: Piece = 0b0000;
 //pub const SLIDER: Piece = 0b1000;
 
-pub const EMPTY:  Piece = 0b0000;
-pub const PAWN:   Piece = 0b0010;
-pub const KNIGHT: Piece = 0b0100;
-pub const KING:   Piece = 0b0110;
-pub const BISHOP: Piece = 0b1000;
-pub const ROOK:   Piece = 0b1010;
-pub const QUEEN:  Piece = 0b1100;
+pub const EMPTY:  Piece = 0b0000; // 0
+pub const PAWN:   Piece = 0b0010; // 2
+pub const KNIGHT: Piece = 0b0100; // 4
+pub const KING:   Piece = 0b0110; // 6
+pub const BISHOP: Piece = 0b1000; // 8
+pub const ROOK:   Piece = 0b1010; // 10
+pub const QUEEN:  Piece = 0b1100; // 12
 
 pub const WHITE_PAWN:   Piece = WHITE | PAWN;
 pub const WHITE_KNIGHT: Piece = WHITE | KNIGHT;

@@ -22,8 +22,8 @@ impl Move {
 }
 
 pub struct Moves {
-    knight_sqbb: [Bitboard, ..64],
-    king_sqbb: [Bitboard, ..64],
+    knight_mask: [Bitboard, ..64],
+    king_mask: [Bitboard, ..64],
     lists: Vec<Vec<Move>>,
     pub ply: uint
 }
@@ -31,14 +31,14 @@ pub struct Moves {
 impl Moves {
     pub fn new() -> Moves {
         Moves {
-            knight_sqbb: [0, ..64],
-            king_sqbb: [0, ..64],
+            knight_mask: [0, ..64],
+            king_mask: [0, ..64],
             lists: Vec::with_capacity(MAX_PLY),
             ply: 0
         }
     }
     pub fn init(&mut self) {
-        self.init_sqbbs();
+        self.init_masks();
         for _ in range(0u, MAX_PLY) {
             self.lists.push(Vec::with_capacity(MAX_MOVES));
         }
@@ -106,9 +106,9 @@ impl Moves {
 
         while knights > 0 {
             let from = knights.ffs();
-            let targets = self.knight_sqbb[from] & !bitboards[side];
+            let targets = self.knight_mask[from] & !bitboards[side];
             self.add_moves_from(targets, from, QUIET_MOVE);
-            let targets = self.knight_sqbb[from] & bitboards[side ^ 1];
+            let targets = self.knight_mask[from] & bitboards[side ^ 1];
             self.add_moves_from(targets, from, CAPTURE);
             knights.reset(from);
         }
@@ -118,15 +118,14 @@ impl Moves {
 
         while kings > 0 {
             let from = kings.ffs();
-            let targets = self.king_sqbb[from] & !bitboards[side];
+            let targets = self.king_mask[from] & !bitboards[side];
             self.add_moves_from(targets, from, QUIET_MOVE);
-            let targets = self.king_sqbb[from] & bitboards[side ^ 1];
+            let targets = self.king_mask[from] & bitboards[side ^ 1];
             self.add_moves_from(targets, from, CAPTURE);
             kings.reset(from);
         }
     }
-
-    fn init_sqbbs(&mut self) {
+    fn init_masks(&mut self) {
         let ydirs = [UP, DOWN];
         let xdirs = [LEFT, RIGHT];
 
@@ -138,26 +137,26 @@ impl Moves {
                 // of 64 squares side by side. So UP and DOWN values must
                 // be doubled.
 
-                // Exemple: UP
+                // Example: UP
                 if (sq88 + 2 * ydirs[i]) & 0x88 == 0 {
-                    self.king_sqbb[sq].set(sq + ydirs[i]);
+                    self.king_mask[sq].set(sq + ydirs[i]);
                 }
-                // Exemple: LEFT
+                // Example: LEFT
                 if (sq88 + xdirs[i]) & 0x88 == 0 {
-                    self.king_sqbb[sq].set(sq + xdirs[i]);
+                    self.king_mask[sq].set(sq + xdirs[i]);
                 }
                 for j in range(0, 2) {
-                    // Exemple: UP + LEFT
+                    // Example: UP + LEFT
                     if (sq88 + 2 * ydirs[i] + xdirs[j]) & 0x88 == 0 {
-                        self.king_sqbb[sq].set(sq + ydirs[i] + xdirs[j]);
+                        self.king_mask[sq].set(sq + ydirs[i] + xdirs[j]);
                     }
-                    // Exemple: UP + UP + LEFT
+                    // Example: UP + UP + LEFT
                     if (sq88 + 4 * ydirs[i] + xdirs[j]) & 0x88 == 0 {
-                        self.knight_sqbb[sq].set(sq + 2 * ydirs[i] + xdirs[j]);
+                        self.knight_mask[sq].set(sq + 2 * ydirs[i] + xdirs[j]);
                     }
-                    // Exemple: UP + LEFT + LEFT
+                    // Example: UP + LEFT + LEFT
                     if (sq88 + 2 * ydirs[i] + 2 * xdirs[j]) & 0x88 == 0 {
-                        self.knight_sqbb[sq].set(sq + ydirs[i] + 2 * xdirs[j]);
+                        self.knight_mask[sq].set(sq + ydirs[i] + 2 * xdirs[j]);
                     }
                 }
             }
