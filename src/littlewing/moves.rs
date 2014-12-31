@@ -143,15 +143,20 @@ impl Moves {
     fn add_bishop_moves(&mut self, from: Square, bitboards: &[Bitboard], side: Color) {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
-        let dirs = [UP + LEFT, DOWN + LEFT, DOWN + RIGHT, UP + RIGHT];
-        let wraps = [
+        const DIRS: [Square, ..4 ] = [
+            UP + LEFT,
+            DOWN + LEFT,
+            DOWN + RIGHT,
+            UP + RIGHT
+        ];
+        const WRAPS: [Bitboard, ..4] = [
             0xFEFEFEFEFEFEFEFE,
             0xFEFEFEFEFEFEFEFE,
             0x7F7F7F7F7F7F7F7F,
             0x7F7F7F7F7F7F7F7F
         ];
         for i in range(0u, 4) {
-            let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
+            let targets = Moves::dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]).shift(DIRS[i]);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
             self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
         }
@@ -167,15 +172,20 @@ impl Moves {
     fn add_rook_moves(&mut self, from: Square, bitboards: &[Bitboard], side: Color) {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
-        let dirs = [UP, DOWN, LEFT, RIGHT];
-        let wraps = [
+        const DIRS: [Square, ..4 ] = [
+            UP,
+            DOWN,
+            LEFT,
+            RIGHT
+        ];
+        const WRAPS: [Bitboard, ..4] = [
             0xFFFFFFFFFFFFFFFF,
             0xFFFFFFFFFFFFFFFF,
             0xFEFEFEFEFEFEFEFE,
             0x7F7F7F7F7F7F7F7F
         ];
         for i in range(0u, 4) {
-            let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
+            let targets = Moves::dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]).shift(DIRS[i]);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
             self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
         }
