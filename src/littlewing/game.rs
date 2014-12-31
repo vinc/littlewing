@@ -127,7 +127,11 @@ impl Game {
 
     pub fn perft(&mut self, depth: uint) -> uint {
         if depth == 0 {
-            1
+            if self.positions.top().capture & KING > 0 {
+                0
+            } else {
+                1
+            }
         } else {
             self.generate_moves();
             let n = self.moves.len();
