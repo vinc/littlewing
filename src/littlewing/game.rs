@@ -28,7 +28,6 @@ impl Game {
     pub fn from_fen(fen: &str) -> Game {
         let mut game = Game::new();
         let mut fields = fen.words();
-        game.moves.init();
 
         let mut sq = A8;
         for c in fields.next().unwrap().chars() {

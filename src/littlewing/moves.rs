@@ -33,7 +33,7 @@ pub struct Moves {
 
 impl Moves {
     pub fn new() -> Moves {
-        Moves {
+        let mut moves = Moves {
             knight_mask: [0, ..64],
             bishop_mask: [0, ..64],
             rook_mask:   [0, ..64],
@@ -41,13 +41,14 @@ impl Moves {
             king_mask:   [0, ..64],
             lists: Vec::with_capacity(MAX_PLY),
             ply: 0
-        }
-    }
-    pub fn init(&mut self) {
-        self.init_masks();
+        };
+
+        moves.init_masks();
         for _ in range(0u, MAX_PLY) {
-            self.lists.push(Vec::with_capacity(MAX_MOVES));
+            moves.lists.push(Vec::with_capacity(MAX_MOVES));
         }
+
+        moves
     }
     pub fn inc(&mut self) {
         self.ply += 1;
@@ -186,26 +187,12 @@ mod tests {
     fn test_init_masks() {
         let mut moves = Moves::new();
         moves.init_masks();
-
-        moves.king_mask[A1].debug();
-        assert_eq!(moves.king_mask[A1], 0x0000000000000302);
-
-        moves.king_mask[E3].debug();
-        assert_eq!(moves.king_mask[E3], 0x0000000038283800);
-
-        moves.knight_mask[B1].debug();
+        assert_eq!(moves.king_mask[A1],   0x0000000000000302);
+        assert_eq!(moves.king_mask[E3],   0x0000000038283800);
         assert_eq!(moves.knight_mask[B1], 0x0000000000050800);
-
-        moves.bishop_mask[A1].debug();
         assert_eq!(moves.bishop_mask[A1], 0x0040201008040200);
-
-        moves.bishop_mask[E3].debug();
         assert_eq!(moves.bishop_mask[E3], 0x0000024428002800);
-
-        moves.rook_mask[E3].debug();
-        assert_eq!(moves.rook_mask[E3], 0x00101010106E1000);
-
-        moves.rook_mask[A1].debug();
-        assert_eq!(moves.rook_mask[A1], 0x000101010101017E);
+        assert_eq!(moves.rook_mask[E3],   0x00101010106E1000);
+        assert_eq!(moves.rook_mask[A1],   0x000101010101017E);
     }
 }
