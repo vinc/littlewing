@@ -132,6 +132,57 @@ impl Moves {
             kings.reset(from);
         }
     }
+    pub fn add_bishops_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+        let mut bishops = bitboards[side | BISHOP];
+        let occupied = bitboards[WHITE] | bitboards[BLACK];
+
+        let dirs = [UP + LEFT, DOWN + LEFT, DOWN + RIGHT, UP + RIGHT];
+        let wraps = [
+            0xFEFEFEFEFEFEFEFE,
+            0xFEFEFEFEFEFEFEFE,
+            0x7F7F7F7F7F7F7F7F,
+            0x7F7F7F7F7F7F7F7F
+        ];
+        while bishops > 0 {
+            let from = bishops.ffs();
+            for i in range(0u, 4) {
+                let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
+                self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
+                self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
+            }
+            bishops.reset(from);
+        }
+    }
+    pub fn add_rooks_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+        let mut rooks = bitboards[side | ROOK];
+        let occupied = bitboards[WHITE] | bitboards[BLACK];
+
+        let dirs = [UP, DOWN, LEFT, RIGHT];
+        let wraps = [
+            0xFFFFFFFFFFFFFFFF,
+            0xFFFFFFFFFFFFFFFF,
+            0xFEFEFEFEFEFEFEFE,
+            0x7F7F7F7F7F7F7F7F
+        ];
+        while rooks > 0 {
+            let from = rooks.ffs();
+            for i in range(0u, 4) {
+                let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
+                self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
+                self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
+            }
+            rooks.reset(from);
+        }
+    }
+
+    fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: uint) -> Bitboard {
+        let mut flood: Bitboard = 0;
+        while sliders > 0 {
+            flood |= sliders;
+            sliders = sliders.shift(dir) & empty;
+        }
+        flood
+    }
 
     fn init_masks(&mut self) {
         let deltas = [-2u, -1u, 0u, 1u, 2u];
@@ -182,6 +233,47 @@ mod tests {
     use littlewing::common::*;
     use littlewing::bitboard::BitwiseOperations;
     use super::Moves;
+
+    #[test]
+    fn test_dumb7fill() {
+        let rooks: Bitboard = 0x0000000000100000;
+
+        let empty: Bitboard = !rooks;
+        let targets = Moves::dumb7fill(rooks, empty, UP);
+        targets.debug();
+        let attacks = targets.shift(UP);
+        attacks.debug();
+        assert_eq!(targets, 0x1010101010100000);
+
+        let empty: Bitboard = !rooks;
+        let targets = Moves::dumb7fill(rooks, empty, DOWN);
+        targets.debug();
+        let attacks = targets.shift(DOWN);
+        attacks.debug();
+        assert_eq!(targets, 0x0000000000101010);
+
+        let empty: Bitboard = !rooks & 0x7F7F7F7F7F7F7F7F;
+        let targets = Moves::dumb7fill(rooks, empty, RIGHT);
+        targets.debug();
+        let attacks = targets.shift(RIGHT);
+        attacks.debug();
+        assert_eq!(targets, 0x0000000000700000);
+
+        let empty: Bitboard = !(rooks | rooks << 16); // With blocker
+        let targets = Moves::dumb7fill(rooks, empty, UP);
+        targets.debug();
+        let attacks = targets.shift(UP);
+        attacks.debug();
+        assert_eq!(targets, 0x0000000010100000);
+
+        let bishop: Bitboard = 0x0000000000100000;
+        let empty: Bitboard = !bishop & 0x7F7F7F7F7F7F7F7F;
+        let targets = Moves::dumb7fill(bishop, empty, UP + RIGHT);
+        targets.debug();
+        let attacks = targets.shift(UP + RIGHT);
+        attacks.debug();
+        assert_eq!(targets, 0x0000004020100000);
+    }
 
     #[test]
     fn test_init_masks() {

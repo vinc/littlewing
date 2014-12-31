@@ -195,6 +195,8 @@ impl Game {
         self.moves.add_pawns_moves(bitboards, side);
         self.moves.add_knights_moves(bitboards, side);
         self.moves.add_king_moves(bitboards, side);
+        self.moves.add_bishops_moves(bitboards, side);
+        self.moves.add_rooks_moves(bitboards, side);
     }
 }
 
@@ -271,6 +273,20 @@ mod tests {
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 3);
+
+        // Bishop
+        let fen = "8/8/8/8/3B4/8/8/8 w";
+        let mut game = Game::from_fen(fen);
+        game.generate_moves();
+        println!("{}", game.to_string());
+        assert_eq!(game.moves.len(), 13);
+
+        // Rook
+        let fen = "8/8/8/8/1r1R4/8/8/8 w";
+        let mut game = Game::from_fen(fen);
+        game.generate_moves();
+        println!("{}", game.to_string());
+        assert_eq!(game.moves.len(), 13);
     }
 
     #[test]
