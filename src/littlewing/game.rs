@@ -197,6 +197,7 @@ impl Game {
         self.moves.add_king_moves(bitboards, side);
         self.moves.add_bishops_moves(bitboards, side);
         self.moves.add_rooks_moves(bitboards, side);
+        self.moves.add_queens_moves(bitboards, side);
     }
 }
 

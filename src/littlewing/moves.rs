@@ -134,6 +134,13 @@ impl Moves {
     }
     pub fn add_bishops_moves(&mut self, bitboards: &[Bitboard], side: Color) {
         let mut bishops = bitboards[side | BISHOP];
+        while bishops > 0 {
+            let from = bishops.ffs();
+            self.add_bishop_moves(from, bitboards, side);
+            bishops.reset(from);
+        }
+    }
+    fn add_bishop_moves(&mut self, from: Square, bitboards: &[Bitboard], side: Color) {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
         let dirs = [UP + LEFT, DOWN + LEFT, DOWN + RIGHT, UP + RIGHT];
@@ -143,18 +150,21 @@ impl Moves {
             0x7F7F7F7F7F7F7F7F,
             0x7F7F7F7F7F7F7F7F
         ];
-        while bishops > 0 {
-            let from = bishops.ffs();
-            for i in range(0u, 4) {
-                let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
-                self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-                self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
-            }
-            bishops.reset(from);
+        for i in range(0u, 4) {
+            let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
+            self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
+            self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
         }
     }
     pub fn add_rooks_moves(&mut self, bitboards: &[Bitboard], side: Color) {
         let mut rooks = bitboards[side | ROOK];
+        while rooks > 0 {
+            let from = rooks.ffs();
+            self.add_rook_moves(from, bitboards, side);
+            rooks.reset(from);
+        }
+    }
+    fn add_rook_moves(&mut self, from: Square, bitboards: &[Bitboard], side: Color) {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
         let dirs = [UP, DOWN, LEFT, RIGHT];
@@ -164,14 +174,19 @@ impl Moves {
             0xFEFEFEFEFEFEFEFE,
             0x7F7F7F7F7F7F7F7F
         ];
-        while rooks > 0 {
-            let from = rooks.ffs();
-            for i in range(0u, 4) {
-                let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
-                self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-                self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
-            }
-            rooks.reset(from);
+        for i in range(0u, 4) {
+            let targets = Moves::dumb7fill(1 << from, !occupied & wraps[i], dirs[i]).shift(dirs[i]); // & wraps[i];
+            self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
+            self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
+        }
+    }
+    pub fn add_queens_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+        let mut queens = bitboards[side | QUEEN];
+        while queens > 0 {
+            let from = queens.ffs();
+            self.add_bishop_moves(from, bitboards, side);
+            self.add_rook_moves(from, bitboards, side);
+            queens.reset(from);
         }
     }
 
