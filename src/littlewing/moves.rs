@@ -148,7 +148,7 @@ impl Moves {
                             if to == from {
                                 break;
                             }
-                            if dx < 0 || dx >= 8 || dy < 0 || dy >= 8 {
+                            if dx >= 8 || dy >= 8 {
                                 break; // Out of board
                             }
                             if i == -2u || j == -2u || i == 2u || j == 2u {
@@ -160,7 +160,7 @@ impl Moves {
                             if k == 1 {
                                 self.king_mask[from].set(to);
                             }
-                            if dx + i < 0 || dx + i >= 8 || dy + j < 0 || dy + j >= 8 {
+                            if dx + i >= 8 || dy + j >= 8 {
                                 break; // Edge of the board
                             }
                             if i == 0 || j == 0 {
