@@ -27,7 +27,8 @@ mod tests {
 
     #[test]
     fn test_from_square_string() {
-        assert_eq!(SquareString::from_square_string("e2".to_string()), E2);
+        let sq: Square = SquareString::from_square_string("e2".to_string());
+        assert_eq!(sq, E2);
     }
 
     #[test]
