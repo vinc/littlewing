@@ -1,4 +1,5 @@
 pub mod game;
+mod attack;
 mod bitboard;
 mod common;
 mod moves;

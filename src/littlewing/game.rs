@@ -1,6 +1,7 @@
 use std;
 
 use littlewing::common::*;
+use littlewing::attack::Attack;
 use littlewing::bitboard::BitwiseOperations;
 use littlewing::piece::PieceChar;
 use littlewing::piece::PieceAttr;
@@ -10,10 +11,10 @@ use littlewing::position::Position;
 use littlewing::position::Stack;
 
 pub struct Game {
-    bitboards: [Bitboard, ..14],
-    board: [Piece, ..64],
-    moves: Moves,
-    positions: Vec<Position>
+    pub bitboards: [Bitboard, ..14],
+    pub board: [Piece, ..64],
+    pub moves: Moves,
+    pub positions: Vec<Position>
 }
 
 impl Game {
@@ -127,20 +128,21 @@ impl Game {
     }
 
     pub fn perft(&mut self, depth: uint) -> uint {
+        //println!("perft({})", depth);
         if depth == 0 {
-            if self.positions.top().capture & KING > 0 {
-                0
-            } else {
-                1
-            }
+            1
         } else {
             self.generate_moves();
             let n = self.moves.len();
             let mut r = 0;
             for i in range(0u, n) {
                 let m = self.moves.get(i);
+                //println!("{}: {}", i, m.to_string(&self.board));
                 self.make_move(m);
-                r += self.perft(depth - 1);
+                //println!("{}", self.to_string());
+                if !self.is_check() {
+                    r += self.perft(depth - 1);
+                }
                 self.undo_move(m);
             }
             r
@@ -237,10 +239,20 @@ mod tests {
 
     #[test]
     fn test_perft() {
+        let fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w";
+        let mut game = Game::from_fen(fen);
+        //assert_eq!(game.perft(1), 14u);
+        //assert_eq!(game.perft(1), 191u);
+
+        let fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w";
+        let mut game = Game::from_fen(fen);
+        //assert_eq!(game.perft(1), 48u);
+        //assert_eq!(game.perft(2), 2039u);
+        //assert_eq!(game.perft(3), 97862u);
+
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 20u);
-        assert_eq!(game.perft(1), 20u); // Test reproductivity
         assert_eq!(game.perft(2), 400u);
         //assert_eq!(game.perft(3), 8902u);
     }
