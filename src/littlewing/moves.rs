@@ -83,7 +83,7 @@ impl Moves {
     pub fn get(&self, i: uint) -> Move {
         self.lists[self.ply][i]
     }
-    pub fn add_moves(&mut self, mut targets: Bitboard, dir: uint, mt: MoveType) {
+    pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
         while targets != 0 {
             let to = targets.ffs();
             let from = to - dir;
@@ -93,7 +93,7 @@ impl Moves {
             targets.reset(to);
         }
     }
-    pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Direction, mt: MoveType) {
+    pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Square, mt: MoveType) {
         while targets != 0 {
             let to = targets.ffs();
             let m = Move::new(from, to, mt);
