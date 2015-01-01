@@ -1,4 +1,3 @@
-
 use littlewing::common::*;
 use std::num::Int;
 
@@ -27,12 +26,15 @@ pub trait BitwiseOperations {
 
 impl BitwiseOperations for Bitboard {
     fn shift(&self, x: uint) -> Bitboard { // FIXME: Use int instead of uint
+        let v = *self;
+        // (v << x) & (-1u64 >> x) | (v >> -x) & (-1u64 << -x)
         if x as int > 0 {
-            *self << x
+            v << x
         } else {
-            *self >> -x
+            v >> -x
         }
     }
+
     fn toggle(&mut self, i: uint) {
         *self ^= 1 << i
     }
@@ -55,8 +57,8 @@ impl BitwiseOperations for Bitboard {
         self.trailing_zeros()
     }
     fn debug(&self) {
-        //println!("{:016X}", self);
-        //println!("{:064b}", self);
+        //println!("{:016X}", *self);
+        //println!("{:064b}", *self);
         println!("DEBUG(bitboard): 0x{:016X}", *self);
         for i in range(0, 8) {
             for j in range(0, 8) {
