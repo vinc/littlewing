@@ -1,4 +1,6 @@
 use littlewing::common::*;
+use littlewing::piece::PieceChar;
+use littlewing::square::SquareString;
 use littlewing::bitboard::BitwiseOperations;
 
 const MAX_PLY: uint = 256;
@@ -8,7 +10,7 @@ const MAX_MOVES: uint = 256;
 pub struct Move {
     pub from: Square,
     pub to: Square,
-    _type: MoveType // FIXME
+    pub kind: MoveType // FIXME
 }
 
 impl Move {
@@ -16,8 +18,24 @@ impl Move {
         Move {
             from: f,
             to: t,
-            _type: mt
+            kind: mt
         }
+    }
+    pub fn to_string(&self, board: &[Piece]) -> String {
+        let mut out = String::new();
+        let piece = board[self.from] & !BLACK;
+        let capture = board[self.to];
+        if piece != PAWN {
+            out.push(piece.to_char());
+        }
+        out.push_str(self.from.to_square_string().as_slice());
+        if capture == EMPTY {
+            out.push('-');
+        } else {
+            out.push('x');
+        }
+        out.push_str(self.to.to_square_string().as_slice());
+        out
     }
 }
 

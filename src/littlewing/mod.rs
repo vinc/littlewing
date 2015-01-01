@@ -1,6 +1,7 @@
 pub mod game;
 mod bitboard;
 mod common;
-mod fen;
 mod moves;
+mod piece;
 mod position;
+mod square;

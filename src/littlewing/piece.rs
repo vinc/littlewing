@@ -1,9 +1,12 @@
 use littlewing::common::*;
 
-pub struct FEN;
+pub trait PieceChar {
+    fn from_char(c: char) -> Self;
+    fn to_char(&self) -> char;
+}
 
-impl FEN {
-    pub fn decode_piece(c: char) -> Piece {
+impl PieceChar for Piece {
+    fn from_char(c: char) -> Piece {
         match c {
             'P' => WHITE_PAWN,
             'N' => WHITE_KNIGHT,
@@ -20,8 +23,8 @@ impl FEN {
             _   => EMPTY // FIXME
         }
     }
-    pub fn encode_piece(p: Piece) -> char {
-        match p {
+    fn to_char(&self) -> char {
+        match *self {
             WHITE_PAWN   => 'P',
             WHITE_KNIGHT => 'N',
             WHITE_BISHOP => 'B',
@@ -37,5 +40,19 @@ impl FEN {
             EMPTY        => ' ', // FIXME: not really for FEN format
             _            => '?' // FIXME
         }
+    }
+}
+
+pub trait PieceAttr {
+    fn color(&self) -> Color;
+    fn kind(&self) -> Piece;
+}
+
+impl PieceAttr for Piece {
+    fn color(&self) -> Color {
+        *self & 0b0001
+    }
+    fn kind(&self) -> Piece {
+        *self & 0b1110
     }
 }

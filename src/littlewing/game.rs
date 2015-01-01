@@ -2,7 +2,8 @@ use std;
 
 use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
-use littlewing::fen::FEN;
+use littlewing::piece::PieceChar;
+use littlewing::piece::PieceAttr;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::position::Position;
@@ -36,7 +37,7 @@ impl Game {
             } else if '1' <= c && c <= '8' {
                 c.to_digit(10).unwrap()
             } else {
-                let p = FEN::decode_piece(c);
+                let p = PieceChar::from_char(c);
                 game.board[sq] = p;
                 game.bitboards[p].set(sq);
                 game.bitboards[p & 1].set(sq); // TODO: p.color()
@@ -72,7 +73,7 @@ impl Game {
                     fen.push(c);
                     n = 0;
                 }
-                fen.push(FEN::encode_piece(p));
+                fen.push(p.to_char());
             }
 
             if sq == H1 {
@@ -116,8 +117,8 @@ impl Game {
         String::new() + sep.as_slice() + range(0u, 8).map(|i| {
             range(0u, 8)
                 .map(|j| {
-                    let p = FEN::encode_piece(self.board[8 * (7 - i) + j]);
-                    String::from_chars(['|', ' ', p, ' '].as_slice())
+                    let c = (self.board[8 * (7 - i) + j]).to_char();
+                    String::from_chars(['|', ' ', c, ' '].as_slice())
                 })
                 .fold(String::new(), |r, s| {
                     r + s.as_slice()
