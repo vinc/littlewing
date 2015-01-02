@@ -40,11 +40,11 @@ impl Move {
 }
 
 pub struct Moves {
-    knight_mask: [Bitboard, ..64],
-    bishop_mask: [Bitboard, ..64],
-    rook_mask:   [Bitboard, ..64],
-    queen_mask:  [Bitboard, ..64],
-    king_mask:   [Bitboard, ..64],
+    pub knight_mask: [Bitboard, ..64],
+    pub bishop_mask: [Bitboard, ..64],
+    pub rook_mask:   [Bitboard, ..64],
+    pub queen_mask:  [Bitboard, ..64],
+    pub king_mask:   [Bitboard, ..64],
     lists: Vec<Vec<Move>>,
     pub ply: uint
 }

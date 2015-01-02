@@ -13,12 +13,16 @@ pub trait Attack {
 impl Attack for Game {
     fn is_check(&self) -> bool {
         let side = self.positions.top().side ^ 1;
-        let square = self.bitboards[side | KING].ffs();
-        //println!("is king of color {} on square {} in check?", side, square.to_square_string());
-
+        let king = self.bitboards[side | KING];
+        if king == 0 {
+            return true; // FIXME: Obviously...
+        }
+        let square = king.ffs();
         self.is_attacked(square, side)
     }
     fn is_attacked(&self, square: Square, side: Color) -> bool {
+
+        let pawns = self.bitboards[side ^ 1 | PAWN];
 
         // TODO: Precompute this
         const XDIRS: [[Direction, ..2], ..2] = [[LEFT, RIGHT], [RIGHT, LEFT]];
@@ -29,12 +33,24 @@ impl Attack for Game {
             let dir = YDIRS[side ^ 1] + XDIRS[side ^ 1][i];
             attacks |= (1 << square).shift(dir) & !FILES[i];
         }
-        
+
         //(1 << square).debug();
         //attacks.debug();
         //self.bitboards[side ^ 1 | PAWN].debug();
 
-        if attacks & self.bitboards[side ^ 1 | PAWN] > 0 {
+        if attacks & pawns > 0 {
+            return true;
+        }
+
+        let knights = self.bitboards[side ^ 1 | KNIGHT];
+        let attacks = self.moves.knight_mask[square];
+        if attacks & knights > 0 {
+            return true;
+        }
+
+        let king = self.bitboards[side ^ 1 | KING];
+        let attacks = self.moves.king_mask[square];
+        if attacks & king > 0 {
             return true;
         }
 

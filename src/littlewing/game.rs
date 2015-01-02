@@ -108,7 +108,7 @@ impl Game {
         self.positions.len() - 1
     }
 
-    fn to_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         // FIXME: Testing `map` and `fold` for the lulz
 
         let sep = range(0u, 8)
