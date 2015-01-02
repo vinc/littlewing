@@ -102,14 +102,14 @@ pub const A8: Square = 56;
 //pub const G8: Square = 62;
 pub const H8: Square = 63;
 
-//pub const RANK_1: Bitboard = 0x00000000000000FF;
-//pub const RANK_2: Bitboard = 0x000000000000FF00;
+pub const RANK_1: Bitboard = 0x00000000000000FF;
+pub const RANK_2: Bitboard = 0x000000000000FF00;
 pub const RANK_3: Bitboard = 0x0000000000FF0000;
-//pub const RANK_4: Bitboard = 0x00000000FF000000;
-//pub const RANK_5: Bitboard = 0x000000FF00000000;
+pub const RANK_4: Bitboard = 0x00000000FF000000;
+pub const RANK_5: Bitboard = 0x000000FF00000000;
 pub const RANK_6: Bitboard = 0x0000FF0000000000;
-//pub const RANK_7: Bitboard = 0x00FF000000000000;
-//pub const RANK_8: Bitboard = 0xFF00000000000000;
+pub const RANK_7: Bitboard = 0x00FF000000000000;
+pub const RANK_8: Bitboard = 0xFF00000000000000;
 pub const FILE_A: Bitboard = 0x0101010101010101;
 pub const FILE_H: Bitboard = 0x8080808080808080;
 
@@ -121,14 +121,14 @@ pub const CAPTURE:                  MoveType = 4;
 //pub const EN_PASSANT:               MoveType = 5;
 //pub const NULL_MOVE:                MoveType = 6;
 
-//pub const KNIGHT_PROMOTION:         MoveType = 8;
-//pub const BISHOP_PROMOTION:         MoveType = 9;
-//pub const ROOK_PROMOTION:           MoveType = 10;
-//pub const QUEEN_PROMOTION:          MoveType = 11;
-//pub const KNIGHT_PROMOTION_CAPTURE: MoveType = 12;
-//pub const BISHOP_PROMOTION_CAPTURE: MoveType = 13;
-//pub const ROOK_PROMOTION_CAPTURE:   MoveType = 14;
-//pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 15;
+pub const KNIGHT_PROMOTION:         MoveType = 8;
+pub const BISHOP_PROMOTION:         MoveType = 9;
+pub const ROOK_PROMOTION:           MoveType = 10;
+pub const QUEEN_PROMOTION:          MoveType = 11;
+pub const KNIGHT_PROMOTION_CAPTURE: MoveType = 12;
+pub const BISHOP_PROMOTION_CAPTURE: MoveType = 13;
+pub const ROOK_PROMOTION_CAPTURE:   MoveType = 14;
+pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 15;
 
 pub const PROMOTION:                  MoveType = 8; // Only to test promotion
 

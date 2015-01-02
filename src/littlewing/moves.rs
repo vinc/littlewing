@@ -92,24 +92,32 @@ impl Moves {
         const XDIRS: [[Direction, ..2], ..2] = [[LEFT, RIGHT], [RIGHT, LEFT]];
         const YDIRS: [Direction, ..2] = [UP, DOWN];
         const FILES: [Bitboard, ..2] = [FILE_A, FILE_H];
-        const RANKS: [Bitboard, ..2] = [RANK_3, RANK_6];
+        const SEC_RANKS: [Bitboard, ..2] = [RANK_3, RANK_6];
+        const END_RANKS: [Bitboard, ..2] = [RANK_8, RANK_1];
 
         let ydir = YDIRS[side];
 
         let occupied = bitboards[WHITE] | bitboards[BLACK];
 
         let pushes = bitboards[side | PAWN].shift(ydir) & !occupied;
-        self.add_moves(pushes, ydir, QUIET_MOVE);
+        self.add_moves(pushes & !END_RANKS[side], ydir, QUIET_MOVE);
+        self.add_moves(pushes & END_RANKS[side], ydir, KNIGHT_PROMOTION);
+        self.add_moves(pushes & END_RANKS[side], ydir, BISHOP_PROMOTION);
+        self.add_moves(pushes & END_RANKS[side], ydir, ROOK_PROMOTION);
+        self.add_moves(pushes & END_RANKS[side], ydir, QUEEN_PROMOTION);
 
-        let double_pushes = (pushes & RANKS[side]).shift(ydir) & !occupied;
+        let double_pushes = (pushes & SEC_RANKS[side]).shift(ydir) & !occupied;
         self.add_moves(double_pushes, 2 * ydir, DOUBLE_PAWN_PUSH);
 
         for i in range(0, 2) { // LEFT and RIGHT attacks
             let dir = ydir + XDIRS[side][i];
-            let attacks =
-                (bitboards[side | PAWN] & !FILES[i]).shift(dir)
-                & bitboards[side ^ 1] & !bitboards[side];
-            self.add_moves(attacks, dir, CAPTURE);
+            let attackers = bitboards[side | PAWN] & !FILES[i];
+            let attacks = attackers.shift(dir) & bitboards[side ^ 1];
+            self.add_moves(attacks & !END_RANKS[side], dir, CAPTURE);
+            self.add_moves(attacks & END_RANKS[side], dir, KNIGHT_PROMOTION_CAPTURE);
+            self.add_moves(attacks & END_RANKS[side], dir, BISHOP_PROMOTION_CAPTURE);
+            self.add_moves(attacks & END_RANKS[side], dir, ROOK_PROMOTION_CAPTURE);
+            self.add_moves(attacks & END_RANKS[side], dir, QUEEN_PROMOTION_CAPTURE);
         }
     }
     pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
