@@ -132,21 +132,6 @@ pub const CAPTURE:                  MoveType = 4;
 
 pub const PROMOTION:                  MoveType = 8; // Only to test promotion
 
-pub static PIECES: [Piece, ..12] = [
-    WHITE_PAWN,
-    WHITE_KNIGHT,
-    WHITE_BISHOP,
-    WHITE_ROOK,
-    WHITE_QUEEN,
-    WHITE_KING,
-    BLACK_PAWN,
-    BLACK_KNIGHT,
-    BLACK_BISHOP,
-    BLACK_ROOK,
-    BLACK_QUEEN,
-    BLACK_KING
-];
-
 /*
 pub const SQUARES: [Square, ..64] = [
     A1, B1, C1, D1, E1, F1, G1, H1,
@@ -159,3 +144,70 @@ pub const SQUARES: [Square, ..64] = [
     A8, B8, C8, D8, E8, F8, G8, H8
 ];
 */
+
+pub const MAX_PLY: uint = 256;
+pub const MAX_MOVES: uint = 256;
+
+lazy_static! {
+    pub static ref PIECE_MASKS: [[Bitboard, ..64], ..14] = { // TODO: s/12/5/
+        let mut piece_masks = [[0u64, ..64], ..14];
+
+        let deltas = [-2u, -1u, 0u, 1u, 2u];
+        for x in range(0u, 8) {
+            for y in range(0u, 8) {
+                let from = 8 * x + y;
+                for &i in deltas.iter() {
+                    for &j in deltas.iter() {
+                        for k in range(1u, 7) {
+                            let dx = x + i * k;
+                            let dy = y + j * k;
+                            let to = 8 * dx + dy;
+                            if to == from {
+                                break;
+                            }
+                            if dx >= 8 || dy >= 8 {
+                                break; // Out of board
+                            }
+                            if i == -2u || j == -2u || i == 2u || j == 2u {
+                                if i == -1u || j == -1u || i == 1u || j == 1u {
+                                    piece_masks[KNIGHT][from] |= 1 << to;
+                                }
+                                break;
+                            }
+                            if k == 1 {
+                                piece_masks[KING][from] |= 1 << to;
+                            }
+                            if dx + i >= 8 || dy + j >= 8 {
+                                break; // Edge of the board
+                            }
+                            if i == 0 || j == 0 {
+                                piece_masks[ROOK][from] |= 1 << to;
+                            } else {
+                                piece_masks[BISHOP][from] |= 1 << to;
+                            }
+                            piece_masks[QUEEN][from] |= 1 << to;
+                        }
+                    }
+                }
+            }
+        };
+
+        piece_masks
+    };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_piece_masks() {
+        assert_eq!(PIECE_MASKS[KING][A1],   0x0000000000000302);
+        assert_eq!(PIECE_MASKS[KING][E3],   0x0000000038283800);
+        assert_eq!(PIECE_MASKS[KNIGHT][B1], 0x0000000000050800);
+        assert_eq!(PIECE_MASKS[BISHOP][A1], 0x0040201008040200);
+        assert_eq!(PIECE_MASKS[BISHOP][E3], 0x0000024428002800);
+        assert_eq!(PIECE_MASKS[ROOK][E3],   0x00101010106E1000);
+        assert_eq!(PIECE_MASKS[ROOK][A1],   0x000101010101017E);
+    }
+}

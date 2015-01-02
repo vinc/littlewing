@@ -1,4 +1,3 @@
-use std;
 use littlewing::common::*;
 
 pub trait SquareString {

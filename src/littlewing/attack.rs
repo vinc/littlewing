@@ -1,9 +1,10 @@
 use littlewing::common::*;
 
 use littlewing::bitboard::BitwiseOperations;
+use littlewing::bitboard::dumb7fill;
 use littlewing::game::Game;
 use littlewing::position::Stack;
-use littlewing::square::SquareString;
+//use littlewing::square::SquareString;
 
 pub trait Attack {
     fn is_check(&self) -> bool;
@@ -21,39 +22,101 @@ impl Attack for Game {
         self.is_attacked(square, side)
     }
     fn is_attacked(&self, square: Square, side: Color) -> bool {
+        let occupied = self.bitboards[WHITE] | self.bitboards[BLACK];
 
         let pawns = self.bitboards[side ^ 1 | PAWN];
-
-        // TODO: Precompute this
-        const XDIRS: [[Direction, ..2], ..2] = [[LEFT, RIGHT], [RIGHT, LEFT]];
-        const YDIRS: [Direction, ..2] = [DOWN, UP];
-        const FILES: [Bitboard, ..2] = [FILE_A, FILE_H];
-        let mut attacks = 0;
-        for i in range(0, 2) {
-            let dir = YDIRS[side ^ 1] + XDIRS[side ^ 1][i];
-            attacks |= (1 << square).shift(dir) & !FILES[i];
-        }
-
-        //(1 << square).debug();
-        //attacks.debug();
-        //self.bitboards[side ^ 1 | PAWN].debug();
-
+        let attacks = PAWN_ATTACKS[side][square];
         if attacks & pawns > 0 {
             return true;
         }
 
         let knights = self.bitboards[side ^ 1 | KNIGHT];
-        let attacks = self.moves.knight_mask[square];
+        let attacks = PIECE_MASKS[KNIGHT][square];
         if attacks & knights > 0 {
             return true;
         }
 
         let king = self.bitboards[side ^ 1 | KING];
-        let attacks = self.moves.king_mask[square];
+        let attacks = PIECE_MASKS[KING][square];
         if attacks & king > 0 {
+            return true;
+        }
+
+        let queens = self.bitboards[side ^ 1 | QUEEN];
+
+        let bishops = self.bitboards[side ^ 1 | BISHOP];
+        let attacks = bishop_attacks(square, occupied);
+        if attacks & (bishops | queens) > 0 {
+            return true;
+        }
+
+        let rooks = self.bitboards[side ^ 1 | ROOK];
+        let attacks = rook_attacks(square, occupied);
+        if attacks & (rooks | queens) > 0 {
             return true;
         }
 
         false
     }
+}
+
+pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
+    const DIRS: [Square, ..4 ] = [
+        UP + LEFT,
+        DOWN + LEFT,
+        DOWN + RIGHT,
+        UP + RIGHT
+    ];
+    const WRAPS: [Bitboard, ..4] = [
+        0xFEFEFEFEFEFEFEFE,
+        0xFEFEFEFEFEFEFEFE,
+        0x7F7F7F7F7F7F7F7F,
+        0x7F7F7F7F7F7F7F7F
+    ];
+
+    let mut targets = 0;
+    for i in range(0u, 4) {
+        targets |= dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]).shift(DIRS[i]);
+    }
+
+    targets
+}
+pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
+    const DIRS: [Square, ..4 ] = [
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT
+    ];
+    const WRAPS: [Bitboard, ..4] = [
+        0xFFFFFFFFFFFFFFFF,
+        0xFFFFFFFFFFFFFFFF,
+        0xFEFEFEFEFEFEFEFE,
+        0x7F7F7F7F7F7F7F7F
+    ];
+
+    let mut targets = 0;
+    for i in range(0u, 4) {
+        targets |= dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]).shift(DIRS[i]);
+    }
+
+    targets
+}
+
+lazy_static! {
+    pub static ref PAWN_ATTACKS: [[Bitboard, ..64], ..2] = {
+        let xdirs = [[LEFT, RIGHT], [RIGHT, LEFT]];
+        let ydirs = [DOWN, UP];
+        let files = [FILE_A, FILE_H];
+        let mut attacks = [[0, ..64], ..2];
+        for side in range(0u, 2) {
+            for square in range(0u, 64) {
+                for i in range(0, 2) {
+                    let dir = ydirs[side ^ 1] + xdirs[side ^ 1][i];
+                    attacks[side][square] |= (1 << square).shift(dir) & !files[i];
+                }
+            }
+        }
+        attacks
+    };
 }

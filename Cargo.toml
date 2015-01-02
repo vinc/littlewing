@@ -3,3 +3,9 @@
 name = "littlewing"
 version = "0.0.1"
 authors = ["Vincent Ollivier <v@vinc.cc>"]
+
+[dependencies.lazy_static]
+git = "https://github.com/Kimundi/lazy-static.rs"
+
+[dependencies.time]
+git = "https://github.com/rust-lang/time"
