@@ -76,7 +76,8 @@ pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
 
     let mut targets = 0;
     for i in range(0u, 4) {
-        targets |= (dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]) & WRAPS[i]).shift(DIRS[i]);
+        let occluded = dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]);
+        targets |= (occluded & WRAPS[i]).shift(DIRS[i]);
     }
 
     targets
@@ -97,7 +98,8 @@ pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
 
     let mut targets = 0;
     for i in range(0u, 4) {
-        targets |= (dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]) & WRAPS[i]).shift(DIRS[i]);
+        let occluded = dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]);
+        targets |= (occluded & WRAPS[i]).shift(DIRS[i]);
     }
 
     targets
