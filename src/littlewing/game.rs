@@ -239,6 +239,11 @@ mod tests {
 
     #[test]
     fn test_perft() {
+        //let fen = "7k/8/8/p2p3p/P2P3P/8/8/7K b - - 0 1";
+        let fen = "7k/8/8/p7/1P6/8/8/7K b - - 0 1";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.perft(1), 5);
+
         let fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 14);
