@@ -5,12 +5,45 @@ use std::io::File;
 
 use littlewing::common::*;
 use littlewing::game::Game;
+use littlewing::attack::Attack;
 
 pub fn usage() {
     println!("help                  Display this screen");
-    println!("perft                 Count the nodes at each depth from the starting position");
+    println!("divide <depth>        Count the nodes at <depth> for each moves");
+    println!("perft                 Count the nodes at each depth");
     println!("perftsuite <epd>      Compare perft results to each position of <epd>");
     println!("quit                  Exit this program");
+}
+
+pub fn divide(args: &[&str]) {
+    let mut moves_count = 0u64;
+    let mut nodes_count = 0u64;
+
+    if args.len() != 2 {
+        panic!("no depth given");
+    }
+    let d = args[1].parse::<uint>().unwrap();
+
+    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+    let mut game = Game::from_fen(fen);
+
+    game.generate_moves();
+    let n = game.moves.len();
+    for i in range(0u, n) {
+        let m = game.moves.get(i);
+        game.make_move(m);
+        if !game.is_check() {
+            let r = game.perft(d);
+            println!("{} {}", m.to_can(), r);
+            moves_count += 1;
+            nodes_count += r;
+        }
+        game.undo_move(m);
+    }
+
+    println!("");
+    println!("Moves: {}", moves_count);
+    println!("Nodes: {}", nodes_count);
 }
 
 pub fn perft() {

@@ -14,6 +14,7 @@ fn main() {
         let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
         match args[0].as_slice() {
             "quit"       => break,
+            "divide"     => cmd::divide(args.as_slice()),
             "perft"      => cmd::perft(),
             "perftsuite" => cmd::perftsuite(args.as_slice()),
             _            => cmd::usage()

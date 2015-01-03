@@ -19,7 +19,10 @@ impl Move {
             kind: mt
         }
     }
-    pub fn to_string(&self, board: &[Piece]) -> String {
+    pub fn to_can(&self) -> String {
+        self.from.to_square_string() + self.to.to_square_string().as_slice()
+    }
+    pub fn to_san(&self, board: &[Piece]) -> String {
         let mut out = String::new();
         let piece = board[self.from] & !BLACK;
         let capture = board[self.to];
