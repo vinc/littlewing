@@ -2,11 +2,15 @@ extern crate time;
 extern crate littlewing;
 
 use std::io;
+use std::io::BufferedReader;
+use std::io::File;
 use littlewing::game::Game;
 
 fn cmd_usage() {
-    println!("Usage:");
-    println!("quit    exit this program");
+    println!("help                  Display this screen");
+    println!("perft                 Count the nodes at each depth from the starting position");
+    println!("perftsuite <epd>      Compare perft results to each position of <epd>");
+    println!("quit                  Exit this program");
 }
 
 fn cmd_perft() {
@@ -24,6 +28,33 @@ fn cmd_perft() {
     }
 }
 
+fn cmd_perftsuite(args: &[&str]) {
+    if args.len() != 2 {
+        panic!("no filename given");
+    }
+    let path = Path::new(args[1]);
+    let mut file = BufferedReader::new(File::open(&path));
+    for line in file.lines() {
+        let l = line.unwrap();
+        let mut fields = l.split(';');
+        let fen = fields.next().unwrap().trim();
+        print!("{} -> ", fen);
+        let mut game = Game::from_fen(fen);
+        for field in fields {
+            let mut it = field.trim().split(' ');
+            let d = it.next().unwrap().slice_from(1).parse::<uint>().unwrap();
+            let n = it.next().unwrap().parse::<u64>().unwrap();
+            if d > 3 { break }
+            if game.perft(d) == n {
+                print!(".");
+            } else {
+                print!("x");
+            }
+        }
+        println!("");
+    }
+}
+
 fn main() {
     println!("Little Wing v0.0.1");
     println!("");
@@ -31,11 +62,12 @@ fn main() {
     loop {
         print!("> ");
         let line = io::stdin().read_line().unwrap();
-        let cmd = line.as_slice().trim();
-        match cmd {
-            "quit"  => break,
-            "perft" => cmd_perft(),
-            _       => cmd_usage()
+        let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
+        match args[0].as_slice() {
+            "quit"       => break,
+            "perft"      => cmd_perft(),
+            "perftsuite" => cmd_perftsuite(args.as_slice()),
+            _            => cmd_usage()
         }
     }
 }
