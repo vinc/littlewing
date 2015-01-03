@@ -44,11 +44,11 @@ pub fn perftsuite(args: &[&str]) {
             let mut it = field.trim().split(' ');
             let d = it.next().unwrap().slice_from(1).parse::<uint>().unwrap();
             let n = it.next().unwrap().parse::<u64>().unwrap();
-            if d > 3 { break }
             if game.perft(d) == n {
                 print!(".");
             } else {
                 print!("x");
+                break;
             }
         }
         println!("");
