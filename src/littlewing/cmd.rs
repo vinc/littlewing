@@ -40,12 +40,14 @@ pub fn divide(args: &[&str]) {
     for i in range(0u, n) {
         let m = game.moves.get(i);
         game.make_move(m);
+        //println!("{}", game.to_string());
         if !game.is_check() {
             let r = game.perft(d);
             println!("{} {}", m.to_can(), r);
-            //println!("{}", game.to_string());
             moves_count += 1;
             nodes_count += r;
+        } else {
+            //println!("{} (illegal)", m.to_can());
         }
         game.undo_move(m);
     }

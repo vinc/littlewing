@@ -4,7 +4,6 @@ use littlewing::bitboard::BitwiseOperations;
 use littlewing::bitboard::dumb7fill;
 use littlewing::game::Game;
 use littlewing::position::Stack;
-//use littlewing::square::SquareString;
 
 pub trait Attack {
     fn is_check(&self) -> bool;
@@ -68,16 +67,16 @@ pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
         UP + RIGHT
     ];
     const WRAPS: [Bitboard, ..4] = [
-        0xFEFEFEFEFEFEFEFE,
-        0xFEFEFEFEFEFEFEFE,
         0x7F7F7F7F7F7F7F7F,
-        0x7F7F7F7F7F7F7F7F
+        0x7F7F7F7F7F7F7F7F,
+        0xFEFEFEFEFEFEFEFE,
+        0xFEFEFEFEFEFEFEFE
     ];
 
     let mut targets = 0;
     for i in range(0u, 4) {
         let occluded = dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]);
-        targets |= (occluded & WRAPS[i]).shift(DIRS[i]);
+        targets |= occluded.shift(DIRS[i]) & WRAPS[i];
     }
 
     targets
@@ -92,14 +91,14 @@ pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
     const WRAPS: [Bitboard, ..4] = [
         0xFFFFFFFFFFFFFFFF,
         0xFFFFFFFFFFFFFFFF,
-        0xFEFEFEFEFEFEFEFE,
-        0x7F7F7F7F7F7F7F7F
+        0x7F7F7F7F7F7F7F7F,
+        0xFEFEFEFEFEFEFEFE
     ];
 
     let mut targets = 0;
     for i in range(0u, 4) {
         let occluded = dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]);
-        targets |= (occluded & WRAPS[i]).shift(DIRS[i]);
+        targets |= occluded.shift(DIRS[i]) & WRAPS[i];
     }
 
     targets

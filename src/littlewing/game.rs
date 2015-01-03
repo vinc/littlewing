@@ -128,7 +128,6 @@ impl Game {
     }
 
     pub fn perft(&mut self, depth: uint) -> u64 {
-        //println!("perft({})", depth);
         if depth == 0 {
             1
         } else {
@@ -137,9 +136,7 @@ impl Game {
             let mut r = 0;
             for i in range(0u, n) {
                 let m = self.moves.get(i);
-                //println!("{}: {}", i, m.to_string(&self.board));
                 self.make_move(m);
-                //println!("{}", self.to_string());
                 if !self.is_check() {
                     r += self.perft(depth - 1);
                 }
@@ -270,10 +267,14 @@ mod tests {
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 5);
 
+        let fen = "k6K/8/8/b6b/8/8/8/8 b - - 0 1";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.perft(1), 17);
+
         let fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 14);
-        //assert_eq!(game.perft(2), 191);
+        assert_eq!(game.perft(2), 191);
 
         let fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w";
         let mut game = Game::from_fen(fen);
