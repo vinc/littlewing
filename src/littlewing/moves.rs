@@ -19,8 +19,20 @@ impl Move {
             kind: mt
         }
     }
+    pub fn is_promotion(&self) -> bool {
+        self.kind & PROMOTION_MASK > 0
+    }
+    pub fn promotion_kind(&self) -> Piece {
+        PROMOTION_KINDS[self.kind & PROMOTION_KIND_MASK >> 2]
+    }
     pub fn to_can(&self) -> String {
-        self.from.to_square_string() + self.to.to_square_string().as_slice()
+        let mut out = String::new();
+        out.push_str(self.from.to_square_string().as_slice());
+        out.push_str(self.to.to_square_string().as_slice());
+        if self.is_promotion() {
+            out.push((BLACK | self.promotion_kind()).to_char());        
+        }
+        out
     }
     pub fn to_san(&self, board: &[Piece]) -> String {
         let mut out = String::new();
@@ -134,11 +146,12 @@ impl Moves {
         }
     }
     pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+        let occupied = bitboards[WHITE] | bitboards[BLACK];
         let mut knights = bitboards[side | KNIGHT];
 
         while knights > 0 {
             let from = knights.ffs();
-            let targets = PIECE_MASKS[KNIGHT][from] & !bitboards[side];
+            let targets = PIECE_MASKS[KNIGHT][from] & !occupied;
             self.add_moves_from(targets, from, QUIET_MOVE);
             let targets = PIECE_MASKS[KNIGHT][from] & bitboards[side ^ 1];
             self.add_moves_from(targets, from, CAPTURE);
@@ -146,11 +159,12 @@ impl Moves {
         }
     }
     pub fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+        let occupied = bitboards[WHITE] | bitboards[BLACK];
         let mut kings = bitboards[side | KING];
 
         while kings > 0 {
             let from = kings.ffs();
-            let targets = PIECE_MASKS[KING][from] & !bitboards[side];
+            let targets = PIECE_MASKS[KING][from] & !occupied;
             self.add_moves_from(targets, from, QUIET_MOVE);
             let targets = PIECE_MASKS[KING][from] & bitboards[side ^ 1];
             self.add_moves_from(targets, from, CAPTURE);

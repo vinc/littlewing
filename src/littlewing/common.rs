@@ -113,24 +113,26 @@ pub const RANK_8: Bitboard = 0xFF00000000000000;
 pub const FILE_A: Bitboard = 0x0101010101010101;
 pub const FILE_H: Bitboard = 0x8080808080808080;
 
-pub const QUIET_MOVE:               MoveType = 0; 
-pub const DOUBLE_PAWN_PUSH:         MoveType = 1;
-//pub const KING_CASTLE:              MoveType = 2;
-//pub const QUEEN_CASTLE:             MoveType = 3;
-pub const CAPTURE:                  MoveType = 4;
-//pub const EN_PASSANT:               MoveType = 5;
-//pub const NULL_MOVE:                MoveType = 6;
+pub const QUIET_MOVE:               MoveType = 0b0000; // 0
+pub const DOUBLE_PAWN_PUSH:         MoveType = 0b0001; // 1
+pub const KING_CASTLE:              MoveType = 0b0010; // 2
+pub const QUEEN_CASTLE:             MoveType = 0b0011; // 3
+pub const CAPTURE:                  MoveType = 0b0100; // 4
+pub const EN_PASSANT:               MoveType = 0b0101; // 5
+pub const NULL_MOVE:                MoveType = 0b0110; // 6
+pub const KNIGHT_PROMOTION:         MoveType = 0b1000; // 8
+pub const BISHOP_PROMOTION:         MoveType = 0b1001; // 9
+pub const ROOK_PROMOTION:           MoveType = 0b1010; // 10
+pub const QUEEN_PROMOTION:          MoveType = 0b1011; // 11
+pub const KNIGHT_PROMOTION_CAPTURE: MoveType = 0b1100; // 12
+pub const BISHOP_PROMOTION_CAPTURE: MoveType = 0b1101; // 13
+pub const ROOK_PROMOTION_CAPTURE:   MoveType = 0b1110; // 14
+pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 0b1111; // 15
 
-pub const KNIGHT_PROMOTION:         MoveType = 8;
-pub const BISHOP_PROMOTION:         MoveType = 9;
-pub const ROOK_PROMOTION:           MoveType = 10;
-pub const QUEEN_PROMOTION:          MoveType = 11;
-pub const KNIGHT_PROMOTION_CAPTURE: MoveType = 12;
-pub const BISHOP_PROMOTION_CAPTURE: MoveType = 13;
-pub const ROOK_PROMOTION_CAPTURE:   MoveType = 14;
-pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 15;
+pub const PROMOTION_MASK:           MoveType = 0b1000;
+pub const PROMOTION_KIND_MASK:      MoveType = 0b1100;
 
-pub const PROMOTION:                  MoveType = 8; // Only to test promotion
+pub const PROMOTION_KINDS: [Piece, ..4] = [KNIGHT, BISHOP, ROOK, QUEEN];
 
 /*
 pub const SQUARES: [Square, ..64] = [

@@ -43,6 +43,7 @@ pub fn divide(args: &[&str]) {
         if !game.is_check() {
             let r = game.perft(d);
             println!("{} {}", m.to_can(), r);
+            //println!("{}", game.to_string());
             moves_count += 1;
             nodes_count += r;
         }

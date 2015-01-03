@@ -155,18 +155,27 @@ impl Game {
         let piece = self.board[m.from];
         let capture = self.board[m.to]; // TODO: En passant
 
-        self.board[m.from] = EMPTY;
-        self.board[m.to] = piece;
-
         self.bitboards[piece].toggle(m.from);
-        self.bitboards[piece].toggle(m.to);
+        self.board[m.from] = EMPTY;
+
+        if m.is_promotion() {
+            let promoted_piece = position.side | m.promotion_kind();
+            self.board[m.to] = promoted_piece;
+            self.bitboards[promoted_piece].toggle(m.to);
+        } else {
+            self.board[m.to] = piece;
+            self.bitboards[piece].toggle(m.to);
+        }
+
         self.bitboards[position.side].toggle(m.from);
         self.bitboards[position.side].toggle(m.to);
+
         if capture != EMPTY {
             self.bitboards[capture].toggle(m.to);
             self.bitboards[position.side ^ 1].toggle(m.to);
         }
 
+        // FIXME
         position.side ^= 1; // TODO: Define self.side.toggle(0)
         position.capture = capture;
 
@@ -181,16 +190,27 @@ impl Game {
         self.positions.pop();
         self.moves.dec();
 
-        self.board[m.from] = piece;
-        self.board[m.to] = capture;
+        let &position = self.positions.top();
 
-        self.bitboards[piece].toggle(m.from);
+        if m.is_promotion() {
+            let pawn = position.side | PAWN;
+            self.board[m.from] = pawn;
+            self.bitboards[pawn].toggle(m.from);
+            self.bitboards[pawn].toggle(m.to);
+        } else {
+            self.board[m.from] = piece;
+            self.bitboards[piece].toggle(m.from);
+        }
+
+        self.board[m.to] = capture;
         self.bitboards[piece].toggle(m.to);
-        self.bitboards[self.positions.top().side].toggle(m.from);
-        self.bitboards[self.positions.top().side].toggle(m.to);
+
+        self.bitboards[position.side].toggle(m.from);
+        self.bitboards[position.side].toggle(m.to);
+
         if capture != EMPTY {
             self.bitboards[capture].toggle(m.to);
-            self.bitboards[self.positions.top().side ^ 1].toggle(m.to);
+            self.bitboards[position.side ^ 1].toggle(m.to);
         }
     }
 
@@ -239,7 +259,13 @@ mod tests {
 
     #[test]
     fn test_perft() {
-        //let fen = "7k/8/8/p2p3p/P2P3P/8/8/7K b - - 0 1";
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.perft(1), 20);
+        assert_eq!(game.perft(2), 400);
+        assert_eq!(game.perft(3), 8902);
+        assert_eq!(game.perft(4), 197281);
+
         let fen = "7k/8/8/p7/1P6/8/8/7K b - - 0 1";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 5);
@@ -259,12 +285,6 @@ mod tests {
         //assert_eq!(game.perft(1), 48);
         //assert_eq!(game.perft(2), 2039);
         //assert_eq!(game.perft(3), 97862);
-
-        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
-        let mut game = Game::from_fen(fen);
-        assert_eq!(game.perft(1), 20);
-        assert_eq!(game.perft(2), 400);
-        //assert_eq!(game.perft(3), 8902);
     }
 
     #[test]
