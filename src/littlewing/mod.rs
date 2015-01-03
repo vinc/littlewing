@@ -1,4 +1,5 @@
-pub mod game;
+pub mod cmd;
+mod game;
 mod attack;
 mod bitboard;
 mod common;
