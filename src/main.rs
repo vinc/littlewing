@@ -15,7 +15,7 @@ fn main() {
         match args[0].as_slice() {
             "quit"       => break,
             "divide"     => cmd::divide(args.as_slice()),
-            "perft"      => cmd::perft(),
+            "perft"      => cmd::perft(args.as_slice()),
             "perftsuite" => cmd::perftsuite(args.as_slice()),
             _            => cmd::usage()
         }

@@ -7,10 +7,12 @@ use littlewing::common::*;
 use littlewing::game::Game;
 use littlewing::attack::Attack;
 
+const DEFAULT_FEN: &'static str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 pub fn usage() {
     println!("help                  Display this screen");
-    println!("divide <depth>        Count the nodes at <depth> for each moves");
-    println!("perft                 Count the nodes at each depth");
+    println!("divide <d> [<fen>]    Count the nodes [from <fen>] at <d> for each moves");
+    println!("perft [<fen>]         Count the nodes [from <fen>] at each depth");
     println!("perftsuite <epd>      Compare perft results to each position of <epd>");
     println!("quit                  Exit this program");
 }
@@ -19,12 +21,18 @@ pub fn divide(args: &[&str]) {
     let mut moves_count = 0u64;
     let mut nodes_count = 0u64;
 
-    if args.len() != 2 {
+    if args.len() == 1 {
         panic!("no depth given");
     }
+
+    let s = if args.len() == 2 {
+        DEFAULT_FEN.to_string()
+    } else {
+        args.slice_from(2).connect(" ")
+    };
+    let fen = s.as_slice();
     let d = args[1].parse::<uint>().unwrap();
 
-    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
     let mut game = Game::from_fen(fen);
 
     game.generate_moves();
@@ -46,8 +54,13 @@ pub fn divide(args: &[&str]) {
     println!("Nodes: {}", nodes_count);
 }
 
-pub fn perft() {
-    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+pub fn perft(args: &[&str]) {
+    let s = if args.len() == 1 {
+        DEFAULT_FEN.to_string()
+    } else {
+        args.slice_from(1).connect(" ")
+    };
+    let fen = s.as_slice();
     let mut game = Game::from_fen(fen);
     let mut i = 0u;
     loop {
