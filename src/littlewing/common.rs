@@ -133,9 +133,9 @@ pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 0b1111; // 15
 pub const PROMOTION_MASK:           MoveType = 0b1000;
 pub const PROMOTION_KIND_MASK:      MoveType = 0b1100;
 
-pub const PROMOTION_KINDS: [Piece, ..4] = [KNIGHT, BISHOP, ROOK, QUEEN];
+pub const PROMOTION_KINDS: [Piece; 4] = [KNIGHT, BISHOP, ROOK, QUEEN];
 
-pub const CASTLING_MASKS: [[Bitboard, ..2], ..2] = [
+pub const CASTLING_MASKS: [[Bitboard; 2]; 2] = [
     [1 << F1 | 1 << G1, 1 << B1 | 1 << C1 | 1 << D1],
     [1 << F8 | 1 << G8, 1 << B8 | 1 << C8 | 1 << D8]
 ];
@@ -144,7 +144,7 @@ pub const DEFAULT_FEN: &'static str =
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /*
-pub const SQUARES: [Square, ..64] = [
+pub const SQUARES: [Square; 64] = [
     A1, B1, C1, D1, E1, F1, G1, H1,
     A2, B2, C2, D2, E2, F2, G2, H2,
     A3, B3, C3, D3, E3, F3, G3, H3,
@@ -160,8 +160,8 @@ pub const MAX_PLY: uint = 256;
 pub const MAX_MOVES: uint = 256;
 
 lazy_static! {
-    pub static ref PIECE_MASKS: [[Bitboard, ..64], ..14] = { // TODO: s/12/5/
-        let mut piece_masks = [[0u64, ..64], ..14];
+    pub static ref PIECE_MASKS: [[Bitboard; 64]; 14] = { // TODO: s/12/5/
+        let mut piece_masks = [[0u64; 64]; 14];
 
         let deltas = [-2u, -1u, 0u, 1u, 2u];
         for x in range(0u, 8) {

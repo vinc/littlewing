@@ -60,13 +60,13 @@ impl Attack for Game {
 }
 
 pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    const DIRS: [Square, ..4 ] = [
+    const DIRS: [Square; 4 ] = [
         UP + LEFT,
         DOWN + LEFT,
         DOWN + RIGHT,
         UP + RIGHT
     ];
-    const WRAPS: [Bitboard, ..4] = [
+    const WRAPS: [Bitboard; 4] = [
         0x7F7F7F7F7F7F7F7F,
         0x7F7F7F7F7F7F7F7F,
         0xFEFEFEFEFEFEFEFE,
@@ -82,13 +82,13 @@ pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
     targets
 }
 pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    const DIRS: [Square, ..4 ] = [
+    const DIRS: [Square; 4 ] = [
         UP,
         DOWN,
         LEFT,
         RIGHT
     ];
-    const WRAPS: [Bitboard, ..4] = [
+    const WRAPS: [Bitboard; 4] = [
         0xFFFFFFFFFFFFFFFF,
         0xFFFFFFFFFFFFFFFF,
         0x7F7F7F7F7F7F7F7F,
@@ -105,11 +105,11 @@ pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
 }
 
 lazy_static! {
-    pub static ref PAWN_ATTACKS: [[Bitboard, ..64], ..2] = {
+    pub static ref PAWN_ATTACKS: [[Bitboard; 64]; 2] = {
         let xdirs = [[LEFT, RIGHT], [RIGHT, LEFT]];
         let ydirs = [DOWN, UP];
         let files = [FILE_A, FILE_H];
-        let mut attacks = [[0, ..64], ..2];
+        let mut attacks = [[0; 64]; 2];
         for side in range(0u, 2) {
             for square in range(0u, 64) {
                 for i in range(0, 2) {

@@ -2,7 +2,7 @@ use littlewing::common::*;
 use std::num::Int;
 
 /*
-const INDEX64: [uint, ..64] = [
+const INDEX64: [uint; 64] = [
      0,  1, 48,  2, 57, 49, 28,  3,
     61, 58, 50, 42, 38, 29, 17,  4,
     62, 55, 59, 36, 53, 51, 43, 22,

@@ -11,8 +11,8 @@ use littlewing::position::Position;
 use littlewing::position::Stack;
 
 pub struct Game {
-    pub bitboards: [Bitboard, ..14],
-    pub board: [Piece, ..64],
+    pub bitboards: [Bitboard; 14],
+    pub board: [Piece; 64],
     pub moves: Moves,
     pub positions: Vec<Position>
 }
@@ -20,8 +20,8 @@ pub struct Game {
 impl Game {
     fn new() -> Game {
         Game {
-            bitboards: [0, ..14],
-            board: [EMPTY, ..64],
+            bitboards: [0; 14],
+            board: [EMPTY; 64],
             moves: Moves::new(),
             positions: Vec::with_capacity(512)
         }
