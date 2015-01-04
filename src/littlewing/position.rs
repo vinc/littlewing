@@ -3,14 +3,16 @@ use littlewing::common::*;
 #[deriving(Copy)]
 pub struct Position {
     pub side: Color,
-    pub capture: Piece
+    pub capture: Piece,
+    pub castling_rights: [[bool, ..2], ..2]
 }
 
 impl Position {
     pub fn new() -> Position {
         Position {
             side: WHITE,
-            capture: EMPTY
+            capture: EMPTY,
+            castling_rights: [[false, ..2], ..2]
         }
     }
 }

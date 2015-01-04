@@ -7,8 +7,6 @@ use littlewing::common::*;
 use littlewing::game::Game;
 use littlewing::attack::Attack;
 
-const DEFAULT_FEN: &'static str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
 pub fn usage() {
     println!("help                  Display this screen");
     println!("divide <d> [<fen>]    Count the nodes [from <fen>] at <d> for each moves");

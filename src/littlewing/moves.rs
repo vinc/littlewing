@@ -19,6 +19,12 @@ impl Move {
             kind: mt
         }
     }
+    pub fn is_castle(&self) -> bool {
+        self.kind == KING_CASTLE || self.kind == QUEEN_CASTLE
+    }
+    pub fn castle_kind(&self) -> Piece {
+        QUEEN_CASTLE << self.kind - 1
+    }
     pub fn is_promotion(&self) -> bool {
         self.kind & PROMOTION_MASK > 0
     }
@@ -84,22 +90,21 @@ impl Moves {
     pub fn get(&self, i: uint) -> Move {
         self.lists[self.ply][i]
     }
+    pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
+        self.lists[self.ply].push(Move::new(from, to, mt));
+    }
     pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
         while targets != 0 {
             let to = targets.ffs();
             let from = to - dir;
-            let m = Move::new(from, to, mt);
-
-            self.lists[self.ply].push(m);
+            self.add_move(from, to, mt);
             targets.reset(to);
         }
     }
     pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Square, mt: MoveType) {
         while targets != 0 {
             let to = targets.ffs();
-            let m = Move::new(from, to, mt);
-
-            self.lists[self.ply].push(m);
+            self.add_move(from, to, mt);
             targets.reset(to);
         }
     }
@@ -194,5 +199,37 @@ impl Moves {
 
             queens.reset(from);
         }
+    }
+    pub fn add_king_castle(&mut self, side: Color) {
+        self.add_move(E1 ^ 56 * side, G1 ^ 56 * side, KING_CASTLE);
+    }
+    pub fn add_queen_castle(&mut self, side: Color) {
+        self.add_move(E1 ^ 56 * side, C1 ^ 56 * side, QUEEN_CASTLE);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use littlewing::common::*;
+    use super::Move;
+
+    #[test]
+    fn test_move_is_castle() {
+        assert_eq!(Move::new(E2, E3, QUIET_MOVE).is_castle(), false);
+        assert_eq!(Move::new(E1, G1, KING_CASTLE).is_castle(), true);
+        assert_eq!(Move::new(E1, C1, QUEEN_CASTLE).is_castle(), true);
+    }
+    fn test_move_castle_kind() {
+        assert_eq!(Move::new(E1, G1, KING_CASTLE).castle_kind(), KING);
+        assert_eq!(Move::new(E1, C1, QUEEN_CASTLE).castle_kind(), QUEEN);
+    }
+    fn test_move_is_promotion() {
+        assert_eq!(Move::new(E2, E3, QUIET_MOVE).is_promotion(), false);
+        assert_eq!(Move::new(E7, E8, QUEEN_PROMOTION).is_promotion(), true);
+        assert_eq!(Move::new(E7, D8, QUEEN_PROMOTION_CAPTURE).is_promotion(), true);
+    }
+    fn test_move_promotion_kind() {
+        assert_eq!(Move::new(E7, E8, QUEEN_PROMOTION).promotion_kind(), QUEEN);
+        assert_eq!(Move::new(E7, D8, ROOK_PROMOTION_CAPTURE).promotion_kind(), ROOK);
     }
 }
