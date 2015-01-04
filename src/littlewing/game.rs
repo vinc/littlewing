@@ -192,17 +192,19 @@ impl Game {
         self.bitboards[piece].toggle(m.from);
         self.board[m.from] = EMPTY;
 
-        if piece.kind() == KING { // TODO: piece.kind() == KING
+        // Update castling rights
+        if piece.kind() == KING {
             new_position.castling_rights[side][KING >> 3] = false;
             new_position.castling_rights[side][QUEEN >> 3] = false;
-        }
-        if piece.kind() == ROOK { // TODO: piece.kind() == KING
+        } else if piece.kind() == ROOK {
             if m.from == H1 ^ 56 * side {
                 new_position.castling_rights[side][KING >> 3] = false;
             }
             if m.from == A1 ^ 56 * side {
                 new_position.castling_rights[side][QUEEN >> 3] = false;
             }
+        }
+        if capture.kind() == ROOK {
             if m.to == H1 ^ 56 * (side ^ 1) {
                 new_position.castling_rights[side ^ 1][KING >> 3] = false;
             }
@@ -243,14 +245,6 @@ impl Game {
         if capture != EMPTY {
             self.bitboards[capture].toggle(m.to);
             self.bitboards[side ^ 1].toggle(m.to);
-            if capture.kind() == ROOK {
-                if m.to == H1 ^ 56 * (side ^ 1) {
-                    new_position.castling_rights[side ^ 1][KING >> 3] = false;
-                }
-                if m.to == A1 ^ 56 * (side ^ 1) {
-                    new_position.castling_rights[side ^ 1][QUEEN >> 3] = false;
-                }
-            }
         }
 
         // FIXME
