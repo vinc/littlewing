@@ -101,6 +101,7 @@ pub const E8: Square = 60;
 pub const F8: Square = 61;
 pub const G8: Square = 62;
 pub const H8: Square = 63;
+pub const OUT: Square = 64;
 
 pub const RANK_1: Bitboard = 0x00000000000000FF;
 pub const RANK_2: Bitboard = 0x000000000000FF00;

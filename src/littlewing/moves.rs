@@ -108,7 +108,7 @@ impl Moves {
             targets.reset(to);
         }
     }
-    pub fn add_pawns_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+    pub fn add_pawns_moves(&mut self, bitboards: &[Bitboard], side: Color, ep: Square) {
         const XDIRS: [Direction, ..2] = [LEFT, RIGHT];
         const YDIRS: [Direction, ..2] = [UP, DOWN];
         const FILES: [Bitboard, ..2] = [FILE_A, FILE_H];
@@ -132,7 +132,13 @@ impl Moves {
         for i in range(0, 2) { // LEFT and RIGHT attacks
             let dir = ydir + XDIRS[i];
             let attackers = bitboards[side | PAWN] & !FILES[i];
-            let attacks = attackers.shift(dir) & bitboards[side ^ 1];
+
+            let targets = attackers.shift(dir);
+            //let epb = 1 << ep; // FIXME: 1 << 64 == 0
+            let epb = ((ep as u64 >> 6) ^ 1) << (ep % 64);
+            self.add_moves(targets & epb, dir, EN_PASSANT);
+
+            let attacks = targets & bitboards[side ^ 1];
             self.add_moves(attacks & !END_RANKS[side], dir, CAPTURE);
             self.add_moves(attacks & END_RANKS[side], dir, KNIGHT_PROMOTION_CAPTURE);
             self.add_moves(attacks & END_RANKS[side], dir, BISHOP_PROMOTION_CAPTURE);

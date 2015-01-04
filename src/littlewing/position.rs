@@ -4,6 +4,7 @@ use littlewing::common::*;
 pub struct Position {
     pub side: Color,
     pub capture: Piece,
+    pub en_passant: Square,
     pub castling_rights: [[bool, ..2], ..2]
 }
 
@@ -12,6 +13,7 @@ impl Position {
         Position {
             side: WHITE,
             capture: EMPTY,
+            en_passant: OUT,
             castling_rights: [[false, ..2], ..2]
         }
     }

@@ -160,7 +160,6 @@ impl Game {
     }
 
     pub fn perft(&mut self, depth: uint) -> u64 {
-        //println!("perft({})", depth);
         if depth == 0 {
             1
         } else {
@@ -171,8 +170,6 @@ impl Game {
                 let m = self.moves.get(i);
                 self.make_move(m);
                 if !self.is_check() {
-                    //println!("{}", m.to_can());
-                    //println!("{}", self.to_string());
                     r += self.perft(depth - 1);
                 }
                 self.undo_move(m);
@@ -239,12 +236,27 @@ impl Game {
             self.bitboards[piece].toggle(m.to);
         }
 
+        new_position.en_passant = if m.kind == DOUBLE_PAWN_PUSH {
+            ((m.from ^ (56 * side)) + UP) ^ (56 * side)
+        } else {
+            OUT
+        };
+
+        if new_position.en_passant != OUT {
+        }
+
         self.bitboards[side].toggle(m.from);
         self.bitboards[side].toggle(m.to);
 
         if capture != EMPTY {
             self.bitboards[capture].toggle(m.to);
             self.bitboards[side ^ 1].toggle(m.to);
+        }
+        if m.kind == EN_PASSANT {
+            let square = ((m.to ^ (56 * side)) + DOWN) ^ (56 * side);
+            self.board[square] = EMPTY;
+            self.bitboards[side ^ 1 | PAWN].toggle(square);
+            self.bitboards[side ^ 1].toggle(square);
         }
 
         // FIXME
@@ -292,6 +304,13 @@ impl Game {
             self.bitboards[piece].toggle(m.from);
         }
 
+        if m.kind == EN_PASSANT {
+            let square = ((m.to ^ (56 * side)) + DOWN) ^ (56 * side);
+            self.board[square] = side ^ 1 | PAWN;
+            self.bitboards[side ^ 1 | PAWN].toggle(square);
+            self.bitboards[side ^ 1].toggle(square);
+        }
+
         self.board[m.to] = capture;
         self.bitboards[piece].toggle(m.to);
 
@@ -308,9 +327,10 @@ impl Game {
         let bitboards = self.bitboards.as_slice();
         let &position = self.positions.top();
         let side = position.side;
+        let ep = position.en_passant;
 
         self.moves.clear();
-        self.moves.add_pawns_moves(bitboards, side);
+        self.moves.add_pawns_moves(bitboards, side, ep);
         self.moves.add_knights_moves(bitboards, side);
         self.moves.add_king_moves(bitboards, side);
         self.moves.add_bishops_moves(bitboards, side);
@@ -394,25 +414,25 @@ mod tests {
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 14);
         assert_eq!(game.perft(2), 191);
-        //assert_eq!(game.perft(3), 2812);
+        assert_eq!(game.perft(3), 2812);
 
         let fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 6);
-        //assert_eq!(game.perft(2), 264);
+        assert_eq!(game.perft(2), 264);
         //assert_eq!(game.perft(3), 9467);
 
         let fen = "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 6);
-        //assert_eq!(game.perft(2), 264);
+        assert_eq!(game.perft(2), 264);
         //assert_eq!(game.perft(3), 9467);
 
         // Kiwipete position
         let fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
         let mut game = Game::from_fen(fen);
-        //assert_eq!(game.perft(1), 48);
-        //assert_eq!(game.perft(2), 2039);
+        assert_eq!(game.perft(1), 48);
+        assert_eq!(game.perft(2), 2039);
         //assert_eq!(game.perft(3), 97862);
 
         let fen = "rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6";
