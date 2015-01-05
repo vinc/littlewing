@@ -420,26 +420,26 @@ mod tests {
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 6);
         assert_eq!(game.perft(2), 264);
-        //assert_eq!(game.perft(3), 9467);
+        assert_eq!(game.perft(3), 9467);
 
         let fen = "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 6);
         assert_eq!(game.perft(2), 264);
-        //assert_eq!(game.perft(3), 9467);
+        assert_eq!(game.perft(3), 9467);
 
         // Kiwipete position
         let fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
         let mut game = Game::from_fen(fen);
         assert_eq!(game.perft(1), 48);
         assert_eq!(game.perft(2), 2039);
-        //assert_eq!(game.perft(3), 97862);
+        assert_eq!(game.perft(3), 97862);
 
         let fen = "rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6";
         let mut game = Game::from_fen(fen);
-        //assert_eq!(game.perft(1), 42);
-        //assert_eq!(game.perft(2), 1352);
-        //assert_eq!(game.perft(3), 53392);
+        assert_eq!(game.perft(1), 42);
+        assert_eq!(game.perft(2), 1352);
+        assert_eq!(game.perft(3), 53392);
     }
 
     #[test]

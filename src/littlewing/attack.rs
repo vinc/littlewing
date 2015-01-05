@@ -108,7 +108,7 @@ lazy_static! {
     pub static ref PAWN_ATTACKS: [[Bitboard; 64]; 2] = {
         let xdirs = [[LEFT, RIGHT], [RIGHT, LEFT]];
         let ydirs = [DOWN, UP];
-        let files = [FILE_A, FILE_H];
+        let files = [FILE_H, FILE_A];
         let mut attacks = [[0; 64]; 2];
         for side in range(0u, 2) {
             for square in range(0u, 64) {
