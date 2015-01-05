@@ -106,14 +106,14 @@ pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
 
 lazy_static! {
     pub static ref PAWN_ATTACKS: [[Bitboard; 64]; 2] = {
-        let xdirs = [[LEFT, RIGHT], [RIGHT, LEFT]];
+        let xdirs = [LEFT, RIGHT];
         let ydirs = [DOWN, UP];
         let files = [FILE_H, FILE_A];
         let mut attacks = [[0; 64]; 2];
         for side in range(0u, 2) {
             for square in range(0u, 64) {
                 for i in range(0, 2) {
-                    let dir = ydirs[side ^ 1] + xdirs[side ^ 1][i];
+                    let dir = ydirs[side ^ 1] + xdirs[i];
                     attacks[side][square] |= (1 << square).shift(dir) & !files[i];
                 }
             }
