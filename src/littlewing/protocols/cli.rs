@@ -4,8 +4,9 @@ use std::io::BufferedReader;
 use std::io::File;
 
 use littlewing::common::*;
-use littlewing::game::Game;
 use littlewing::attack::Attack;
+use littlewing::fen::FEN;
+use littlewing::game::Game;
 use littlewing::search::Search;
 
 pub struct CLI {
@@ -15,7 +16,7 @@ pub struct CLI {
 impl CLI {
     pub fn new() -> CLI {
         CLI {
-            game: Game::from_fen(DEFAULT_FEN)
+            game: FEN::from_fen(DEFAULT_FEN)
         }
     }
 
@@ -36,7 +37,7 @@ impl CLI {
         let s = args.slice_from(1).connect(" ");
         let fen = s.as_slice();
 
-        self.game = Game::from_fen(fen);
+        self.game = FEN::from_fen(fen);
     }
 
     pub fn divide(&mut self, args: &[&str]) {
@@ -95,7 +96,7 @@ impl CLI {
             let mut fields = l.split(';');
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
-            self.game = Game::from_fen(fen);
+            self.game = FEN::from_fen(fen);
             for field in fields {
                 let mut it = field.trim().split(' ');
                 let d = it.next().unwrap().slice_from(1).parse::<uint>().unwrap();

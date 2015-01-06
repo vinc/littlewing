@@ -1,5 +1,3 @@
-use std;
-
 use littlewing::common::*;
 use littlewing::attack::Attack;
 use littlewing::bitboard::BitwiseOperations;
@@ -18,122 +16,13 @@ pub struct Game {
 }
 
 impl Game {
-    fn new() -> Game {
+    pub fn new() -> Game {
         Game {
             bitboards: [0; 14],
             board: [EMPTY; 64],
             moves: Moves::new(),
             positions: Vec::with_capacity(512)
         }
-    }
-
-    pub fn from_fen(fen: &str) -> Game {
-        let mut game = Game::new();
-        let mut fields = fen.words();
-
-        let mut sq = A8;
-        for c in fields.next().unwrap().chars() {
-            sq += if c == '/' {
-                2 * DOWN
-            } else if '1' <= c && c <= '8' {
-                c.to_digit(10).unwrap()
-            } else {
-                let p = PieceChar::from_char(c);
-                game.board[sq] = p;
-                game.bitboards[p].set(sq);
-                game.bitboards[p & 1].set(sq); // TODO: p.color()
-
-                1
-            };
-        }
-
-        let mut position = Position::new();
-
-        position.side = match fields.next().unwrap() {
-            "w" => WHITE,
-            "b" => BLACK,
-            _   => BLACK // FIXME
-        };
-
-        for c in fields.next().unwrap().chars() {
-            match c {
-                'K' => position.castling_rights[WHITE][KING >> 3] = true,
-                'Q' => position.castling_rights[WHITE][QUEEN >> 3] = true,
-                'k' => position.castling_rights[BLACK][KING >> 3] = true,
-                'q' => position.castling_rights[BLACK][QUEEN >> 3] = true,
-                _   => break
-            }
-        }
-
-        game.positions.push(position);
-        game
-    }
-
-    pub fn to_fen(&self) -> String {
-        let mut fen = String::new();
-        let mut n = 0u;
-        let mut sq = A8;
-        loop {
-            let p = self.board[sq];
-
-            if p == EMPTY {
-                n += 1;
-            } else {
-                if n > 0 {
-                    let c = std::char::from_digit(n, 10).unwrap();
-                    fen.push(c);
-                    n = 0;
-                }
-                fen.push(p.to_char());
-            }
-
-            if sq == H1 {
-                break;
-            }
-
-            if sq & H1 == H1 { // TODO: is_file_h!(sq)
-                if n > 0 { // TODO: DRY
-                    let c = std::char::from_digit(n, 10).unwrap();
-                    fen.push(c);
-                    n = 0;
-                }
-                fen.push('/');
-                sq += 2 * DOWN;
-            }
-
-            sq += RIGHT;
-        }
-
-        fen.push(' ');
-        if self.positions.top().side == WHITE {
-            fen.push('w');
-        } else {
-            fen.push('b');
-        }
-
-        fen.push(' ');
-        let castling_rights = self.positions.top().castling_rights;
-        let mut castles = String::new();
-        if castling_rights[WHITE][KING >> 3] {
-            castles.push('K');
-        }
-        if castling_rights[WHITE][QUEEN >> 3] {
-            castles.push('Q');
-        }
-        if castling_rights[BLACK][KING >> 3] {
-            castles.push('k');
-        }
-        if castling_rights[BLACK][QUEEN >> 3] {
-            castles.push('q');
-        }
-        if castles.len() == 0 {
-            castles.push('-');
-        }
-        fen.push_str(castles.as_slice());
-
-        fen.push_str(" - 0 1"); // TODO
-
-        fen
     }
 
     fn ply(&self) -> uint {
@@ -359,7 +248,7 @@ mod tests {
 
     #[test]
     fn test_from_fen() {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
         assert_eq!(game.board[E2], WHITE_PAWN);
     }
 
@@ -371,7 +260,7 @@ mod tests {
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1"
         ];
         for &fen in fens.iter() {
-            let game = Game::from_fen(fen);
+            let game: Game = FEN::from_fen(fen);
             assert_eq!(game.to_fen().as_slice(), fen);
         }
     }
@@ -379,47 +268,47 @@ mod tests {
     #[test]
     fn test_perft() {
         // Initial position
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
         assert_eq!(game.perft(1), 20);
         assert_eq!(game.perft(2), 400);
         assert_eq!(game.perft(3), 8902);
         assert_eq!(game.perft(4), 197281);
 
         let fen = "7k/8/8/p7/1P6/8/8/7K b - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         assert_eq!(game.perft(1), 5);
 
         let fen = "k6K/8/8/b6b/8/8/8/8 b - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         assert_eq!(game.perft(1), 17);
 
         let fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         assert_eq!(game.perft(1), 14);
         assert_eq!(game.perft(2), 191);
         assert_eq!(game.perft(3), 2812);
 
         let fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         assert_eq!(game.perft(1), 6);
         assert_eq!(game.perft(2), 264);
         assert_eq!(game.perft(3), 9467);
 
         let fen = "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         assert_eq!(game.perft(1), 6);
         assert_eq!(game.perft(2), 264);
         assert_eq!(game.perft(3), 9467);
 
         // Kiwipete position
         let fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         assert_eq!(game.perft(1), 48);
         assert_eq!(game.perft(2), 2039);
         assert_eq!(game.perft(3), 97862);
 
         let fen = "rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         assert_eq!(game.perft(1), 42);
         assert_eq!(game.perft(2), 1352);
         assert_eq!(game.perft(3), 53392);
@@ -428,47 +317,47 @@ mod tests {
     #[test]
     fn test_generate_moves() {
         println!("test_generate_moves()");
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 20);
 
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b - -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 9);
 
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w - -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 9);
 
         // Pawn left capture
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w - -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 3);
 
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b - -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 3);
 
         // Bishop
         let fen = "8/8/8/8/3B4/8/8/8 w - -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 13);
 
         // Rook
         let fen = "8/8/8/8/1r1R4/8/8/8 w - -";
-        let mut game = Game::from_fen(fen);
+        let mut game: Game = FEN::from_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 13);
@@ -482,7 +371,7 @@ mod tests {
         ];
         let m = Move::new(E2, E3, QUIET_MOVE);
 
-        let mut game = Game::from_fen(fens[0]);
+        let mut game: Game = FEN::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_slice(), fens[0]);
 
         game.make_move(m);
@@ -497,7 +386,7 @@ mod tests {
         ];
         let m = Move::new(E2, E3, QUIET_MOVE);
 
-        let mut game = Game::from_fen(fens[0]);
+        let mut game: Game = FEN::from_fen(fens[0]);
 
         game.make_move(m);
         assert_eq!(game.to_fen().as_slice(), fens[1]);
@@ -514,7 +403,7 @@ mod tests {
         ];
         let m = Move::new(B5, C6, CAPTURE);
 
-        let mut game = Game::from_fen(fens[0]);
+        let mut game: Game = FEN::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_slice(), fens[0]);
         assert_eq!(game.positions.len(), 1);
         assert_eq!(game.positions.top().capture, EMPTY);
@@ -540,7 +429,7 @@ mod tests {
 
     #[bench]
     fn bench_perft(b: &mut Bencher) {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
 
         b.iter(|| {
             game.perft(1);
@@ -549,7 +438,7 @@ mod tests {
 
     #[bench]
     fn bench_generate_moves(b: &mut Bencher) {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
 
         b.iter(|| {
             game.generate_moves();
@@ -558,7 +447,7 @@ mod tests {
 
     #[bench]
     fn bench_make_move(b: &mut Bencher) {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
         let m = Move::new(E2, E3, QUIET_MOVE);
 
         b.iter(|| {
