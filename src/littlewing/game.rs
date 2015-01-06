@@ -3,10 +3,10 @@ use std;
 use littlewing::common::*;
 use littlewing::attack::Attack;
 use littlewing::bitboard::BitwiseOperations;
-use littlewing::piece::PieceChar;
-use littlewing::piece::PieceAttr;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
+use littlewing::piece::PieceAttr;
+use littlewing::piece::PieceChar;
 use littlewing::position::Position;
 use littlewing::position::Stack;
 
@@ -157,25 +157,6 @@ impl Game {
                     r + s.as_slice()
                 }) + "|\n" + sep.as_slice()
         }).fold(String::new(), |r, s| r + s.as_slice()).as_slice()
-    }
-
-    pub fn perft(&mut self, depth: uint) -> u64 {
-        if depth == 0 {
-            1
-        } else {
-            self.generate_moves();
-            let n = self.moves.len();
-            let mut r = 0;
-            for i in range(0u, n) {
-                let m = self.moves.get(i);
-                self.make_move(m);
-                if !self.is_check() {
-                    r += self.perft(depth - 1);
-                }
-                self.undo_move(m);
-            }
-            r
-        }
     }
 
     pub fn make_move(&mut self, m: Move) {
@@ -372,7 +353,9 @@ mod tests {
     use littlewing::common::*;
     use littlewing::moves::Move;
     use littlewing::position::Stack;
-    use super::Game;
+    use littlewing::fen::FEN;
+    use littlewing::game::Game;
+    use littlewing::search::Search;
 
     #[test]
     fn test_from_fen() {

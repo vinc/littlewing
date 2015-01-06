@@ -1,9 +1,10 @@
 pub mod protocols;
-mod game;
 mod attack;
 mod bitboard;
 mod common;
+mod game;
 mod moves;
 mod piece;
 mod position;
+mod search;
 mod square;

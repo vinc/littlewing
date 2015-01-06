@@ -6,6 +6,7 @@ use std::io::File;
 use littlewing::common::*;
 use littlewing::game::Game;
 use littlewing::attack::Attack;
+use littlewing::search::Search;
 
 pub struct CLI {
     game: Game
