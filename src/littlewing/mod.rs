@@ -1,4 +1,4 @@
-pub mod cmd;
+pub mod protocols;
 mod game;
 mod attack;
 mod bitboard;

@@ -60,7 +60,7 @@ impl Attack for Game {
 }
 
 pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    const DIRS: [Square; 4 ] = [
+    const DIRS: [Square; 4] = [
         UP + LEFT,
         DOWN + LEFT,
         DOWN + RIGHT,
@@ -82,7 +82,7 @@ pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
     targets
 }
 pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    const DIRS: [Square; 4 ] = [
+    const DIRS: [Square; 4] = [
         UP,
         DOWN,
         LEFT,
