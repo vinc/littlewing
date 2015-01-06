@@ -122,3 +122,29 @@ impl FEN for Game {
         fen
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use littlewing::common::*;
+    use littlewing::fen::FEN;
+    use littlewing::game::Game;
+
+    #[test]
+    fn test_from_fen() {
+        let game: Game = FEN::from_fen(DEFAULT_FEN);
+        assert_eq!(game.board[E2], WHITE_PAWN);
+    }
+
+    #[test]
+    fn test_to_fen() {
+        let fens = [
+            DEFAULT_FEN,
+            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+            "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1"
+        ];
+        for &fen in fens.iter() {
+            let game: Game = FEN::from_fen(fen);
+            assert_eq!(game.to_fen().as_slice(), fen);
+        }
+    }
+}
