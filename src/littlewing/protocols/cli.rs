@@ -1,5 +1,6 @@
 extern crate time;
 
+use std::io;
 use std::io::BufferedReader;
 use std::io::File;
 
@@ -17,6 +18,21 @@ impl CLI {
     pub fn new() -> CLI {
         CLI {
             game: FEN::from_fen(DEFAULT_FEN)
+        }
+    }
+    pub fn run(&mut self) {
+        loop {
+            print!("> ");
+            let line = io::stdin().read_line().unwrap();
+            let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
+            match args[0].as_slice() {
+                "quit"       => break,
+                "setboard"   => self.setboard(args.as_slice()),
+                "divide"     => self.divide(args.as_slice()),
+                "perft"      => self.perft(),
+                "perftsuite" => self.perftsuite(args.as_slice()),
+                _            => self.usage()
+            }
         }
     }
 
