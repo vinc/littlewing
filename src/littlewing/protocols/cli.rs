@@ -26,12 +26,14 @@ impl CLI {
             let line = io::stdin().read_line().unwrap();
             let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
             match args[0].as_slice() {
-                "quit"       => break,
-                "setboard"   => self.setboard(args.as_slice()),
-                "divide"     => self.divide(args.as_slice()),
-                "perft"      => self.perft(),
-                "perftsuite" => self.perftsuite(args.as_slice()),
-                _            => self.usage()
+                "quit"       => { break },
+                "setboard"   => { self.setboard(args.as_slice()) },
+                "divide"     => { self.divide(args.as_slice()) },
+                "perft"      => { self.perft() },
+                "perftsuite" => { self.perftsuite(args.as_slice()) },
+                "xboard"     => { self.xboard(); break },
+                "help"       => { self.usage() },
+                _            => { self.error(args.as_slice()); self.usage() }
             }
         }
     }
@@ -43,6 +45,16 @@ impl CLI {
         println!("perft                 Count the nodes at each depth");
         println!("perftsuite <epd>      Compare perft results to each position of <epd>");
         println!("quit                  Exit this program");
+    }
+
+    pub fn error(&mut self, args: &[&str]) {
+        println!("Unrecognized command '{}'", args[0]);
+        println!("");
+    }
+
+    pub fn xboard(&self) {
+        //let xboard = XBoard::new();
+        //xboard.run();
     }
 
     pub fn setboard(&mut self, args: &[&str]) {
