@@ -59,21 +59,18 @@ impl Move {
 }
 
 pub struct Moves {
-    lists: Vec<Vec<Move>>,
+    lists: [[Move; MAX_MOVES]; MAX_PLY],
+    lens: [uint; MAX_PLY],
     pub ply: uint
 }
 
 impl Moves {
     pub fn new() -> Moves {
-        let mut moves = Moves {
-            lists: Vec::with_capacity(MAX_PLY),
+        Moves {
+            lists: [[Move::new(A1, A1, QUIET_MOVE); MAX_MOVES]; MAX_PLY],
+            lens: [0; MAX_PLY],
             ply: 0
-        };
-        for _ in range(0u, MAX_PLY) {
-            moves.lists.push(Vec::with_capacity(MAX_MOVES));
         }
-
-        moves
     }
     pub fn inc(&mut self) {
         self.ply += 1;
@@ -82,16 +79,17 @@ impl Moves {
         self.ply -= 1;
     }
     pub fn clear(&mut self) {
-        self.lists[self.ply].clear()
+        self.lens[self.ply] = 0;
     }
     pub fn len(&self) -> uint {
-        self.lists[self.ply].len()
+        self.lens[self.ply]
     }
     pub fn get(&self, i: uint) -> Move {
         self.lists[self.ply][i]
     }
     pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
-        self.lists[self.ply].push(Move::new(from, to, mt));
+        self.lists[self.ply][self.lens[self.ply]] = Move::new(from, to, mt);
+        self.lens[self.ply] += 1;
     }
     pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
         while targets != 0 {
