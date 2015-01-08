@@ -1,7 +1,4 @@
-#![feature(globs)]
-#![feature(phase)]
-
-#[phase(plugin)]
+#[macro_use]
 extern crate lazy_static;
 
 pub use littlewing::protocols;
