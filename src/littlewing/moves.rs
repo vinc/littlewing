@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use littlewing::common::*;
 use littlewing::attack::{bishop_attacks, rook_attacks};
 use littlewing::piece::PieceChar;
@@ -83,9 +85,6 @@ impl Moves {
     }
     pub fn len(&self) -> uint {
         self.lens[self.ply]
-    }
-    pub fn get(&self, i: uint) -> Move {
-        self.lists[self.ply][i]
     }
     pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
         self.lists[self.ply][self.lens[self.ply]] = Move::new(from, to, mt);
@@ -209,6 +208,13 @@ impl Moves {
     }
     pub fn add_queen_castle(&mut self, side: Color) {
         self.add_move(E1 ^ 56 * side, C1 ^ 56 * side, QUEEN_CASTLE);
+    }
+}
+
+impl Index<uint> for Moves {
+    type Output = Move;
+    fn index(&self, _index: &uint) -> &Move {
+        &self.lists[self.ply][*_index]
     }
 }
 

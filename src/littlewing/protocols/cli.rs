@@ -81,7 +81,7 @@ impl CLI {
         self.game.generate_moves();
         let n = self.game.moves.len();
         for i in range(0u, n) {
-            let m = self.game.moves.get(i);
+            let m = self.game.moves[i];
             self.game.make_move(m);
             //println!("{}", game.to_string());
             if !self.game.is_check() {

@@ -14,7 +14,7 @@ impl Search for Game {
             let n = self.moves.len();
             let mut r = 0;
             for i in range(0u, n) {
-                let m = self.moves.get(i);
+                let m = self.moves[i];
                 self.make_move(m);
                 if !self.is_check() {
                     r += self.perft(depth - 1);
