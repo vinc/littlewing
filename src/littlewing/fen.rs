@@ -5,16 +5,24 @@ use littlewing::bitboard::BitwiseOperations;
 use littlewing::game::Game;
 use littlewing::piece::PieceChar;
 use littlewing::position::Position;
-use littlewing::position::Stack;
 
 pub trait FEN {
     fn from_fen(fen: &str) -> Self;
+    fn load_fen(&mut self, fen: &str);
     fn to_fen(&self) -> String;
 }
 
 impl FEN for Game {
     fn from_fen(fen: &str) -> Game {
         let mut game = Game::new();
+
+        game.load_fen(fen);
+        game
+    }
+
+    fn load_fen(&mut self, fen: &str) {
+        self.clear();
+
         let mut fields = fen.words();
 
         let mut sq = A8;
@@ -25,9 +33,9 @@ impl FEN for Game {
                 c.to_digit(10).unwrap()
             } else {
                 let p = PieceChar::from_char(c);
-                game.board[sq] = p;
-                game.bitboards[p].set(sq);
-                game.bitboards[p & 1].set(sq); // TODO: p.color()
+                self.board[sq] = p;
+                self.bitboards[p].set(sq);
+                self.bitboards[p & 1].set(sq); // TODO: p.color()
 
                 1
             };
@@ -51,8 +59,7 @@ impl FEN for Game {
             }
         }
 
-        game.positions.push(position);
-        game
+        self.positions.push(position);
     }
 
     fn to_fen(&self) -> String {

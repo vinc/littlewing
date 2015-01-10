@@ -5,14 +5,13 @@ use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::piece::PieceAttr;
 use littlewing::piece::PieceChar;
-use littlewing::position::Position;
-use littlewing::position::Stack;
+use littlewing::position::Positions;
 
 pub struct Game {
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
     pub moves: Moves,
-    pub positions: Vec<Position>
+    pub positions: Positions
 }
 
 impl Game {
@@ -21,12 +20,15 @@ impl Game {
             bitboards: [0; 14],
             board: [EMPTY; 64],
             moves: Moves::new(),
-            positions: Vec::with_capacity(512)
+            positions: Positions::new()
         }
     }
 
-    fn ply(&self) -> uint {
-        self.positions.len() - 1
+    pub fn clear(&mut self) {
+        self.bitboards = [0; 14];
+        self.board = [EMPTY; 64];
+        self.moves.clear();
+        self.positions.clear();
     }
 
     pub fn to_string(&self) -> String {
@@ -241,7 +243,7 @@ mod tests {
     use self::test::Bencher;
     use littlewing::common::*;
     use littlewing::moves::Move;
-    use littlewing::position::Stack;
+    use littlewing::position::Positions;
     use littlewing::fen::FEN;
     use littlewing::game::Game;
     use littlewing::search::Search;
@@ -249,47 +251,49 @@ mod tests {
     #[test]
     fn test_generate_moves() {
         println!("test_generate_moves()");
-        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
+        let mut game = Game::new();
+
+        game.load_fen(DEFAULT_FEN);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 20);
 
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b - -";
-        let mut game: Game = FEN::from_fen(fen);
+        game.load_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 9);
 
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w - -";
-        let mut game: Game = FEN::from_fen(fen);
+        game.load_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 9);
 
         // Pawn left capture
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w - -";
-        let mut game: Game = FEN::from_fen(fen);
+        game.load_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 3);
 
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b - -";
-        let mut game: Game = FEN::from_fen(fen);
+        game.load_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 3);
 
         // Bishop
         let fen = "8/8/8/8/3B4/8/8/8 w - -";
-        let mut game: Game = FEN::from_fen(fen);
+        game.load_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 13);
 
         // Rook
         let fen = "8/8/8/8/1r1R4/8/8/8 w - -";
-        let mut game: Game = FEN::from_fen(fen);
+        game.load_fen(fen);
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 13);
@@ -378,12 +382,13 @@ mod tests {
     }
 
     #[bench]
-    fn bench_make_move(b: &mut Bencher) {
+    fn bench_make_undo_move(b: &mut Bencher) {
         let mut game: Game = FEN::from_fen(DEFAULT_FEN);
         let m = Move::new(E2, E3, QUIET_MOVE);
 
         b.iter(|| {
             game.make_move(m);
+            game.undo_move(m);
         })
     }
 }

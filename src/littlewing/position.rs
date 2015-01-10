@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use littlewing::common::*;
 
 #[derive(Copy)]
@@ -19,12 +21,39 @@ impl Position {
     }
 }
 
-pub trait Stack<T> {
-    fn top(&self) -> &T;
+pub struct Positions {
+    stack: [Position; MAX_PLY],
+    ply: uint
 }
 
-impl Stack<Position> for Vec<Position> {
-    fn top(&self) -> &Position {
-        &self[self.len() - 1]
+impl Positions {
+    pub fn new() -> Positions {
+        Positions {
+            stack: [Position::new(); MAX_PLY],
+            ply: 0
+        }
+    }
+    pub fn push(&mut self, position: Position) {
+        self.stack[self.ply] = position;
+        self.ply += 1;
+    }
+    pub fn pop(&mut self) { // TODO: pop() should return last Position
+        self.ply -= 1;
+    }
+    pub fn clear(&mut self) {
+        self.ply = 0;
+    }
+    pub fn top(&self) -> &Position {
+        &self.stack[self.ply - 1]
+    }
+    pub fn len(&self) -> uint {
+        self.ply
+    }
+}
+
+impl Index<uint> for Positions {
+    type Output = Position;
+    fn index(&self, _index: &uint) -> &Position {
+        &self.stack[*_index]
     }
 }

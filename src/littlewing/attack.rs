@@ -3,7 +3,6 @@ use littlewing::common::*;
 use littlewing::bitboard::BitwiseOperations;
 use littlewing::bitboard::dumb7fill;
 use littlewing::game::Game;
-use littlewing::position::Stack;
 
 pub trait Attack {
     fn is_check(&self) -> bool;
