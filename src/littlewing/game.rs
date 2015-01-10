@@ -196,21 +196,20 @@ impl Game {
     }
 
     pub fn generate_moves(&mut self) {
-        let bitboards = self.bitboards.as_slice();
         let &position = self.positions.top();
         let side = position.side;
         let ep = position.en_passant;
 
         self.moves.clear();
-        self.moves.add_pawns_moves(bitboards, side, ep);
-        self.moves.add_knights_moves(bitboards, side);
-        self.moves.add_king_moves(bitboards, side);
-        self.moves.add_bishops_moves(bitboards, side);
-        self.moves.add_rooks_moves(bitboards, side);
-        self.moves.add_queens_moves(bitboards, side);
+        self.moves.add_pawns_moves(&self.bitboards, side, ep);
+        self.moves.add_knights_moves(&self.bitboards, side);
+        self.moves.add_king_moves(&self.bitboards, side);
+        self.moves.add_bishops_moves(&self.bitboards, side);
+        self.moves.add_rooks_moves(&self.bitboards, side);
+        self.moves.add_queens_moves(&self.bitboards, side);
 
 
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
+        let occupied = self.bitboards[WHITE] | self.bitboards[BLACK];
 
         let mask = CASTLING_MASKS[side][KING >> 3];
         let can_castle =
