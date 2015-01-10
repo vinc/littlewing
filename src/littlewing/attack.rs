@@ -60,46 +60,31 @@ impl Attack for Game {
 }
 
 pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    const DIRS: [Square; 4] = [
-        UP + LEFT,
-        DOWN + LEFT,
-        DOWN + RIGHT,
-        UP + RIGHT
-    ];
-    const WRAPS: [Bitboard; 4] = [
-        0x7F7F7F7F7F7F7F7F,
-        0x7F7F7F7F7F7F7F7F,
-        0xFEFEFEFEFEFEFEFE,
-        0xFEFEFEFEFEFEFEFE
-    ];
-
     let mut targets = 0;
-    for i in range(0u, 4) {
-        let occluded = dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]);
-        targets |= occluded.shift(DIRS[i]) & WRAPS[i];
-    }
+
+    let occluded = dumb7fill(1 << from, !occupied & 0x7F7F7F7F7F7F7F7F, UP + LEFT);
+    targets |= 0x7F7F7F7F7F7F7F7F & occluded.shift(UP + LEFT);
+    let occluded = dumb7fill(1 << from, !occupied & 0x7F7F7F7F7F7F7F7F, DOWN + LEFT);
+    targets |= 0x7F7F7F7F7F7F7F7F & occluded.shift(DOWN + LEFT);
+    let occluded = dumb7fill(1 << from, !occupied & 0xFEFEFEFEFEFEFEFE, DOWN + RIGHT);
+    targets |= 0xFEFEFEFEFEFEFEFE & occluded.shift(DOWN + RIGHT);
+    let occluded = dumb7fill(1 << from, !occupied & 0xFEFEFEFEFEFEFEFE, UP + RIGHT);
+    targets |= 0xFEFEFEFEFEFEFEFE & occluded.shift(UP + RIGHT);
 
     targets
 }
-pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    const DIRS: [Square; 4] = [
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
-    ];
-    const WRAPS: [Bitboard; 4] = [
-        0xFFFFFFFFFFFFFFFF,
-        0xFFFFFFFFFFFFFFFF,
-        0x7F7F7F7F7F7F7F7F,
-        0xFEFEFEFEFEFEFEFE
-    ];
 
+pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
     let mut targets = 0;
-    for i in range(0u, 4) {
-        let occluded = dumb7fill(1 << from, !occupied & WRAPS[i], DIRS[i]);
-        targets |= occluded.shift(DIRS[i]) & WRAPS[i];
-    }
+
+    let occluded = dumb7fill(1 << from, !occupied & 0xFFFFFFFFFFFFFFFF, UP);
+    targets |= 0xFFFFFFFFFFFFFFFF & occluded.shift(UP);
+    let occluded = dumb7fill(1 << from, !occupied & 0xFFFFFFFFFFFFFFFF, DOWN);
+    targets |= 0xFFFFFFFFFFFFFFFF & occluded.shift(DOWN);
+    let occluded = dumb7fill(1 << from, !occupied & 0x7F7F7F7F7F7F7F7F, LEFT);
+    targets |= 0x7F7F7F7F7F7F7F7F & occluded.shift(LEFT);
+    let occluded = dumb7fill(1 << from, !occupied & 0xFEFEFEFEFEFEFEFE, RIGHT);
+    targets |= 0xFEFEFEFEFEFEFEFE & occluded.shift(RIGHT);
 
     targets
 }
