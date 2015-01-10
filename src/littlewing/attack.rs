@@ -121,3 +121,25 @@ lazy_static! {
         attacks
     };
 }
+
+#[cfg(test)]
+mod tests {
+    extern crate test;
+    use self::test::Bencher;
+    use littlewing::common::*;
+    use littlewing::attack::{bishop_attacks, rook_attacks};
+
+    #[bench]
+    fn bench_bishop_attacks(b: &mut Bencher) {
+        b.iter(|| {
+            bishop_attacks(E4, 0u64)
+        })
+    }
+
+    #[bench]
+    fn bench_rook_attacks(b: &mut Bencher) {
+        b.iter(|| {
+            rook_attacks(E4, 0u64)
+        })
+    }
+}
