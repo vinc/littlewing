@@ -13,7 +13,7 @@ impl Search for Game {
             self.generate_moves();
             let n = self.moves.len();
             let mut r = 0;
-            for i in range(0u, n) {
+            for i in range(0, n) {
                 let m = self.moves[i];
                 self.make_move(m);
                 if !self.is_check() {

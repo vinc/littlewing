@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub type Bitboard = u64;
 pub type Color = uint;
 pub type Direction = uint; // FIXME: Use `int` instead
@@ -163,13 +165,13 @@ lazy_static! {
     pub static ref PIECE_MASKS: [[Bitboard; 64]; 14] = { // TODO: s/12/5/
         let mut piece_masks = [[0u64; 64]; 14];
 
-        let deltas = [-2u, -1u, 0u, 1u, 2u];
-        for x in range(0u, 8) {
-            for y in range(0u, 8) {
+        let deltas = [-2, -1, 0, 1, 2];
+        for x in range(0, 8) {
+            for y in range(0, 8) {
                 let from = 8 * x + y;
                 for &i in deltas.iter() {
                     for &j in deltas.iter() {
-                        for k in range(1u, 7) {
+                        for k in range(1, 7) {
                             let dx = x + i * k;
                             let dy = y + j * k;
                             let to = 8 * dx + dy;
@@ -179,8 +181,8 @@ lazy_static! {
                             if dx >= 8 || dy >= 8 {
                                 break; // Out of board
                             }
-                            if i == -2u || j == -2u || i == 2u || j == 2u {
-                                if i == -1u || j == -1u || i == 1u || j == 1u {
+                            if i == -2 || j == -2 || i == 2 || j == 2 {
+                                if i == -1 || j == -1 || i == 1 || j == 1 {
                                     piece_masks[KNIGHT][from] |= 1 << to;
                                 }
                                 break;

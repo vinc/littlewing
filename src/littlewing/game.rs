@@ -34,12 +34,12 @@ impl Game {
     pub fn to_string(&self) -> String {
         // FIXME: Testing `map` and `fold` for the lulz
 
-        let sep = range(0u, 8)
+        let sep = range(0, 8)
             .map(|_| "+---")
             .fold(String::new(), |r, s| r + s) + "+\n";
 
-        String::new() + sep.as_slice() + range(0u, 8).map(|i| {
-            range(0u, 8)
+        String::new() + sep.as_slice() + range(0, 8).map(|i| {
+            range(0, 8)
                 .map(|j| {
                     let c = (self.board[8 * (7 - i) + j]).to_char();
                     String::from_str("| ") + c.to_string().as_slice() + " "
