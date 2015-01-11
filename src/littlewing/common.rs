@@ -158,7 +158,7 @@ pub const SQUARES: [Square; 64] = [
 ];
 */
 
-pub const MAX_PLY: uint = 256;
+pub const MAX_PLY: uint = 128;
 pub const MAX_MOVES: uint = 256;
 
 lazy_static! {
