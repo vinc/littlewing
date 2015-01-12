@@ -55,29 +55,29 @@ impl Game {
         let mut new_position = position;
         let side = position.side;
 
-        let piece = self.board[m.from];
-        let capture = self.board[m.to]; // TODO: En passant
+        let piece = self.board[m.from()];
+        let capture = self.board[m.to()]; // TODO: En passant
 
-        self.bitboards[piece].toggle(m.from);
-        self.board[m.from] = EMPTY;
+        self.bitboards[piece].toggle(m.from());
+        self.board[m.from()] = EMPTY;
 
         // Update castling rights
         if piece.kind() == KING {
             new_position.castling_rights[side][KING >> 3] = false;
             new_position.castling_rights[side][QUEEN >> 3] = false;
         } else if piece.kind() == ROOK {
-            if m.from == H1 ^ 56 * side {
+            if m.from() == H1 ^ 56 * side {
                 new_position.castling_rights[side][KING >> 3] = false;
             }
-            if m.from == A1 ^ 56 * side {
+            if m.from() == A1 ^ 56 * side {
                 new_position.castling_rights[side][QUEEN >> 3] = false;
             }
         }
         if capture.kind() == ROOK {
-            if m.to == H1 ^ 56 * (side ^ 1) {
+            if m.to() == H1 ^ 56 * (side ^ 1) {
                 new_position.castling_rights[side ^ 1][KING >> 3] = false;
             }
-            if m.to == A1 ^ 56 * (side ^ 1) {
+            if m.to() == A1 ^ 56 * (side ^ 1) {
                 new_position.castling_rights[side ^ 1][QUEEN >> 3] = false;
             }
         }
@@ -101,15 +101,15 @@ impl Game {
 
         if m.is_promotion() {
             let promoted_piece = side | m.promotion_kind();
-            self.board[m.to] = promoted_piece;
-            self.bitboards[promoted_piece].toggle(m.to);
+            self.board[m.to()] = promoted_piece;
+            self.bitboards[promoted_piece].toggle(m.to());
         } else {
-            self.board[m.to] = piece;
-            self.bitboards[piece].toggle(m.to);
+            self.board[m.to()] = piece;
+            self.bitboards[piece].toggle(m.to());
         }
 
-        new_position.en_passant = if m.kind == DOUBLE_PAWN_PUSH {
-            ((m.from ^ (56 * side)) + UP) ^ (56 * side)
+        new_position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
+            ((m.from() ^ (56 * side)) + UP) ^ (56 * side)
         } else {
             OUT
         };
@@ -117,15 +117,15 @@ impl Game {
         if new_position.en_passant != OUT {
         }
 
-        self.bitboards[side].toggle(m.from);
-        self.bitboards[side].toggle(m.to);
+        self.bitboards[side].toggle(m.from());
+        self.bitboards[side].toggle(m.to());
 
         if capture != EMPTY {
-            self.bitboards[capture].toggle(m.to);
-            self.bitboards[side ^ 1].toggle(m.to);
+            self.bitboards[capture].toggle(m.to());
+            self.bitboards[side ^ 1].toggle(m.to());
         }
-        if m.kind == EN_PASSANT {
-            let square = ((m.to ^ (56 * side)) + DOWN) ^ (56 * side);
+        if m.kind() == EN_PASSANT {
+            let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
             self.board[square] = EMPTY;
             self.bitboards[side ^ 1 | PAWN].toggle(square);
             self.bitboards[side ^ 1].toggle(square);
@@ -140,7 +140,7 @@ impl Game {
     }
 
     pub fn undo_move(&mut self, m: Move) {
-        let piece = self.board[m.to];
+        let piece = self.board[m.to()];
         let capture = self.positions.top().capture;
 
         self.positions.pop();
@@ -168,30 +168,30 @@ impl Game {
 
         if m.is_promotion() {
             let pawn = position.side | PAWN;
-            self.board[m.from] = pawn;
-            self.bitboards[pawn].toggle(m.from);
-            self.bitboards[pawn].toggle(m.to);
+            self.board[m.from()] = pawn;
+            self.bitboards[pawn].toggle(m.from());
+            self.bitboards[pawn].toggle(m.to());
         } else {
-            self.board[m.from] = piece;
-            self.bitboards[piece].toggle(m.from);
+            self.board[m.from()] = piece;
+            self.bitboards[piece].toggle(m.from());
         }
 
-        if m.kind == EN_PASSANT {
-            let square = ((m.to ^ (56 * side)) + DOWN) ^ (56 * side);
+        if m.kind() == EN_PASSANT {
+            let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
             self.board[square] = side ^ 1 | PAWN;
             self.bitboards[side ^ 1 | PAWN].toggle(square);
             self.bitboards[side ^ 1].toggle(square);
         }
 
-        self.board[m.to] = capture;
-        self.bitboards[piece].toggle(m.to);
+        self.board[m.to()] = capture;
+        self.bitboards[piece].toggle(m.to());
 
-        self.bitboards[position.side].toggle(m.from);
-        self.bitboards[position.side].toggle(m.to);
+        self.bitboards[position.side].toggle(m.from());
+        self.bitboards[position.side].toggle(m.to());
 
         if capture != EMPTY {
-            self.bitboards[capture].toggle(m.to);
-            self.bitboards[position.side ^ 1].toggle(m.to);
+            self.bitboards[capture].toggle(m.to());
+            self.bitboards[position.side ^ 1].toggle(m.to());
         }
     }
 

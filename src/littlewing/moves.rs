@@ -7,36 +7,40 @@ use littlewing::square::SquareString;
 use littlewing::bitboard::BitwiseOperations;
 
 #[derive(Copy)]
-pub struct Move {
-    pub from: Square,
-    pub to: Square,
-    pub kind: MoveType // FIXME
-}
+pub struct Move(u16);
 
 impl Move {
     pub fn new(f: Square, t: Square, mt: MoveType) -> Move {
-        Move {
-            from: f,
-            to: t,
-            kind: mt
-        }
+        Move(((f << 10) | (t << 4) | mt) as u16)
+    }
+    pub fn from(&self) -> Square {
+        let Move(v) = *self;
+        (v >> 10) as Square
+    }
+    pub fn to(&self) -> Square {
+        let Move(v) = *self;
+        ((v >> 4) & 0b111111) as Square
+    }
+    pub fn kind(&self) -> MoveType {
+        let Move(v) = *self;
+        (v & 0b1111) as MoveType
     }
     pub fn is_castle(&self) -> bool {
-        self.kind == KING_CASTLE || self.kind == QUEEN_CASTLE
+        self.kind() == KING_CASTLE || self.kind() == QUEEN_CASTLE
     }
     pub fn castle_kind(&self) -> Piece {
-        QUEEN_CASTLE << self.kind - 1
+        QUEEN_CASTLE << self.kind() - 1
     }
     pub fn is_promotion(&self) -> bool {
-        self.kind & PROMOTION_MASK > 0
+        self.kind() & PROMOTION_MASK > 0
     }
     pub fn promotion_kind(&self) -> Piece {
-        PROMOTION_KINDS[self.kind & PROMOTION_KIND_MASK >> 2]
+        PROMOTION_KINDS[self.kind() & PROMOTION_KIND_MASK >> 2]
     }
     pub fn to_can(&self) -> String {
         let mut out = String::new();
-        out.push_str(self.from.to_square_string().as_slice());
-        out.push_str(self.to.to_square_string().as_slice());
+        out.push_str(self.from().to_square_string().as_slice());
+        out.push_str(self.to().to_square_string().as_slice());
         if self.is_promotion() {
             out.push((BLACK | self.promotion_kind()).to_char());        
         }
@@ -44,18 +48,18 @@ impl Move {
     }
     pub fn to_san(&self, board: &[Piece]) -> String {
         let mut out = String::new();
-        let piece = board[self.from] & !BLACK;
-        let capture = board[self.to];
+        let piece = board[self.from()] & !BLACK;
+        let capture = board[self.to()];
         if piece != PAWN {
             out.push(piece.to_char());
         }
-        out.push_str(self.from.to_square_string().as_slice());
+        out.push_str(self.from().to_square_string().as_slice());
         if capture == EMPTY {
             out.push('-');
         } else {
             out.push('x');
         }
-        out.push_str(self.to.to_square_string().as_slice());
+        out.push_str(self.to().to_square_string().as_slice());
         out
     }
 }
