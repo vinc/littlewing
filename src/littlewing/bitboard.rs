@@ -55,53 +55,10 @@ pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: usize) -> Bitboard
 
 #[cfg(test)]
 mod tests {
-    extern crate test;
     use littlewing::common::*;
     use std::num::Int;
     use super::BitboardExt;
     use super::dumb7fill;
-    use self::test::Bencher;
-
-    #[test]
-    fn test_ffs() {
-        let bb: Bitboard = 0x0000000000FF0000;
-        assert_eq!(bb.ffs(), 16);
-    }
-
-    #[test]
-    fn test_trailing_zeros() {
-        let bb: Bitboard = 0x0000000000FF0000;
-        assert_eq!(bb.trailing_zeros(), 16);
-    }
-
-    #[bench]
-    fn bench_ffs(b: &mut Bencher) {
-        let bb: Bitboard = 0x0000000000FF0000;
-
-        b.iter(|| {
-            bb.ffs();
-        })
-    }
-
-    #[bench]
-    fn bench_trailing_zeros(b: &mut Bencher) {
-        let bb: Bitboard = 0x0000000000FF0000;
-
-        b.iter(|| {
-            bb.trailing_zeros();
-        })
-    }
-
-    /*
-    #[test]
-    fn test_toggle() {
-        let c = WHITE;
-        assert!(c.toggle() == BLACK);
-
-        let c = BLACK;
-        assert!(c.toggle() == WHITE);
-    }
-    */
 
     #[test]
     fn test_dumb7fill() {
