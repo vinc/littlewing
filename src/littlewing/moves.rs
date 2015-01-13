@@ -14,6 +14,9 @@ impl Move {
     pub fn new(f: Square, t: Square, mt: MoveType) -> Move {
         Move(((f << 10) | (t << 4) | mt) as u16)
     }
+    pub fn new_null() -> Move {
+        Move(0)
+    }
     pub fn from(&self) -> Square {
         let Move(v) = *self;
         (v >> 10) as Square
@@ -25,6 +28,10 @@ impl Move {
     pub fn kind(&self) -> MoveType {
         let Move(v) = *self;
         (v & 0b1111) as MoveType
+    }
+    pub fn is_null(&self) -> bool {
+        let Move(v) = *self;
+        v == 0
     }
     pub fn is_castle(&self) -> bool {
         self.kind() == KING_CASTLE || self.kind() == QUEEN_CASTLE

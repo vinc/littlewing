@@ -1,8 +1,13 @@
-use littlewing::game::Game;
+use littlewing::common::*;
 use littlewing::attack::Attack;
+use littlewing::eval::Eval;
+use littlewing::game::Game;
+use littlewing::moves::Move;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
+    fn search(&mut self, depth: usize) -> i32;
+    fn root(&mut self, max_depth: usize) -> Move;
 }
 
 impl Search for Game {
@@ -23,6 +28,53 @@ impl Search for Game {
             }
             r
         }
+    }
+
+    fn search(&mut self, depth: usize) -> i32 {
+        if depth == 0 {
+            return self.eval();
+        }
+
+        self.generate_moves();
+        let n = self.moves.len();
+        let mut best_score = -INF;
+
+        for i in range(0, n) {
+            let m = self.moves[i];
+            self.make_move(m);
+            if !self.is_check() {
+                let score = -self.search(depth - 1);
+                if score >= best_score {
+                    best_score = score;
+                }
+            }
+            self.undo_move(m);
+        }
+
+        best_score
+    }
+
+    fn root(&mut self, max_depth: usize) -> Move {
+        self.generate_moves();
+
+        let n = self.moves.len();
+        let mut best_move = Move::new_null(); // best_move.is_null() == true
+        let mut best_score = -INF;
+
+        for i in range(0, n) {
+            let m = self.moves[i];
+            self.make_move(m);
+            if !self.is_check() {
+                let score = -self.search(max_depth - 1);
+                if score >= best_score {
+                    best_score = score;
+                    best_move = m;
+                }
+            }
+            self.undo_move(m);
+        }
+
+        best_move
     }
 }
 

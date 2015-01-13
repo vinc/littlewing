@@ -2,6 +2,7 @@ pub mod protocols;
 mod attack;
 mod bitboard;
 mod common;
+mod eval;
 mod fen;
 mod game;
 mod moves;

@@ -7,6 +7,8 @@ pub type MoveType = usize;
 pub type Piece = usize;
 pub type Square = usize;
 
+pub const INF: i32 = 29999;
+
 pub const WHITE:  Color = 0b0000; // 0
 pub const BLACK:  Color = 0b0001; // 1
 

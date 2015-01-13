@@ -67,13 +67,19 @@ impl XBoard {
             return;
         }
 
-        let m = Move::new(from, to, QUIET_MOVE);
+        let mt = if self.game.board[to] == EMPTY {
+            QUIET_MOVE
+        } else {
+            CAPTURE
+        };
+
+        let m = Move::new(from, to, mt);
         self.game.make_move(m);
         
-        self.game.generate_moves();
-        let n = self.game.moves.len();
-        let m = self.game.moves[0];
+        let d = 4;
+        let m = self.game.root(d);
         self.game.make_move(m);
+
         println!("move {}", m.to_can());
     }
 }
