@@ -9,6 +9,7 @@ use littlewing::attack::Attack;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
 use littlewing::search::Search;
+use littlewing::protocols::xboard::XBoard;
 
 pub struct CLI {
     game: Game
@@ -27,23 +28,24 @@ impl CLI {
             let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
             match args[0].as_slice() {
                 "quit"       => { break },
-                "setboard"   => { self.setboard(args.as_slice()) },
-                "divide"     => { self.divide(args.as_slice()) },
-                "perft"      => { self.perft() },
-                "perftsuite" => { self.perftsuite(args.as_slice()) },
-                "xboard"     => { self.xboard(); break },
-                "help"       => { self.usage() },
-                _            => { self.error(args.as_slice()); self.usage() }
+                "setboard"   => { self.cmd_setboard(args.as_slice()) },
+                "divide"     => { self.cmd_divide(args.as_slice()) },
+                "perft"      => { self.cmd_perft() },
+                "perftsuite" => { self.cmd_perftsuite(args.as_slice()) },
+                "xboard"     => { self.cmd_xboard(); break },
+                "help"       => { self.cmd_usage() },
+                _            => { self.error(args.as_slice()); self.cmd_usage() }
             }
         }
     }
 
-    pub fn usage(&self) {
+    pub fn cmd_usage(&self) {
         println!("help                  Display this screen");
         println!("setboard <fen>        Set the board to <fen>");
         println!("divide <depth>        Count the nodes at <depth> for each moves");
         println!("perft                 Count the nodes at each depth");
         println!("perftsuite <epd>      Compare perft results to each position of <epd>");
+        println!("xboard                Start XBoard mode");
         println!("quit                  Exit this program");
     }
 
@@ -52,12 +54,12 @@ impl CLI {
         println!("");
     }
 
-    pub fn xboard(&self) {
-        //let xboard = XBoard::new();
-        //xboard.run();
+    pub fn cmd_xboard(&self) {
+        let mut xboard = XBoard::new();
+        xboard.run();
     }
 
-    pub fn setboard(&mut self, args: &[&str]) {
+    pub fn cmd_setboard(&mut self, args: &[&str]) {
         if args.len() == 1 {
             panic!("no fen given");
         }
@@ -68,7 +70,7 @@ impl CLI {
         self.game = FEN::from_fen(fen);
     }
 
-    pub fn divide(&mut self, args: &[&str]) {
+    pub fn cmd_divide(&mut self, args: &[&str]) {
         let mut moves_count = 0u64;
         let mut nodes_count = 0u64;
 
@@ -100,7 +102,7 @@ impl CLI {
         println!("Nodes: {}", nodes_count);
     }
 
-    pub fn perft(&mut self) {
+    pub fn cmd_perft(&mut self) {
         let mut i = 0u;
         loop {
             i += 1;
@@ -113,7 +115,7 @@ impl CLI {
         }
     }
 
-    pub fn perftsuite(&mut self, args: &[&str]) {
+    pub fn cmd_perftsuite(&mut self, args: &[&str]) {
         if args.len() != 2 {
             panic!("no filename given");
         }
