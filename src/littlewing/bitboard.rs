@@ -1,33 +1,18 @@
 use littlewing::common::*;
 use std::num::Int;
 
-/*
-const INDEX64: [usize; 64] = [
-     0,  1, 48,  2, 57, 49, 28,  3,
-    61, 58, 50, 42, 38, 29, 17,  4,
-    62, 55, 59, 36, 53, 51, 43, 22,
-    45, 39, 33, 30, 24, 18, 12,  5,
-    63, 47, 56, 27, 60, 41, 37, 16,
-    54, 35, 52, 21, 44, 32, 23, 11,
-    46, 26, 40, 15, 34, 20, 31, 10,
-    25, 14, 19,  9, 13,  8,  7,  6
-];
-*/
-
-pub trait BitwiseOperations {
+pub trait BitboardExt {
     fn shift(&self, x: usize) -> Bitboard;
     fn toggle(&mut self, i: usize); // FIXME: Return instead of update?
     fn set(&mut self, i: usize);
     fn reset(&mut self, i: usize);
     fn get(&self, i: usize) -> bool;
-    fn ffs(&self) -> usize;
     fn debug(&self);
 }
 
-impl BitwiseOperations for Bitboard {
-    fn shift(&self, x: usize) -> Bitboard { // FIXME: Use int instead of usize
+impl BitboardExt for Bitboard {
+    fn shift(&self, x: usize) -> Bitboard {
         let v = *self;
-        // (v << x) & (-1u64 >> x) | (v >> -x) & (-1u64 << -x)
         if x < 64 {
             v << x
         } else {
@@ -47,18 +32,7 @@ impl BitwiseOperations for Bitboard {
     fn get(&self, i: usize) -> bool {
         *self & (1 << i) > 0
     }
-    fn ffs(&self) -> usize {
-        /*
-        let bb = *self;
-        let debruijn64 = 0x03f79d71b4cb0a89u64;
-        let i = ((bb & -bb) * debruijn64) >> 58; // Intentional unsigned negation
-        INDEX64[i as usize]
-        */
-        self.trailing_zeros()
-    }
     fn debug(&self) {
-        //println!("{:016X}", *self);
-        //println!("{:064b}", *self);
         println!("DEBUG(bitboard): 0x{:016X}", *self);
         for i in range(0, 8) {
             for j in range(0, 8) {
@@ -84,7 +58,7 @@ mod tests {
     extern crate test;
     use littlewing::common::*;
     use std::num::Int;
-    use super::BitwiseOperations;
+    use super::BitboardExt;
     use super::dumb7fill;
     use self::test::Bencher;
 

@@ -1,6 +1,7 @@
-use littlewing::common::*;
+use std::num::Int;
 
-use littlewing::bitboard::BitwiseOperations;
+use littlewing::common::*;
+use littlewing::bitboard::BitboardExt;
 use littlewing::bitboard::dumb7fill;
 use littlewing::game::Game;
 
@@ -16,7 +17,7 @@ impl Attack for Game {
         if king == 0 {
             return true; // FIXME: Obviously...
         }
-        let square = king.ffs();
+        let square = king.trailing_zeros();
         self.is_attacked(square, side)
     }
     fn is_attacked(&self, square: Square, side: Color) -> bool {

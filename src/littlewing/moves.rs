@@ -1,10 +1,11 @@
 use std::ops::Index;
+use std::num::Int;
 
 use littlewing::common::*;
 use littlewing::attack::{bishop_attacks, rook_attacks};
 use littlewing::piece::PieceChar;
 use littlewing::square::SquareString;
-use littlewing::bitboard::BitwiseOperations;
+use littlewing::bitboard::BitboardExt;
 
 #[derive(Copy)]
 pub struct Move(u16);
@@ -96,7 +97,7 @@ impl Moves {
     }
     pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
         while targets != 0 {
-            let to = targets.ffs();
+            let to = targets.trailing_zeros();
             let from = to - dir;
             self.add_move(from, to, mt);
             targets.reset(to);
@@ -104,7 +105,7 @@ impl Moves {
     }
     pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Square, mt: MoveType) {
         while targets != 0 {
-            let to = targets.ffs();
+            let to = targets.trailing_zeros();
             self.add_move(from, to, mt);
             targets.reset(to);
         }
@@ -152,7 +153,7 @@ impl Moves {
         let mut knights = bitboards[side | KNIGHT];
 
         while knights > 0 {
-            let from = knights.ffs();
+            let from = knights.trailing_zeros();
             let targets = PIECE_MASKS[KNIGHT][from] & !occupied;
             self.add_moves_from(targets, from, QUIET_MOVE);
             let targets = PIECE_MASKS[KNIGHT][from] & bitboards[side ^ 1];
@@ -165,7 +166,7 @@ impl Moves {
         let mut kings = bitboards[side | KING];
 
         while kings > 0 {
-            let from = kings.ffs();
+            let from = kings.trailing_zeros();
             let targets = PIECE_MASKS[KING][from] & !occupied;
             self.add_moves_from(targets, from, QUIET_MOVE);
             let targets = PIECE_MASKS[KING][from] & bitboards[side ^ 1];
@@ -177,7 +178,7 @@ impl Moves {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
         let mut bishops = bitboards[side | BISHOP];
         while bishops > 0 {
-            let from = bishops.ffs();
+            let from = bishops.trailing_zeros();
             let targets = bishop_attacks(from, occupied);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
             self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
@@ -188,7 +189,7 @@ impl Moves {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
         let mut rooks = bitboards[side | ROOK];
         while rooks > 0 {
-            let from = rooks.ffs();
+            let from = rooks.trailing_zeros();
             let targets = rook_attacks(from, occupied);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
             self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
@@ -199,7 +200,7 @@ impl Moves {
         let occupied = bitboards[WHITE] | bitboards[BLACK];
         let mut queens = bitboards[side | QUEEN];
         while queens > 0 {
-            let from = queens.ffs();
+            let from = queens.trailing_zeros();
             let targets = bishop_attacks(from, occupied) | rook_attacks(from, occupied);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
             self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);

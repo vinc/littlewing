@@ -1,6 +1,6 @@
 use littlewing::common::*;
 use littlewing::attack::Attack;
-use littlewing::bitboard::BitwiseOperations;
+use littlewing::bitboard::BitboardExt;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::piece::PieceAttr;

@@ -1,7 +1,7 @@
 use std;
 
 use littlewing::common::*;
-use littlewing::bitboard::BitwiseOperations;
+use littlewing::bitboard::BitboardExt;
 use littlewing::game::Game;
 use littlewing::piece::PieceChar;
 use littlewing::position::Position;
