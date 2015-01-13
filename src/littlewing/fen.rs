@@ -64,7 +64,7 @@ impl FEN for Game {
 
     fn to_fen(&self) -> String {
         let mut fen = String::new();
-        let mut n = 0u;
+        let mut n = 0;
         let mut sq = A8;
         loop {
             let p = self.board[sq];

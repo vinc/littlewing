@@ -66,8 +66,8 @@ impl Move {
 
 pub struct Moves {
     lists: [[Move; MAX_MOVES]; MAX_PLY],
-    lens: [uint; MAX_PLY],
-    pub ply: uint
+    lens: [usize; MAX_PLY],
+    pub ply: usize
 }
 
 impl Moves {
@@ -87,7 +87,7 @@ impl Moves {
     pub fn clear(&mut self) {
         self.lens[self.ply] = 0;
     }
-    pub fn len(&self) -> uint {
+    pub fn len(&self) -> usize {
         self.lens[self.ply]
     }
     pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
@@ -215,9 +215,9 @@ impl Moves {
     }
 }
 
-impl Index<uint> for Moves {
+impl Index<usize> for Moves {
     type Output = Move;
-    fn index(&self, _index: &uint) -> &Move {
+    fn index(&self, _index: &usize) -> &Move {
         &self.lists[self.ply][*_index]
     }
 }

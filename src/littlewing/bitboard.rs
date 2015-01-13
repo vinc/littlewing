@@ -2,7 +2,7 @@ use littlewing::common::*;
 use std::num::Int;
 
 /*
-const INDEX64: [uint; 64] = [
+const INDEX64: [usize; 64] = [
      0,  1, 48,  2, 57, 49, 28,  3,
     61, 58, 50, 42, 38, 29, 17,  4,
     62, 55, 59, 36, 53, 51, 43, 22,
@@ -15,44 +15,44 @@ const INDEX64: [uint; 64] = [
 */
 
 pub trait BitwiseOperations {
-    fn shift(&self, x: uint) -> Bitboard;
-    fn toggle(&mut self, i: uint); // FIXME: Return instead of update?
-    fn set(&mut self, i: uint);
-    fn reset(&mut self, i: uint);
-    fn get(&self, i: uint) -> bool;
-    fn ffs(&self) -> uint;
+    fn shift(&self, x: usize) -> Bitboard;
+    fn toggle(&mut self, i: usize); // FIXME: Return instead of update?
+    fn set(&mut self, i: usize);
+    fn reset(&mut self, i: usize);
+    fn get(&self, i: usize) -> bool;
+    fn ffs(&self) -> usize;
     fn debug(&self);
 }
 
 impl BitwiseOperations for Bitboard {
-    fn shift(&self, x: uint) -> Bitboard { // FIXME: Use int instead of uint
+    fn shift(&self, x: usize) -> Bitboard { // FIXME: Use int instead of usize
         let v = *self;
         // (v << x) & (-1u64 >> x) | (v >> -x) & (-1u64 << -x)
-        if x as int > 0 {
+        if x < 64 {
             v << x
         } else {
             v >> -x
         }
     }
 
-    fn toggle(&mut self, i: uint) {
+    fn toggle(&mut self, i: usize) {
         *self ^= 1 << i
     }
-    fn set(&mut self, i: uint) {
+    fn set(&mut self, i: usize) {
         *self |= 1 << i
     }
-    fn reset(&mut self, i: uint) {
+    fn reset(&mut self, i: usize) {
         *self &= !(1 << i)
     }
-    fn get(&self, i: uint) -> bool {
+    fn get(&self, i: usize) -> bool {
         *self & (1 << i) > 0
     }
-    fn ffs(&self) -> uint {
+    fn ffs(&self) -> usize {
         /*
         let bb = *self;
         let debruijn64 = 0x03f79d71b4cb0a89u64;
         let i = ((bb & -bb) * debruijn64) >> 58; // Intentional unsigned negation
-        INDEX64[i as uint]
+        INDEX64[i as usize]
         */
         self.trailing_zeros()
     }
@@ -62,7 +62,7 @@ impl BitwiseOperations for Bitboard {
         println!("DEBUG(bitboard): 0x{:016X}", *self);
         for i in range(0, 8) {
             for j in range(0, 8) {
-                print!("{:b}", self.get(8 * i + j) as uint);
+                print!("{:b}", self.get(8 * i + j) as usize);
             }
             println!("");
         }
@@ -70,7 +70,7 @@ impl BitwiseOperations for Bitboard {
     }
 }
 
-pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: uint) -> Bitboard {
+pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: usize) -> Bitboard {
     let mut flood: Bitboard = 0;
     while sliders > 0 {
         flood |= sliders;

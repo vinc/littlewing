@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 
 pub type Bitboard = u64;
-pub type Color = uint;
-pub type Direction = uint; // FIXME: Use `int` instead
-pub type MoveType = uint;
-pub type Piece = uint;
-pub type Square = uint;
+pub type Color = usize;
+pub type Direction = usize; // FIXME: Use `int` instead
+pub type MoveType = usize;
+pub type Piece = usize;
+pub type Square = usize;
 
 pub const WHITE:  Color = 0b0000; // 0
 pub const BLACK:  Color = 0b0001; // 1
@@ -158,8 +158,8 @@ pub const SQUARES: [Square; 64] = [
 ];
 */
 
-pub const MAX_PLY: uint = 128;
-pub const MAX_MOVES: uint = 256;
+pub const MAX_PLY: usize = 128;
+pub const MAX_MOVES: usize = 256;
 
 lazy_static! {
     pub static ref PIECE_MASKS: [[Bitboard; 64]; 14] = { // TODO: s/12/5/

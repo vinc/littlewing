@@ -2,11 +2,11 @@ use littlewing::game::Game;
 use littlewing::attack::Attack;
 
 pub trait Search {
-    fn perft(&mut self, depth: uint) -> u64;
+    fn perft(&mut self, depth: usize) -> u64;
 }
 
 impl Search for Game {
-    fn perft(&mut self, depth: uint) -> u64 {
+    fn perft(&mut self, depth: usize) -> u64 {
         if depth == 0 {
             1
         } else {

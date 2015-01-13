@@ -23,7 +23,7 @@ impl Position {
 
 pub struct Positions {
     stack: [Position; MAX_PLY],
-    ply: uint
+    ply: usize
 }
 
 impl Positions {
@@ -46,14 +46,14 @@ impl Positions {
     pub fn top(&self) -> &Position {
         &self.stack[self.ply - 1]
     }
-    pub fn len(&self) -> uint {
+    pub fn len(&self) -> usize {
         self.ply
     }
 }
 
-impl Index<uint> for Positions {
+impl Index<usize> for Positions {
     type Output = Position;
-    fn index(&self, _index: &uint) -> &Position {
+    fn index(&self, _index: &usize) -> &Position {
         &self.stack[*_index]
     }
 }

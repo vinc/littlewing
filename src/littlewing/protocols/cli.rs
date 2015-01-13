@@ -78,7 +78,7 @@ impl CLI {
             panic!("no depth given");
         }
 
-        let d = args[1].parse::<uint>().unwrap();
+        let d = args[1].parse::<usize>().unwrap();
 
         self.game.generate_moves();
         let n = self.game.moves.len();
@@ -103,7 +103,7 @@ impl CLI {
     }
 
     pub fn cmd_perft(&mut self) {
-        let mut i = 0u;
+        let mut i = 0;
         loop {
             i += 1;
             let started_at = time::precise_time_s();
@@ -129,7 +129,7 @@ impl CLI {
             self.game = FEN::from_fen(fen);
             for field in fields {
                 let mut it = field.trim().split(' ');
-                let d = it.next().unwrap().slice_from(1).parse::<uint>().unwrap();
+                let d = it.next().unwrap().slice_from(1).parse::<usize>().unwrap();
                 let n = it.next().unwrap().parse::<u64>().unwrap();
                 if self.game.perft(d) == n {
                     print!(".");
