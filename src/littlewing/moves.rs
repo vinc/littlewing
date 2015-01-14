@@ -33,6 +33,9 @@ impl Move {
         let Move(v) = *self;
         v == 0
     }
+    pub fn is_capture(&self) -> bool {
+        self.kind() == CAPTURE || self.kind() & 0b1100 == 0b1100
+    }
     pub fn is_castle(&self) -> bool {
         self.kind() == KING_CASTLE || self.kind() == QUEEN_CASTLE
     }
