@@ -2,6 +2,7 @@ use std::io;
 
 use littlewing::common::*;
 use littlewing::attack::Attack;
+use littlewing::clock::Clock;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
 use littlewing::search::Search;
@@ -30,6 +31,7 @@ impl XBoard {
                 "post"     => self.cmd_post(),
                 "nopost"   => self.cmd_nopost(),
                 "setboard" => self.cmd_setboard(args.as_slice()),
+                "level"    => self.cmd_level(args.as_slice()),
                 "protover" => self.cmd_protover(args.as_slice()),
                 _          => self.parse_move(args.as_slice())
             }
@@ -62,6 +64,13 @@ impl XBoard {
         let fen = s.as_slice();
 
         self.game = FEN::from_fen(fen);
+    }
+
+    pub fn cmd_level(&mut self, args: &[&str]) {
+        let moves = args[1].parse::<u8>().unwrap();
+        let time = args[2].parse::<u16>().unwrap();
+
+        self.game.clock = Clock::new(moves, time);
     }
 
     pub fn cmd_protover(&mut self, args: &[&str]) {

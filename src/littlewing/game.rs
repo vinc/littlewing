@@ -1,6 +1,7 @@
 use littlewing::common::*;
 use littlewing::attack::Attack;
 use littlewing::bitboard::BitboardExt;
+use littlewing::clock::Clock;
 use littlewing::moves::Move;
 use littlewing::moves::Moves;
 use littlewing::piece::PieceAttr;
@@ -10,6 +11,7 @@ use littlewing::square::SquareString;
 
 pub struct Game {
     pub is_verbose: bool,
+    pub clock: Clock,
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
     pub moves: Moves,
@@ -20,6 +22,7 @@ impl Game {
     pub fn new() -> Game {
         Game {
             is_verbose: false,
+            clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
             board: [EMPTY; 64],
             moves: Moves::new(),

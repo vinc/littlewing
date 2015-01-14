@@ -1,6 +1,7 @@
 pub mod protocols;
 mod attack;
 mod bitboard;
+mod clock;
 mod common;
 mod eval;
 mod fen;

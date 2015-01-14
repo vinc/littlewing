@@ -61,15 +61,19 @@ impl Search for Game {
 
     fn root(&mut self, max_depth: usize) -> Move {
         let side = self.positions.top().side;
+        self.clock.start();
         self.generate_moves();
 
         let n = self.moves.len();
 
         if self.is_verbose {
-            println!(" ply  score  move");
+            println!(" ply  score   time  move");
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         for depth in range(1, max_depth) {
+            if self.clock.poll() {
+                break;
+            }
             let mut alpha = -INF;
             let beta = INF;
             for i in range(0, n) {
@@ -79,7 +83,8 @@ impl Search for Game {
                     let score = -self.search(-beta, -alpha, depth - 1);
                     if score > alpha {
                         if self.is_verbose {
-                            println!(" {:>3}  {:>5}  {}", depth, score, m.to_can());
+                            let time = (self.clock.elapsed_time() * 100.0) as u64;
+                            println!(" {:>3}  {:>5}  {:>5}  {}", depth, score, time, m.to_can());
                         }
                         alpha = score;
                         best_move = m;
