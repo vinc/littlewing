@@ -29,6 +29,7 @@ impl CLI {
             match args[0].as_slice() {
                 "quit"       => { break },
                 "setboard"   => { self.cmd_setboard(args.as_slice()) },
+                "print"      => { self.cmd_print() },
                 "divide"     => { self.cmd_divide(args.as_slice()) },
                 "perft"      => { self.cmd_perft() },
                 "perftsuite" => { self.cmd_perftsuite(args.as_slice()) },
@@ -43,6 +44,7 @@ impl CLI {
     pub fn cmd_usage(&self) {
         println!("help                  Display this screen");
         println!("setboard <fen>        Set the board to <fen>");
+        println!("print                 Print the board");
         println!("divide <depth>        Count the nodes at <depth> for each moves");
         println!("perft                 Count the nodes at each depth");
         println!("perftsuite <epd>      Compare perft results to each position of <epd>");
@@ -70,6 +72,10 @@ impl CLI {
         let fen = s.as_slice();
 
         self.game = FEN::from_fen(fen);
+    }
+
+    pub fn cmd_print(&self) {
+        println!("{}", self.game.to_string());
     }
 
     pub fn cmd_divide(&mut self, args: &[&str]) {
