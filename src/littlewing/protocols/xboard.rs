@@ -40,7 +40,7 @@ impl XBoard {
     }
 
     pub fn cmd_go(&mut self) {
-        self.game.clear();
+        self.think();
     }
 
     pub fn cmd_setboard(&mut self, args: &[&str]) {
@@ -75,7 +75,11 @@ impl XBoard {
 
         let m = Move::new(from, to, mt);
         self.game.make_move(m);
-        
+
+        self.think();
+    }
+
+    pub fn think(&mut self) {
         let d = 4;
         let m = self.game.root(d);
         self.game.make_move(m);

@@ -61,12 +61,14 @@ impl Search for Game {
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         let mut best_score = -INF;
 
+        println!("score  move");
         for i in range(0, n) {
             let m = self.moves[i];
             self.make_move(m);
             if !self.is_check() {
                 let score = -self.search(max_depth - 1);
                 if score >= best_score {
+                    println!("{:<6} {}", score, m.to_can());
                     best_score = score;
                     best_move = m;
                 }
