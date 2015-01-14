@@ -57,22 +57,6 @@ impl Move {
         }
         out
     }
-    pub fn to_san(&self, board: &[Piece]) -> String {
-        let mut out = String::new();
-        let piece = board[self.from()] & !BLACK;
-        let capture = board[self.to()];
-        if piece != PAWN {
-            out.push(piece.to_char());
-        }
-        out.push_str(self.from().to_square_string().as_slice());
-        if capture == EMPTY {
-            out.push('-');
-        } else {
-            out.push('x');
-        }
-        out.push_str(self.to().to_square_string().as_slice());
-        out
-    }
 }
 
 pub struct Moves {

@@ -6,6 +6,7 @@ use littlewing::moves::Moves;
 use littlewing::piece::PieceAttr;
 use littlewing::piece::PieceChar;
 use littlewing::position::Positions;
+use littlewing::square::SquareString;
 
 pub struct Game {
     pub is_verbose: bool,
@@ -234,7 +235,26 @@ impl Game {
         if can_castle {
             self.moves.add_queen_castle(side);
         }
+    }
 
+    pub fn move_to_san(&mut self, m: Move) -> String {
+        let mut out = String::new();
+        let piece = self.board[m.from()] & !BLACK;
+        let capture = self.board[m.to()];
+        if piece != PAWN {
+            out.push(piece.to_char());
+        }
+        //out.push_str(self.from().to_square_string().as_slice());
+        if m.is_capture() {
+            out.push('x');
+        }
+        self.make_move(m);
+        if self.is_check() {
+            out.push('+');
+        }
+        self.undo_move(m);
+        out.push_str(m.to().to_square_string().as_slice());
+        out
     }
 }
 
