@@ -27,6 +27,8 @@ impl XBoard {
                 "quit"     => break,
                 "new"      => self.cmd_new(),
                 "go"       => self.cmd_go(),
+                "post"     => self.cmd_post(),
+                "nopost"   => self.cmd_nopost(),
                 "setboard" => self.cmd_setboard(args.as_slice()),
                 "protover" => self.cmd_protover(args.as_slice()),
                 _          => self.parse_move(args.as_slice())
@@ -41,6 +43,14 @@ impl XBoard {
 
     pub fn cmd_go(&mut self) {
         self.think();
+    }
+
+    pub fn cmd_post(&mut self) {
+        self.game.is_verbose = true;
+    }
+
+    pub fn cmd_nopost(&mut self) {
+        self.game.is_verbose = false;
     }
 
     pub fn cmd_setboard(&mut self, args: &[&str]) {

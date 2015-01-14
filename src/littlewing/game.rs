@@ -8,6 +8,7 @@ use littlewing::piece::PieceChar;
 use littlewing::position::Positions;
 
 pub struct Game {
+    pub is_verbose: bool,
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
     pub moves: Moves,
@@ -17,6 +18,7 @@ pub struct Game {
 impl Game {
     pub fn new() -> Game {
         Game {
+            is_verbose: false,
             bitboards: [0; 14],
             board: [EMPTY; 64],
             moves: Moves::new(),
