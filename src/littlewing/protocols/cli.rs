@@ -32,6 +32,7 @@ impl CLI {
                 "divide"     => { self.cmd_divide(args.as_slice()) },
                 "perft"      => { self.cmd_perft() },
                 "perftsuite" => { self.cmd_perftsuite(args.as_slice()) },
+                "testsuite"  => { self.cmd_testsuite(args.as_slice()) },
                 "xboard"     => { self.cmd_xboard(); break },
                 "help"       => { self.cmd_usage() },
                 _            => { self.error(args.as_slice()); self.cmd_usage() }
@@ -45,6 +46,7 @@ impl CLI {
         println!("divide <depth>        Count the nodes at <depth> for each moves");
         println!("perft                 Count the nodes at each depth");
         println!("perftsuite <epd>      Compare perft results to each position of <epd>");
+        println!("testsuite <epd>       Search each position of <epd>");
         println!("xboard                Start XBoard mode");
         println!("quit                  Exit this program");
     }
@@ -140,5 +142,41 @@ impl CLI {
             }
             println!("");
         }
+    }
+
+    pub fn cmd_testsuite(&mut self, args: &[&str]) {
+        if args.len() != 2 {
+            panic!("no filename given");
+        }
+        let path = Path::new(args[1]);
+        let mut file = BufferedReader::new(File::open(&path));
+        let mut r = 0;
+        let mut n = 0;
+        for line in file.lines() {
+            n += 1;
+            let l = line.unwrap();
+            let mut fields = l.split(';');
+            let fen = fields.next().unwrap().trim();
+            print!("{} -> ", fen);
+            self.game = FEN::from_fen(fen);
+
+            let mut fields = fen.words().rev().take(2);
+            let move_str = fields.next().unwrap();
+            let type_str = fields.next().unwrap();
+
+            let best_move = self.game.root(4);
+            let best_move_str = self.game.move_to_san(best_move);
+            let found = match type_str {
+                "bm" => move_str == best_move_str,
+                "am" => move_str != best_move_str,
+                _    => false
+            };
+            if found {
+                r += 1;
+            }
+            print!("{}", best_move_str);
+            println!("");
+        }
+        println!("Result {}/{}", r, n);
     }
 }
