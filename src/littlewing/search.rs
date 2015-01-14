@@ -6,7 +6,7 @@ use littlewing::moves::Move;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
-    fn search(&mut self, depth: usize) -> i32;
+    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32;
     fn root(&mut self, max_depth: usize) -> Move;
 }
 
@@ -31,7 +31,7 @@ impl Search for Game {
         }
     }
 
-    fn search(&mut self, depth: usize) -> i32 {
+    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32 {
         if depth == 0 {
             return self.eval();
         }
@@ -39,21 +39,24 @@ impl Search for Game {
         let side = self.positions.top().side;
         self.generate_moves();
         let n = self.moves.len();
-        let mut best_score = -INF;
 
         for i in range(0, n) {
             let m = self.moves[i];
             self.make_move(m);
             if !self.is_check(side) {
-                let score = -self.search(depth - 1);
-                if score >= best_score {
-                    best_score = score;
+                let score = -self.search(-beta, -alpha, depth - 1);
+                if score >= beta {
+                    self.undo_move(m);
+                    return beta;
+                }
+                if score > alpha {
+                    alpha = score;
                 }
             }
             self.undo_move(m);
         }
 
-        best_score
+        alpha
     }
 
     fn root(&mut self, max_depth: usize) -> Move {
@@ -62,7 +65,8 @@ impl Search for Game {
 
         let n = self.moves.len();
         let mut best_move = Move::new_null(); // best_move.is_null() == true
-        let mut best_score = -INF;
+        let mut alpha = -INF;
+        let beta = INF;
 
         if self.is_verbose {
             println!("score  move");
@@ -71,12 +75,12 @@ impl Search for Game {
             let m = self.moves[i];
             self.make_move(m);
             if !self.is_check(side) {
-                let score = -self.search(max_depth - 1);
-                if score >= best_score {
+                let score = -self.search(-beta, -alpha, max_depth - 1);
+                if score > alpha {
                     if self.is_verbose {
                         println!("{:<6} {}", score, m.to_can());
                     }
-                    best_score = score;
+                    alpha = score;
                     best_move = m;
                 }
             }
