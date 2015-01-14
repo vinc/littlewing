@@ -15,13 +15,14 @@ impl Search for Game {
         if depth == 0 {
             1
         } else {
+            let side = self.positions.top().side;
             self.generate_moves();
             let n = self.moves.len();
             let mut r = 0;
             for i in range(0, n) {
                 let m = self.moves[i];
                 self.make_move(m);
-                if !self.is_check() {
+                if !self.is_check(side) {
                     r += self.perft(depth - 1);
                 }
                 self.undo_move(m);
@@ -35,6 +36,7 @@ impl Search for Game {
             return self.eval();
         }
 
+        let side = self.positions.top().side;
         self.generate_moves();
         let n = self.moves.len();
         let mut best_score = -INF;
@@ -42,7 +44,7 @@ impl Search for Game {
         for i in range(0, n) {
             let m = self.moves[i];
             self.make_move(m);
-            if !self.is_check() {
+            if !self.is_check(side) {
                 let score = -self.search(depth - 1);
                 if score >= best_score {
                     best_score = score;
@@ -55,6 +57,7 @@ impl Search for Game {
     }
 
     fn root(&mut self, max_depth: usize) -> Move {
+        let side = self.positions.top().side;
         self.generate_moves();
 
         let n = self.moves.len();
@@ -67,7 +70,7 @@ impl Search for Game {
         for i in range(0, n) {
             let m = self.moves[i];
             self.make_move(m);
-            if !self.is_check() {
+            if !self.is_check(side) {
                 let score = -self.search(max_depth - 1);
                 if score >= best_score {
                     if self.is_verbose {

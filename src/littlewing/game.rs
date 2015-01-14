@@ -238,22 +238,29 @@ impl Game {
     }
 
     pub fn move_to_san(&mut self, m: Move) -> String {
+        let side = self.positions.top().side;
         let mut out = String::new();
         let piece = self.board[m.from()] & !BLACK;
         let capture = self.board[m.to()];
+
         if piece != PAWN {
             out.push(piece.to_char());
         }
+
         //out.push_str(self.from().to_square_string().as_slice());
+
         if m.is_capture() {
             out.push('x');
         }
+
+        out.push_str(m.to().to_square_string().as_slice());
+
         self.make_move(m);
-        if self.is_check() {
+        if self.is_check(side ^ 1) {
             out.push('+');
         }
         self.undo_move(m);
-        out.push_str(m.to().to_square_string().as_slice());
+
         out
     }
 }

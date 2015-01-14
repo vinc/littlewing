@@ -88,13 +88,14 @@ impl CLI {
 
         let d = args[1].parse::<usize>().unwrap();
 
+        let side = self.game.positions.top().side;
         self.game.generate_moves();
         let n = self.game.moves.len();
         for i in range(0, n) {
             let m = self.game.moves[i];
             self.game.make_move(m);
             //println!("{}", game.to_string());
-            if !self.game.is_check() {
+            if !self.game.is_check(side) {
                 let r = self.game.perft(d);
                 println!("{} {}", m.to_can(), r);
                 moves_count += 1;

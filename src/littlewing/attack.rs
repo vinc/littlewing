@@ -6,13 +6,12 @@ use littlewing::bitboard::dumb7fill;
 use littlewing::game::Game;
 
 pub trait Attack {
-    fn is_check(&self) -> bool;
+    fn is_check(&self, side: Color) -> bool;
     fn is_attacked(&self, square: Square, side: Color) -> bool;
 }
 
 impl Attack for Game {
-    fn is_check(&self) -> bool {
-        let side = self.positions.top().side ^ 1;
+    fn is_check(&self, side: Color) -> bool {
         let king = self.bitboards[side | KING];
         if king == 0 {
             return true; // FIXME: Obviously...
