@@ -90,8 +90,7 @@ impl XBoard {
     }
 
     pub fn think(&mut self) {
-        let d = 4;
-        let m = self.game.root(d);
+        let m = self.game.root(256);
         self.game.make_move(m);
 
         println!("move {}", m.to_can());

@@ -64,27 +64,29 @@ impl Search for Game {
         self.generate_moves();
 
         let n = self.moves.len();
-        let mut best_move = Move::new_null(); // best_move.is_null() == true
-        let mut alpha = -INF;
-        let beta = INF;
 
         if self.is_verbose {
-            println!("score  move");
+            println!(" ply  score  move");
         }
-        for i in range(0, n) {
-            let m = self.moves[i];
-            self.make_move(m);
-            if !self.is_check(side) {
-                let score = -self.search(-beta, -alpha, max_depth - 1);
-                if score > alpha {
-                    if self.is_verbose {
-                        println!("{:<6} {}", score, m.to_can());
+        let mut best_move = Move::new_null(); // best_move.is_null() == true
+        for depth in range(1, max_depth) {
+            let mut alpha = -INF;
+            let beta = INF;
+            for i in range(0, n) {
+                let m = self.moves[i];
+                self.make_move(m);
+                if !self.is_check(side) {
+                    let score = -self.search(-beta, -alpha, depth - 1);
+                    if score > alpha {
+                        if self.is_verbose {
+                            println!(" {:>3}  {:>5}  {}", depth, score, m.to_can());
+                        }
+                        alpha = score;
+                        best_move = m;
                     }
-                    alpha = score;
-                    best_move = m;
                 }
+                self.undo_move(m);
             }
-            self.undo_move(m);
         }
 
         best_move
