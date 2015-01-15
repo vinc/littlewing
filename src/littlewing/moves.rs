@@ -50,8 +50,8 @@ impl Move {
     }
     pub fn to_can(&self) -> String {
         let mut out = String::new();
-        out.push_str(self.from().to_square_string().as_slice());
-        out.push_str(self.to().to_square_string().as_slice());
+        out.push_str(self.from().to_coord().as_slice());
+        out.push_str(self.to().to_coord().as_slice());
         if self.is_promotion() {
             out.push((BLACK | self.promotion_kind()).to_char());        
         }

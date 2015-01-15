@@ -80,8 +80,8 @@ impl XBoard {
     pub fn parse_move(&mut self, args: &[&str]) {
         let side = self.game.positions.top().side;
         let cmd = args[0];
-        let from: Square = SquareString::from_square_string(String::from_str(cmd.slice(0, 2)));
-        let to: Square = SquareString::from_square_string(String::from_str(cmd.slice(2, 4)));
+        let from: Square = SquareString::from_coord(String::from_str(cmd.slice(0, 2)));
+        let to: Square = SquareString::from_coord(String::from_str(cmd.slice(2, 4)));
 
         if from > 63 || to > 63 {
             return;

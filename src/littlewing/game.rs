@@ -260,13 +260,13 @@ impl Game {
             out.push(piece.to_char());
         }
 
-        //out.push_str(self.from().to_square_string().as_slice());
+        //out.push_str(self.from().to_coord().as_slice());
 
         if m.is_capture() {
             out.push('x');
         }
 
-        out.push_str(m.to().to_square_string().as_slice());
+        out.push_str(m.to().to_coord().as_slice());
 
         self.make_move(m);
         if self.is_check(side ^ 1) {
