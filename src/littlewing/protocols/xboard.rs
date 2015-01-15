@@ -78,6 +78,7 @@ impl XBoard {
     }
 
     pub fn parse_move(&mut self, args: &[&str]) {
+        let side = self.game.positions.top().side;
         let cmd = args[0];
         let from: Square = SquareString::from_square_string(String::from_str(cmd.slice(0, 2)));
         let to: Square = SquareString::from_square_string(String::from_str(cmd.slice(2, 4)));
@@ -86,7 +87,11 @@ impl XBoard {
             return;
         }
 
-        let mt = if self.game.board[to] == EMPTY {
+        let mt = if from == E1 ^ 56 * side && to == G1 ^ 56 * side {
+            KING_CASTLE
+        } else if from == E1 ^ 56 * side && to == C1 ^ 56 * side {
+            QUEEN_CASTLE
+        } else if self.game.board[to] == EMPTY {
             QUIET_MOVE
         } else {
             CAPTURE
