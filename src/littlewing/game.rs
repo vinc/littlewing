@@ -240,11 +240,21 @@ impl Game {
         }
     }
 
+    // This function assumes that the move as not already been done
     pub fn move_to_san(&mut self, m: Move) -> String {
         let side = self.positions.top().side;
         let mut out = String::new();
         let piece = self.board[m.from()] & !BLACK;
         let capture = self.board[m.to()];
+
+        if m.is_castle() {
+            if m.castle_kind() == KING {
+                out.push_str("O-O");
+            } else {
+                out.push_str("O-O-O");
+            }
+            return out;
+        }
 
         if piece != PAWN {
             out.push(piece.to_char());
