@@ -5,6 +5,7 @@ use littlewing::attack::Attack;
 use littlewing::clock::Clock;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
+use littlewing::piece::PieceAttr;
 use littlewing::search::Search;
 use littlewing::square::SquareString;
 use littlewing::moves::Move;
@@ -79,25 +80,46 @@ impl XBoard {
 
     pub fn parse_move(&mut self, args: &[&str]) {
         let side = self.game.positions.top().side;
-        let cmd = args[0];
-        let from: Square = SquareString::from_coord(String::from_str(cmd.slice(0, 2)));
-        let to: Square = SquareString::from_coord(String::from_str(cmd.slice(2, 4)));
+        let from: Square = SquareString::from_coord(String::from_str(args[0].slice(0, 2)));
+        let to: Square = SquareString::from_coord(String::from_str(args[0].slice(2, 4)));
 
         if from > 63 || to > 63 {
-            return;
+            return; // TODO
         }
 
-        let mt = if from == E1 ^ 56 * side && to == G1 ^ 56 * side {
+        let mt = if args[0].len() == 5 {
+            let promotion = match args[0].as_slice().char_at(5) {
+                'n' => KNIGHT_PROMOTION,
+                'b' => BISHOP_PROMOTION,
+                'r' => ROOK_PROMOTION,
+                'q' => QUEEN_PROMOTION,
+                _   => NULL_MOVE // FIXME
+            };
+            if self.game.board[to] == EMPTY {
+                promotion
+            } else {
+                promotion & CAPTURE
+            }
+        } else if from == E1 ^ 56 * side && to == G1 ^ 56 * side {
             KING_CASTLE
         } else if from == E1 ^ 56 * side && to == C1 ^ 56 * side {
             QUEEN_CASTLE
         } else if self.game.board[to] == EMPTY {
-            QUIET_MOVE
+            let kind = self.game.board[from].kind();
+            let rank = (from ^ 56 * side).rank();
+            if kind == PAWN && rank == 1 {
+                DOUBLE_PAWN_PUSH
+            } else if kind == PAWN && to == self.game.positions.top().en_passant {
+                EN_PASSANT
+            } else {
+                QUIET_MOVE
+            }
         } else {
             CAPTURE
         };
 
         let m = Move::new(from, to, mt);
+        println!("parsed: {}", self.game.move_to_san(m));
         self.game.make_move(m);
 
         self.think();
