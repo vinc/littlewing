@@ -4,6 +4,7 @@ use littlewing::common::*;
 use littlewing::bitboard::BitboardExt;
 use littlewing::bitboard::dumb7fill;
 use littlewing::game::Game;
+use littlewing::piece::PieceAttr;
 
 pub trait Attack {
     fn is_check(&self, side: Color) -> bool;
@@ -55,6 +56,18 @@ impl Attack for Game {
         }
 
         false
+    }
+}
+
+pub fn attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
+    match piece.kind() {
+        PAWN => PAWN_ATTACKS[piece.color()][square],
+        KNIGHT => PIECE_MASKS[KNIGHT][square],
+        KING => PIECE_MASKS[KING][square],
+        BISHOP => bishop_attacks(square, occupied),
+        ROOK => rook_attacks(square, occupied),
+        QUEEN => bishop_attacks(square, occupied) & rook_attacks(square, occupied),
+        _ => 0 // FIXME
     }
 }
 

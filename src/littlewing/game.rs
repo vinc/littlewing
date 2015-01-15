@@ -1,5 +1,8 @@
+use std::num::Int;
+
 use littlewing::common::*;
 use littlewing::attack::Attack;
+use littlewing::attack::attacks;
 use littlewing::bitboard::BitboardExt;
 use littlewing::clock::Clock;
 use littlewing::moves::Move;
@@ -243,9 +246,10 @@ impl Game {
     // This function assumes that the move as not already been done
     pub fn move_to_san(&mut self, m: Move) -> String {
         let side = self.positions.top().side;
-        let mut out = String::new();
-        let piece = self.board[m.from()] & !BLACK;
+        let piece = self.board[m.from()];
         let capture = self.board[m.to()];
+
+        let mut out = String::new();
 
         if m.is_castle() {
             if m.castle_kind() == KING {
@@ -256,13 +260,22 @@ impl Game {
             return out;
         }
 
-        if piece != PAWN {
-            out.push(piece.to_char());
+        if piece.kind() != PAWN {
+            out.push(piece.kind().to_char());
         }
 
-        //out.push_str(self.from().to_coord().as_slice());
+        // Piece disambiguation
+        if piece.kind() != PAWN {
+            let occupied = self.bitboards[piece];
+            let attackers = attacks(piece, m.to(), occupied) & occupied;
+            if attackers.count_ones() > 1 {
+                let rank = m.from().to_coord().as_slice().char_at(0);
+                out.push(rank);
+            }
+        }
 
         if m.is_capture() {
+            // TODO: Pawn disambiguation
             out.push('x');
         }
 
