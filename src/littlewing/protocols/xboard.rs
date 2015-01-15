@@ -75,6 +75,7 @@ impl XBoard {
     }
 
     pub fn cmd_protover(&mut self, args: &[&str]) {
+        println!("feature myname=\"Little Wing v0.0.1\"");
         println!("feature sigint=0 setboard=1 done=1");
     }
 
