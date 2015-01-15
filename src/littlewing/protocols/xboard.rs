@@ -74,7 +74,7 @@ impl XBoard {
     }
 
     pub fn cmd_protover(&mut self, args: &[&str]) {
-        println!("feature sigint=0 done=1");
+        println!("feature sigint=0 setboard=1 done=1");
     }
 
     pub fn parse_move(&mut self, args: &[&str]) {
