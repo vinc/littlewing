@@ -8,6 +8,7 @@ pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
     fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32;
     fn root(&mut self, max_depth: usize) -> Move;
+    fn print_thinking(&mut self, depth: usize, score: i32, m: Move);
 }
 
 impl Search for Game {
@@ -83,8 +84,7 @@ impl Search for Game {
                     let score = -self.search(-beta, -alpha, depth - 1);
                     if score > alpha {
                         if self.is_verbose {
-                            let time = (self.clock.elapsed_time() * 100.0) as u64;
-                            println!(" {:>3}  {:>5}  {:>5}  {}", depth, score, time, m.to_can());
+                            self.print_thinking(depth, score, m);
                         }
                         alpha = score;
                         best_move = m;
@@ -95,6 +95,16 @@ impl Search for Game {
         }
 
         best_move
+    }
+
+    fn print_thinking(&mut self, depth: usize, score: i32, m: Move) {
+        let time = (self.clock.elapsed_time() * 100.0) as u64;
+
+        self.undo_move(m);
+        let move_str = self.move_to_san(m);
+        self.make_move(m);
+
+        println!(" {:>3}  {:>5}  {:>5}  {}", depth, score, time, move_str);
     }
 }
 
