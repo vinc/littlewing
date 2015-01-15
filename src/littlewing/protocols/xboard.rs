@@ -89,7 +89,7 @@ impl XBoard {
         }
 
         let mt = if args[0].len() == 5 {
-            let promotion = match args[0].as_slice().char_at(5) {
+            let promotion = match args[0].as_slice().char_at(4) {
                 'n' => KNIGHT_PROMOTION,
                 'b' => BISHOP_PROMOTION,
                 'r' => ROOK_PROMOTION,
