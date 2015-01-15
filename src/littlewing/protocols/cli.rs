@@ -6,6 +6,7 @@ use std::io::File;
 
 use littlewing::common::*;
 use littlewing::attack::Attack;
+use littlewing::clock::Clock;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
 use littlewing::search::Search;
@@ -42,13 +43,13 @@ impl CLI {
     }
 
     pub fn cmd_usage(&self) {
-        println!("help                  Display this screen");
-        println!("setboard <fen>        Set the board to <fen>");
-        println!("print                 Print the board");
-        println!("divide <depth>        Count the nodes at <depth> for each moves");
-        println!("perft                 Count the nodes at each depth");
-        println!("perftsuite <epd>      Compare perft results to each position of <epd>");
-        println!("testsuite <epd>       Search each position of <epd>");
+        println!("help                      Display this screen");
+        println!("setboard <fen>            Set the board to <fen>");
+        println!("print                     Print the board");
+        println!("divide <depth>            Count the nodes at <depth> for each moves");
+        println!("perft                     Count the nodes at each depth");
+        println!("perftsuite <epd>          Compare perft results to each position of <epd>");
+        println!("testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
         println!("xboard                Start XBoard mode");
         println!("quit                  Exit this program");
     }
@@ -152,9 +153,14 @@ impl CLI {
     }
 
     pub fn cmd_testsuite(&mut self, args: &[&str]) {
-        if args.len() != 2 {
+        if args.len() == 1 {
             panic!("no filename given");
         }
+        let time = if args.len() == 3 {
+            args[2].parse::<u16>().unwrap()
+        } else {
+            10
+        };
         let path = Path::new(args[1]);
         let mut file = BufferedReader::new(File::open(&path));
         let mut r = 0;
@@ -166,6 +172,7 @@ impl CLI {
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
             self.game = FEN::from_fen(fen);
+            self.game.clock = Clock::new(1, time);
 
             let mut fields = fen.words().rev().take(2);
             let move_str = fields.next().unwrap();
