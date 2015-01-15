@@ -302,6 +302,11 @@ impl Game {
 
         out.push_str(m.to().to_coord().as_slice());
 
+        if m.is_promotion() {
+            out.push('=');
+            out.push(m.promotion_kind().to_char());
+        }
+
         self.make_move(m);
         if self.is_check(side ^ 1) {
             out.push('+');
