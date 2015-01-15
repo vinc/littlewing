@@ -3,6 +3,8 @@ use littlewing::common::*;
 pub trait SquareString {
     fn from_coord(s: String) -> Self;
     fn to_coord(&self) -> String;
+    fn rank(&self) -> u8;
+    fn file(&self) -> u8;
 }
 
 impl SquareString for Square {
@@ -12,10 +14,16 @@ impl SquareString for Square {
         ((bytes[0] - b'a') + 8 * (bytes[1] - b'1')) as Square
     }
     fn to_coord(&self) -> String {
-        let f = b'a' + (*self as u8 & 7);
-        let r = b'1' + (*self as u8 / 8);
+        let f = b'a' + self.file();
+        let r = b'1' + self.rank();
 
         String::from_utf8(vec![f, r]).unwrap()
+    }
+    fn file(&self) -> u8 {
+        *self as u8 % 8
+    }
+    fn rank(&self) -> u8 {
+        *self as u8 / 8
     }
 }
 
