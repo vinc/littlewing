@@ -4,6 +4,7 @@ use littlewing::common::*;
 
 #[derive(Copy)]
 pub struct Position {
+    pub hash: u64,
     pub side: Color,
     pub capture: Piece,
     pub en_passant: Square,
@@ -13,6 +14,7 @@ pub struct Position {
 impl Position {
     pub fn new() -> Position {
         Position {
+            hash: 0, // FIXME
             side: WHITE,
             capture: EMPTY,
             en_passant: OUT,

@@ -11,6 +11,7 @@ use littlewing::piece::PieceAttr;
 use littlewing::piece::PieceChar;
 use littlewing::position::Positions;
 use littlewing::square::SquareString;
+use littlewing::zobrist::Zobrist;
 
 pub struct Game {
     pub is_verbose: bool,
@@ -18,7 +19,8 @@ pub struct Game {
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
     pub moves: Moves,
-    pub positions: Positions
+    pub positions: Positions,
+    pub zobrist: Zobrist
 }
 
 impl Game {
@@ -29,7 +31,8 @@ impl Game {
             bitboards: [0; 14],
             board: [EMPTY; 64],
             moves: Moves::new(),
-            positions: Positions::new()
+            positions: Positions::new(),
+            zobrist: Zobrist::new()
         }
     }
 
@@ -69,25 +72,32 @@ impl Game {
 
         self.bitboards[piece].toggle(m.from());
         self.board[m.from()] = EMPTY;
+        new_position.hash ^= self.zobrist.positions[piece][m.from()];
 
         // Update castling rights
         if piece.kind() == KING {
             new_position.castling_rights[side][KING >> 3] = false;
             new_position.castling_rights[side][QUEEN >> 3] = false;
+            new_position.hash ^= self.zobrist.castling_rights[side][KING >> 3];
+            new_position.hash ^= self.zobrist.castling_rights[side][QUEEN >> 3];
         } else if piece.kind() == ROOK {
             if m.from() == H1 ^ 56 * side {
                 new_position.castling_rights[side][KING >> 3] = false;
+                new_position.hash ^= self.zobrist.castling_rights[side][KING >> 3];
             }
             if m.from() == A1 ^ 56 * side {
                 new_position.castling_rights[side][QUEEN >> 3] = false;
+                new_position.hash ^= self.zobrist.castling_rights[side][QUEEN >> 3];
             }
         }
         if capture.kind() == ROOK {
             if m.to() == H1 ^ 56 * (side ^ 1) {
                 new_position.castling_rights[side ^ 1][KING >> 3] = false;
+                new_position.hash ^= self.zobrist.castling_rights[side ^ 1][KING >> 3];
             }
             if m.to() == A1 ^ 56 * (side ^ 1) {
                 new_position.castling_rights[side ^ 1][QUEEN >> 3] = false;
+                new_position.hash ^= self.zobrist.castling_rights[side ^ 1][QUEEN >> 3];
             }
         }
 
@@ -106,15 +116,19 @@ impl Game {
             self.bitboards[rook].toggle(rook_to);
             self.bitboards[side].toggle(rook_from);
             self.bitboards[side].toggle(rook_to);
+            new_position.hash ^= self.zobrist.positions[rook][rook_from];
+            new_position.hash ^= self.zobrist.positions[rook][rook_to];
         }
 
         if m.is_promotion() {
             let promoted_piece = side | m.promotion_kind();
             self.board[m.to()] = promoted_piece;
             self.bitboards[promoted_piece].toggle(m.to());
+            new_position.hash ^= self.zobrist.positions[promoted_piece][m.to()];
         } else {
             self.board[m.to()] = piece;
             self.bitboards[piece].toggle(m.to());
+            new_position.hash ^= self.zobrist.positions[piece][m.to()];
         }
 
         new_position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
@@ -123,7 +137,11 @@ impl Game {
             OUT
         };
 
+        if position.en_passant != OUT {
+            new_position.hash ^= self.zobrist.en_passant[position.en_passant]; // TODO ?
+        }
         if new_position.en_passant != OUT {
+            new_position.hash ^= self.zobrist.en_passant[new_position.en_passant];
         }
 
         self.bitboards[side].toggle(m.from());
@@ -132,17 +150,20 @@ impl Game {
         if capture != EMPTY {
             self.bitboards[capture].toggle(m.to());
             self.bitboards[side ^ 1].toggle(m.to());
+            new_position.hash ^= self.zobrist.positions[capture][m.to()];
         }
         if m.kind() == EN_PASSANT {
             let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
             self.board[square] = EMPTY;
             self.bitboards[side ^ 1 | PAWN].toggle(square);
             self.bitboards[side ^ 1].toggle(square);
+            new_position.hash ^= self.zobrist.positions[side ^ 1 | PAWN][square];
         }
 
         // FIXME
         new_position.side ^= 1; // TODO: Define self.side.toggle(0)
         new_position.capture = capture;
+        new_position.hash ^= self.zobrist.side;
 
         self.positions.push(new_position);
         self.moves.inc();

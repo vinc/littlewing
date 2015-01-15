@@ -11,3 +11,4 @@ mod piece;
 mod position;
 mod search;
 mod square;
+mod zobrist;
