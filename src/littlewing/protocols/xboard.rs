@@ -34,6 +34,7 @@ impl XBoard {
                 "go"       => self.cmd_go(),
                 "post"     => self.cmd_post(),
                 "nopost"   => self.cmd_nopost(),
+                "ping"     => self.cmd_ping(args.as_slice()),
                 "setboard" => self.cmd_setboard(args.as_slice()),
                 "level"    => self.cmd_level(args.as_slice()),
                 "protover" => self.cmd_protover(args.as_slice()),
@@ -64,6 +65,10 @@ impl XBoard {
         self.game.is_verbose = false;
     }
 
+    pub fn cmd_ping(&mut self, args: &[&str]) {
+        println!("pong {}", args[1].parse::<usize>().unwrap());
+    }
+
     pub fn cmd_setboard(&mut self, args: &[&str]) {
         if args.len() == 1 {
             panic!("no fen given");
@@ -84,7 +89,7 @@ impl XBoard {
 
     pub fn cmd_protover(&mut self, args: &[&str]) {
         println!("feature myname=\"Little Wing v0.0.1\"");
-        println!("feature sigint=0 setboard=1 done=1");
+        println!("feature sigint=0 ping=1 setboard=1 done=1");
     }
 
     pub fn parse_move(&mut self, args: &[&str]) {
