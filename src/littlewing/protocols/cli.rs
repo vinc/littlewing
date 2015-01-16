@@ -178,7 +178,7 @@ impl CLI {
             let move_str = fields.next().unwrap();
             let type_str = fields.next().unwrap();
 
-            let best_move = self.game.root(256);
+            let best_move = self.game.root(MAX_PLY);
             let best_move_str = self.game.move_to_san(best_move);
             let found = match type_str {
                 "bm" => move_str == best_move_str,

@@ -142,7 +142,7 @@ impl XBoard {
     }
 
     pub fn think(&mut self) {
-        let m = self.game.root(256);
+        let m = self.game.root(MAX_PLY);
         self.game.make_move(m);
 
         println!("move {}", m.to_can());
