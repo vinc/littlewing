@@ -11,13 +11,15 @@ use littlewing::square::SquareString;
 use littlewing::moves::Move;
 
 pub struct XBoard {
-    game: Game
+    game: Game,
+    force: bool
 }
 
 impl XBoard {
     pub fn new() -> XBoard {
         XBoard {
-            game: FEN::from_fen(DEFAULT_FEN)
+            game: FEN::from_fen(DEFAULT_FEN),
+            force: true
         }
     }
     pub fn run(&mut self) {
@@ -27,6 +29,7 @@ impl XBoard {
             let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
             match args[0].as_slice() {
                 "quit"     => break,
+                "force"    => self.cmd_force(),
                 "new"      => self.cmd_new(),
                 "go"       => self.cmd_go(),
                 "post"     => self.cmd_post(),
@@ -39,12 +42,17 @@ impl XBoard {
         }
     }
 
+    pub fn cmd_force(&mut self) {
+        self.force = true;
+    }
+
     pub fn cmd_new(&mut self) {
         self.game.clear();
         self.game.load_fen(DEFAULT_FEN);
     }
 
     pub fn cmd_go(&mut self) {
+        self.force = false;
         self.think();
     }
 
@@ -123,7 +131,9 @@ impl XBoard {
         println!("parsed: {}", self.game.move_to_san(m));
         self.game.make_move(m);
 
-        self.think();
+        if !self.force {
+            self.think();
+        }
     }
 
     pub fn think(&mut self) {
