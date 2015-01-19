@@ -39,7 +39,7 @@ impl Game {
     pub fn clear(&mut self) {
         self.bitboards = [0; 14];
         self.board = [EMPTY; 64];
-        self.moves.clear();
+        self.moves.clear_all();
         self.positions.clear();
     }
 

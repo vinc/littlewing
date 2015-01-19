@@ -62,7 +62,7 @@ impl Move {
 pub struct Moves {
     lists: [[Move; MAX_MOVES]; MAX_PLY],
     lens: [usize; MAX_PLY],
-    pub ply: usize
+    ply: usize
 }
 
 impl Moves {
@@ -81,6 +81,10 @@ impl Moves {
     }
     pub fn clear(&mut self) {
         self.lens[self.ply] = 0;
+    }
+    pub fn clear_all(&mut self) {
+        self.lens = [0; MAX_PLY];
+        self.ply = 0;
     }
     pub fn len(&self) -> usize {
         self.lens[self.ply]

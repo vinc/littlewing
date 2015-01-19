@@ -174,6 +174,7 @@ impl CLI {
             self.game = FEN::from_fen(fen);
             self.game.clock = Clock::new(1, time);
 
+            // TODO: There can be more than one move
             let mut fields = fen.words().rev().take(2);
             let move_str = fields.next().unwrap();
             let type_str = fields.next().unwrap();
