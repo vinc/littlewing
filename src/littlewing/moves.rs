@@ -1,5 +1,4 @@
 use std::ops::Index;
-use std::num::Int;
 
 use littlewing::common::*;
 use littlewing::attack::{bishop_attacks, rook_attacks};
@@ -7,12 +6,12 @@ use littlewing::piece::PieceChar;
 use littlewing::square::SquareString;
 use littlewing::bitboard::BitboardExt;
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Move(u16);
 
 impl Move {
-    pub fn new(f: Square, t: Square, mt: MoveType) -> Move {
-        Move(((f << 10) | (t << 4) | mt) as u16)
+    pub fn new(from: Square, to: Square, mt: MoveType) -> Move {
+        Move(((from as u16) << 10) | ((to as u16) << 4) | mt as u16)
     }
     pub fn new_null() -> Move {
         Move(0)
@@ -46,12 +45,12 @@ impl Move {
         self.kind() & PROMOTION_MASK > 0
     }
     pub fn promotion_kind(&self) -> Piece {
-        PROMOTION_KINDS[self.kind() & PROMOTION_KIND_MASK >> 2]
+        PROMOTION_KINDS[(self.kind() & PROMOTION_KIND_MASK >> 2) as usize]
     }
     pub fn to_can(&self) -> String {
         let mut out = String::new();
-        out.push_str(self.from().to_coord().as_slice());
-        out.push_str(self.to().to_coord().as_slice());
+        out.push_str(self.from().to_coord().as_str());
+        out.push_str(self.to().to_coord().as_str());
         if self.is_promotion() {
             out.push((BLACK | self.promotion_kind()).to_char());        
         }
@@ -95,15 +94,15 @@ impl Moves {
     }
     pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
         while targets != 0 {
-            let to = targets.trailing_zeros();
-            let from = to - dir;
+            let to = targets.trailing_zeros() as Square;
+            let from = ((to as Direction) - dir) as Square; // FIXME
             self.add_move(from, to, mt);
             targets.reset(to);
         }
     }
     pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Square, mt: MoveType) {
         while targets != 0 {
-            let to = targets.trailing_zeros();
+            let to = targets.trailing_zeros() as Square;
             self.add_move(from, to, mt);
             targets.reset(to);
         }
@@ -115,93 +114,93 @@ impl Moves {
         const SEC_RANKS: [Bitboard; 2] = [RANK_3, RANK_6];
         const END_RANKS: [Bitboard; 2] = [RANK_8, RANK_1];
 
-        let ydir = YDIRS[side];
+        let ydir = YDIRS[side as usize];
 
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
+        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
 
-        let pushes = bitboards[side | PAWN].shift(ydir) & !occupied;
-        self.add_moves(pushes & !END_RANKS[side], ydir, QUIET_MOVE);
-        self.add_moves(pushes & END_RANKS[side], ydir, KNIGHT_PROMOTION);
-        self.add_moves(pushes & END_RANKS[side], ydir, BISHOP_PROMOTION);
-        self.add_moves(pushes & END_RANKS[side], ydir, ROOK_PROMOTION);
-        self.add_moves(pushes & END_RANKS[side], ydir, QUEEN_PROMOTION);
+        let pushes = bitboards[(side | PAWN) as usize].shift(ydir) & !occupied;
+        self.add_moves(pushes & !END_RANKS[side as usize], ydir, QUIET_MOVE);
+        self.add_moves(pushes & END_RANKS[side as usize], ydir, KNIGHT_PROMOTION);
+        self.add_moves(pushes & END_RANKS[side as usize], ydir, BISHOP_PROMOTION);
+        self.add_moves(pushes & END_RANKS[side as usize], ydir, ROOK_PROMOTION);
+        self.add_moves(pushes & END_RANKS[side as usize], ydir, QUEEN_PROMOTION);
 
-        let double_pushes = (pushes & SEC_RANKS[side]).shift(ydir) & !occupied;
+        let double_pushes = (pushes & SEC_RANKS[side as usize]).shift(ydir) & !occupied;
         self.add_moves(double_pushes, 2 * ydir, DOUBLE_PAWN_PUSH);
 
-        for i in range(0, 2) { // LEFT and RIGHT attacks
-            let dir = ydir + XDIRS[i];
-            let attackers = bitboards[side | PAWN] & !FILES[i];
+        for i in 0..2 { // LEFT and RIGHT attacks
+            let dir = ydir + XDIRS[i as usize];
+            let attackers = bitboards[(side | PAWN) as usize] & !FILES[i];
 
             let targets = attackers.shift(dir);
             //let epb = 1 << ep; // FIXME: 1 << 64 == 0
             let epb = ((ep as u64 >> 6) ^ 1) << (ep % 64);
             self.add_moves(targets & epb, dir, EN_PASSANT);
 
-            let attacks = targets & bitboards[side ^ 1];
-            self.add_moves(attacks & !END_RANKS[side], dir, CAPTURE);
-            self.add_moves(attacks & END_RANKS[side], dir, KNIGHT_PROMOTION_CAPTURE);
-            self.add_moves(attacks & END_RANKS[side], dir, BISHOP_PROMOTION_CAPTURE);
-            self.add_moves(attacks & END_RANKS[side], dir, ROOK_PROMOTION_CAPTURE);
-            self.add_moves(attacks & END_RANKS[side], dir, QUEEN_PROMOTION_CAPTURE);
+            let attacks = targets & bitboards[(side ^ 1) as usize];
+            self.add_moves(attacks & !END_RANKS[side as usize], dir, CAPTURE);
+            self.add_moves(attacks & END_RANKS[side as usize], dir, KNIGHT_PROMOTION_CAPTURE);
+            self.add_moves(attacks & END_RANKS[side as usize], dir, BISHOP_PROMOTION_CAPTURE);
+            self.add_moves(attacks & END_RANKS[side as usize], dir, ROOK_PROMOTION_CAPTURE);
+            self.add_moves(attacks & END_RANKS[side as usize], dir, QUEEN_PROMOTION_CAPTURE);
         }
     }
     pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
-        let mut knights = bitboards[side | KNIGHT];
+        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let mut knights = bitboards[(side | KNIGHT) as usize];
 
         while knights > 0 {
-            let from = knights.trailing_zeros();
-            let targets = PIECE_MASKS[KNIGHT][from] & !occupied;
+            let from = knights.trailing_zeros() as Square;
+            let targets = PIECE_MASKS[KNIGHT as usize][from as usize] & !occupied;
             self.add_moves_from(targets, from, QUIET_MOVE);
-            let targets = PIECE_MASKS[KNIGHT][from] & bitboards[side ^ 1];
+            let targets = PIECE_MASKS[KNIGHT as usize][from as usize] & bitboards[(side ^ 1) as usize];
             self.add_moves_from(targets, from, CAPTURE);
             knights.reset(from);
         }
     }
     pub fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
-        let mut kings = bitboards[side | KING];
+        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let mut kings = bitboards[(side | KING) as usize];
 
         while kings > 0 {
-            let from = kings.trailing_zeros();
-            let targets = PIECE_MASKS[KING][from] & !occupied;
+            let from = kings.trailing_zeros() as Square;
+            let targets = PIECE_MASKS[KING as usize][from as usize] & !occupied;
             self.add_moves_from(targets, from, QUIET_MOVE);
-            let targets = PIECE_MASKS[KING][from] & bitboards[side ^ 1];
+            let targets = PIECE_MASKS[KING as usize][from as usize] & bitboards[(side ^ 1) as usize];
             self.add_moves_from(targets, from, CAPTURE);
             kings.reset(from);
         }
     }
     pub fn add_bishops_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
-        let mut bishops = bitboards[side | BISHOP];
+        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let mut bishops = bitboards[(side | BISHOP) as usize];
         while bishops > 0 {
-            let from = bishops.trailing_zeros();
+            let from = bishops.trailing_zeros() as Square;
             let targets = bishop_attacks(from, occupied);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-            self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
+            self.add_moves_from(targets & bitboards[(side ^ 1) as usize], from, CAPTURE);
             bishops.reset(from);
         }
     }
     pub fn add_rooks_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
-        let mut rooks = bitboards[side | ROOK];
+        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let mut rooks = bitboards[(side | ROOK) as usize];
         while rooks > 0 {
-            let from = rooks.trailing_zeros();
+            let from = rooks.trailing_zeros() as Square;
             let targets = rook_attacks(from, occupied);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-            self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
+            self.add_moves_from(targets & bitboards[(side ^ 1) as usize], from, CAPTURE);
             rooks.reset(from);
         }
     }
     pub fn add_queens_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE] | bitboards[BLACK];
-        let mut queens = bitboards[side | QUEEN];
+        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let mut queens = bitboards[(side | QUEEN) as usize];
         while queens > 0 {
-            let from = queens.trailing_zeros();
+            let from = queens.trailing_zeros() as Square;
             let targets = bishop_attacks(from, occupied) | rook_attacks(from, occupied);
             self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-            self.add_moves_from(targets & bitboards[side ^ 1], from, CAPTURE);
+            self.add_moves_from(targets & bitboards[(side ^ 1) as usize], from, CAPTURE);
 
             queens.reset(from);
         }
@@ -216,8 +215,8 @@ impl Moves {
 
 impl Index<usize> for Moves {
     type Output = Move;
-    fn index(&self, _index: &usize) -> &Move {
-        &self.lists[self.ply][*_index]
+    fn index(&self, _index: usize) -> &Move {
+        &self.lists[self.ply][_index]
     }
 }
 

@@ -1,5 +1,3 @@
-use std::num::Int;
-
 use littlewing::common::*;
 use littlewing::attack::Attack;
 use littlewing::attack::attacks;
@@ -46,20 +44,20 @@ impl Game {
     pub fn to_string(&self) -> String {
         // FIXME: Testing `map` and `fold` for the lulz
 
-        let sep = range(0, 8)
+        let sep = (0..8)
             .map(|_| "+---")
             .fold(String::new(), |r, s| r + s) + "+\n";
 
-        String::new() + sep.as_slice() + range(0, 8).map(|i| {
-            range(0, 8)
+        String::new() + sep.as_str() + (0..8).map(|i| {
+            (0..8)
                 .map(|j| {
-                    let c = (self.board[8 * (7 - i) + j]).to_char();
-                    String::from_str("| ") + c.to_string().as_slice() + " "
+                    let c = (self.board[8 * (7 - i) + j as usize]).to_char();
+                    String::from_str("| ") + c.to_string().as_str() + " "
                 })
                 .fold(String::new(), |r, s| {
-                    r + s.as_slice()
-                }) + "|\n" + sep.as_slice()
-        }).fold(String::new(), |r, s| r + s.as_slice()).as_slice()
+                    r + s.as_str()
+                }) + "|\n" + sep.as_str()
+        }).fold(String::new(), |r, s| r + s.as_str()).as_str()
     }
 
     pub fn make_move(&mut self, m: Move) {
@@ -67,37 +65,37 @@ impl Game {
         let mut new_position = position;
         let side = position.side;
 
-        let piece = self.board[m.from()];
-        let capture = self.board[m.to()]; // TODO: En passant
+        let piece = self.board[m.from() as usize];
+        let capture = self.board[m.to() as usize]; // TODO: En passant
 
-        self.bitboards[piece].toggle(m.from());
-        self.board[m.from()] = EMPTY;
-        new_position.hash ^= self.zobrist.positions[piece][m.from()];
+        self.bitboards[piece as usize].toggle(m.from());
+        self.board[m.from() as usize] = EMPTY;
+        new_position.hash ^= self.zobrist.positions[piece as usize][m.from() as usize];
 
         // Update castling rights
         if piece.kind() == KING {
-            new_position.castling_rights[side][KING >> 3] = false;
-            new_position.castling_rights[side][QUEEN >> 3] = false;
-            new_position.hash ^= self.zobrist.castling_rights[side][KING >> 3];
-            new_position.hash ^= self.zobrist.castling_rights[side][QUEEN >> 3];
+            new_position.castling_rights[side as usize][(KING >> 3) as usize] = false;
+            new_position.castling_rights[side as usize][(QUEEN >> 3) as usize] = false;
+            new_position.hash ^= self.zobrist.castling_rights[side as usize][(KING >> 3) as usize];
+            new_position.hash ^= self.zobrist.castling_rights[side as usize][(QUEEN >> 3) as usize];
         } else if piece.kind() == ROOK {
             if m.from() == H1 ^ 56 * side {
-                new_position.castling_rights[side][KING >> 3] = false;
-                new_position.hash ^= self.zobrist.castling_rights[side][KING >> 3];
+                new_position.castling_rights[side as usize][(KING >> 3) as usize] = false;
+                new_position.hash ^= self.zobrist.castling_rights[side as usize][(KING >> 3) as usize];
             }
             if m.from() == A1 ^ 56 * side {
-                new_position.castling_rights[side][QUEEN >> 3] = false;
-                new_position.hash ^= self.zobrist.castling_rights[side][QUEEN >> 3];
+                new_position.castling_rights[side as usize][(QUEEN >> 3) as usize] = false;
+                new_position.hash ^= self.zobrist.castling_rights[side as usize][(QUEEN >> 3) as usize];
             }
         }
         if capture.kind() == ROOK {
             if m.to() == H1 ^ 56 * (side ^ 1) {
-                new_position.castling_rights[side ^ 1][KING >> 3] = false;
-                new_position.hash ^= self.zobrist.castling_rights[side ^ 1][KING >> 3];
+                new_position.castling_rights[(side ^ 1) as usize][(KING >> 3) as usize] = false;
+                new_position.hash ^= self.zobrist.castling_rights[(side ^ 1) as usize][(KING >> 3) as usize];
             }
             if m.to() == A1 ^ 56 * (side ^ 1) {
-                new_position.castling_rights[side ^ 1][QUEEN >> 3] = false;
-                new_position.hash ^= self.zobrist.castling_rights[side ^ 1][QUEEN >> 3];
+                new_position.castling_rights[(side ^ 1) as usize][(QUEEN >> 3) as usize] = false;
+                new_position.hash ^= self.zobrist.castling_rights[(side ^ 1) as usize][(QUEEN >> 3) as usize];
             }
         }
 
@@ -110,54 +108,56 @@ impl Game {
                 (A1 ^ 56 * side, D1 ^ 56 * side)
             };
 
-            self.board[rook_from] = EMPTY;
-            self.board[rook_to] = rook;
-            self.bitboards[rook].toggle(rook_from);
-            self.bitboards[rook].toggle(rook_to);
-            self.bitboards[side].toggle(rook_from);
-            self.bitboards[side].toggle(rook_to);
-            new_position.hash ^= self.zobrist.positions[rook][rook_from];
-            new_position.hash ^= self.zobrist.positions[rook][rook_to];
+            self.board[rook_from as usize] = EMPTY;
+            self.board[rook_to as usize] = rook;
+            self.bitboards[rook as usize].toggle(rook_from);
+            self.bitboards[rook as usize].toggle(rook_to);
+            self.bitboards[side as usize].toggle(rook_from);
+            self.bitboards[side as usize].toggle(rook_to);
+            new_position.hash ^= self.zobrist.positions[rook as usize][rook_from as usize];
+            new_position.hash ^= self.zobrist.positions[rook as usize][rook_to as usize];
         }
 
         if m.is_promotion() {
             let promoted_piece = side | m.promotion_kind();
-            self.board[m.to()] = promoted_piece;
-            self.bitboards[promoted_piece].toggle(m.to());
-            new_position.hash ^= self.zobrist.positions[promoted_piece][m.to()];
+            self.board[m.to() as usize] = promoted_piece;
+            self.bitboards[promoted_piece as usize].toggle(m.to());
+            new_position.hash ^= self.zobrist.positions[promoted_piece as usize][m.to() as usize];
         } else {
-            self.board[m.to()] = piece;
-            self.bitboards[piece].toggle(m.to());
-            new_position.hash ^= self.zobrist.positions[piece][m.to()];
+            self.board[m.to() as usize] = piece;
+            self.bitboards[piece as usize].toggle(m.to());
+            new_position.hash ^= self.zobrist.positions[piece as usize][m.to() as usize];
         }
 
         new_position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
-            ((m.from() ^ (56 * side)) + UP) ^ (56 * side)
+            //((m.from() ^ (56 * side)) + UP) ^ (56 * side)
+            ((((m.from() as i8) ^ (56 * (side as i8))) + UP) ^ (56 * (side as i8))) as Square
         } else {
             OUT
         };
 
         if position.en_passant != OUT {
-            new_position.hash ^= self.zobrist.en_passant[position.en_passant]; // TODO ?
+            new_position.hash ^= self.zobrist.en_passant[position.en_passant as usize]; // TODO ?
         }
         if new_position.en_passant != OUT {
-            new_position.hash ^= self.zobrist.en_passant[new_position.en_passant];
+            new_position.hash ^= self.zobrist.en_passant[new_position.en_passant as usize];
         }
 
-        self.bitboards[side].toggle(m.from());
-        self.bitboards[side].toggle(m.to());
+        self.bitboards[side as usize].toggle(m.from());
+        self.bitboards[side as usize].toggle(m.to());
 
         if capture != EMPTY {
-            self.bitboards[capture].toggle(m.to());
-            self.bitboards[side ^ 1].toggle(m.to());
-            new_position.hash ^= self.zobrist.positions[capture][m.to()];
+            self.bitboards[capture as usize].toggle(m.to());
+            self.bitboards[(side ^ 1) as usize].toggle(m.to());
+            new_position.hash ^= self.zobrist.positions[capture as usize][m.to() as usize];
         }
         if m.kind() == EN_PASSANT {
-            let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
-            self.board[square] = EMPTY;
-            self.bitboards[side ^ 1 | PAWN].toggle(square);
-            self.bitboards[side ^ 1].toggle(square);
-            new_position.hash ^= self.zobrist.positions[side ^ 1 | PAWN][square];
+            //let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
+            let square = ((((m.to() as i8) ^ (56 * (side as i8))) + DOWN) ^ (56 * (side as i8))) as Square;
+            self.board[square as usize] = EMPTY;
+            self.bitboards[(side ^ 1 | PAWN) as usize].toggle(square);
+            self.bitboards[(side ^ 1) as usize].toggle(square);
+            new_position.hash ^= self.zobrist.positions[(side ^ 1 | PAWN) as usize][square as usize];
         }
 
         // FIXME
@@ -170,7 +170,7 @@ impl Game {
     }
 
     pub fn undo_move(&mut self, m: Move) {
-        let piece = self.board[m.to()];
+        let piece = self.board[m.to() as usize];
         let capture = self.positions.top().capture;
 
         self.positions.pop();
@@ -188,40 +188,41 @@ impl Game {
                 (A1 ^ 56 * side, D1 ^ 56 * side)
             };
 
-            self.board[rook_from] = rook;
-            self.board[rook_to] = EMPTY;
-            self.bitboards[rook].toggle(rook_from);
-            self.bitboards[rook].toggle(rook_to);
-            self.bitboards[side].toggle(rook_from);
-            self.bitboards[side].toggle(rook_to);
+            self.board[rook_from as usize] = rook;
+            self.board[rook_to as usize] = EMPTY;
+            self.bitboards[rook as usize].toggle(rook_from);
+            self.bitboards[rook as usize].toggle(rook_to);
+            self.bitboards[side as usize].toggle(rook_from);
+            self.bitboards[side as usize].toggle(rook_to);
         }
 
         if m.is_promotion() {
             let pawn = position.side | PAWN;
-            self.board[m.from()] = pawn;
-            self.bitboards[pawn].toggle(m.from());
-            self.bitboards[pawn].toggle(m.to());
+            self.board[m.from() as usize] = pawn;
+            self.bitboards[pawn as usize].toggle(m.from());
+            self.bitboards[pawn as usize].toggle(m.to());
         } else {
-            self.board[m.from()] = piece;
-            self.bitboards[piece].toggle(m.from());
+            self.board[m.from() as usize] = piece;
+            self.bitboards[piece as usize].toggle(m.from());
         }
 
         if m.kind() == EN_PASSANT {
-            let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
-            self.board[square] = side ^ 1 | PAWN;
-            self.bitboards[side ^ 1 | PAWN].toggle(square);
-            self.bitboards[side ^ 1].toggle(square);
+            //let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
+            let square = ((((m.to() as i8) ^ (56 * (side as i8))) + DOWN) ^ (56 * (side as i8))) as Square;
+            self.board[square as usize] = side ^ 1 | PAWN;
+            self.bitboards[(side ^ 1 | PAWN) as usize].toggle(square);
+            self.bitboards[(side ^ 1) as usize].toggle(square);
         }
 
-        self.board[m.to()] = capture;
-        self.bitboards[piece].toggle(m.to());
+        self.board[m.to() as usize] = capture;
+        self.bitboards[piece as usize].toggle(m.to());
 
-        self.bitboards[position.side].toggle(m.from());
-        self.bitboards[position.side].toggle(m.to());
+        self.bitboards[position.side as usize].toggle(m.from());
+        self.bitboards[position.side as usize].toggle(m.to());
 
         if capture != EMPTY {
-            self.bitboards[capture].toggle(m.to());
-            self.bitboards[position.side ^ 1].toggle(m.to());
+            self.bitboards[capture as usize].toggle(m.to());
+            self.bitboards[(position.side ^ 1) as usize].toggle(m.to());
         }
     }
 
@@ -239,12 +240,12 @@ impl Game {
         self.moves.add_queens_moves(&self.bitboards, side);
 
 
-        let occupied = self.bitboards[WHITE] | self.bitboards[BLACK];
+        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
 
-        let mask = CASTLING_MASKS[side][KING >> 3];
+        let mask = CASTLING_MASKS[side as usize][(KING >> 3) as usize];
         let can_castle =
             !occupied & mask == mask &&
-            position.castling_rights[side][KING >> 3] &&
+            position.castling_rights[side as usize][(KING >> 3) as usize] &&
             !self.is_attacked(E1 ^ 56 * side, side) &&
             !self.is_attacked(F1 ^ 56 * side, side) &&
             !self.is_attacked(G1 ^ 56 * side, side); // TODO: Duplicate with is_check() ?
@@ -252,10 +253,10 @@ impl Game {
             self.moves.add_king_castle(side);
         }
 
-        let mask = CASTLING_MASKS[side][QUEEN >> 3];
+        let mask = CASTLING_MASKS[side as usize][(QUEEN >> 3) as usize];
         let can_castle =
             !occupied & mask == mask &&
-            position.castling_rights[side][QUEEN >> 3] &&
+            position.castling_rights[side as usize][(QUEEN >> 3) as usize] &&
             !self.is_attacked(E1 ^ 56 * side, side) &&
             !self.is_attacked(D1 ^ 56 * side, side) &&
             !self.is_attacked(C1 ^ 56 * side, side);
@@ -267,8 +268,8 @@ impl Game {
     // This function assumes that the move as not already been done
     pub fn move_to_san(&mut self, m: Move) -> String {
         let side = self.positions.top().side;
-        let piece = self.board[m.from()];
-        let capture = self.board[m.to()];
+        let piece = self.board[m.from() as usize];
+        //let capture = self.board[m.to() as usize];
 
         let mut out = String::new();
 
@@ -287,10 +288,10 @@ impl Game {
 
         // Piece disambiguation
         if piece.kind() != PAWN {
-            let occupied = self.bitboards[piece];
+            let occupied = self.bitboards[piece as usize];
             let attackers = attacks(piece, m.to(), occupied) & occupied;
             if attackers.count_ones() > 1 {
-                let rank = m.from().to_coord().as_slice().char_at(0);
+                let rank = m.from().to_coord().as_str().char_at(0);
                 out.push(rank);
             }
         }
@@ -300,7 +301,7 @@ impl Game {
             out.push('x');
         }
 
-        out.push_str(m.to().to_coord().as_slice());
+        out.push_str(m.to().to_coord().as_str());
 
         if m.is_promotion() {
             out.push('=');
@@ -323,7 +324,6 @@ mod tests {
     use self::test::Bencher;
     use littlewing::common::*;
     use littlewing::moves::Move;
-    use littlewing::position::Positions;
     use littlewing::fen::FEN;
     use littlewing::game::Game;
     use littlewing::search::Search;
@@ -388,10 +388,10 @@ mod tests {
         let m = Move::new(E2, E3, QUIET_MOVE);
 
         let mut game: Game = FEN::from_fen(fens[0]);
-        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        assert_eq!(game.to_fen().as_str(), fens[0]);
 
         game.make_move(m);
-        assert_eq!(game.to_fen().as_slice(), fens[1]);
+        assert_eq!(game.to_fen().as_str(), fens[1]);
     }
 
     #[test]
@@ -405,10 +405,10 @@ mod tests {
         let mut game: Game = FEN::from_fen(fens[0]);
 
         game.make_move(m);
-        assert_eq!(game.to_fen().as_slice(), fens[1]);
+        assert_eq!(game.to_fen().as_str(), fens[1]);
 
         game.undo_move(m);
-        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        assert_eq!(game.to_fen().as_str(), fens[0]);
     }
 
     #[test]
@@ -420,14 +420,14 @@ mod tests {
         let m = Move::new(B5, C6, CAPTURE);
 
         let mut game: Game = FEN::from_fen(fens[0]);
-        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        assert_eq!(game.to_fen().as_str(), fens[0]);
         assert_eq!(game.positions.len(), 1);
         assert_eq!(game.positions.top().capture, EMPTY);
         assert_eq!(game.positions[0].capture, EMPTY);
         assert_eq!(game.positions[0].side, WHITE);
 
         game.make_move(m);
-        assert_eq!(game.to_fen().as_slice(), fens[1]);
+        assert_eq!(game.to_fen().as_str(), fens[1]);
         assert_eq!(game.positions.len(), 2);
         assert_eq!(game.positions.top().capture, BLACK_KNIGHT);
         assert_eq!(game.positions[0].capture, EMPTY);
@@ -436,7 +436,7 @@ mod tests {
         assert_eq!(game.positions[1].side, BLACK);
 
         game.undo_move(m);
-        assert_eq!(game.to_fen().as_slice(), fens[0]);
+        assert_eq!(game.to_fen().as_str(), fens[0]);
         assert_eq!(game.positions.len(), 1);
         assert_eq!(game.positions.top().capture, EMPTY);
         assert_eq!(game.positions[0].capture, EMPTY);

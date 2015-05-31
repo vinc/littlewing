@@ -1,7 +1,6 @@
 use std::io;
 
 use littlewing::common::*;
-use littlewing::attack::Attack;
 use littlewing::clock::Clock;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
@@ -25,9 +24,10 @@ impl XBoard {
     pub fn run(&mut self) {
         println!(""); // Acknowledge XBoard mode
         loop {
-            let line = io::stdin().read_line().unwrap();
-            let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
-            match args[0].as_slice() {
+            let mut line = String::new();
+            io::stdin().read_line(&mut line).unwrap();
+            let args: Vec<&str> = line.trim().split(' ').collect();
+            match args[0] {
                 "quit"     => break,
                 "force"    => self.cmd_force(),
                 "new"      => self.cmd_new(),
@@ -74,9 +74,8 @@ impl XBoard {
             panic!("no fen given");
         }
 
-        let s = args.slice_from(1).connect(" ");
-        let fen = s.as_slice();
-
+        let s = args[1..].connect(" ");
+        let fen = s.as_str();
         self.game = FEN::from_fen(fen);
     }
 
@@ -94,22 +93,22 @@ impl XBoard {
 
     pub fn parse_move(&mut self, args: &[&str]) {
         let side = self.game.positions.top().side;
-        let from: Square = SquareString::from_coord(String::from_str(args[0].slice(0, 2)));
-        let to: Square = SquareString::from_coord(String::from_str(args[0].slice(2, 4)));
+        let from: Square = SquareString::from_coord(String::from_str(&args[0][0..2]));
+        let to: Square = SquareString::from_coord(String::from_str(&args[0][2..4]));
 
         if from > 63 || to > 63 {
             return; // TODO
         }
 
         let mt = if args[0].len() == 5 {
-            let promotion = match args[0].as_slice().char_at(4) {
+            let promotion = match args[0].char_at(4) {
                 'n' => KNIGHT_PROMOTION,
                 'b' => BISHOP_PROMOTION,
                 'r' => ROOK_PROMOTION,
                 'q' => QUEEN_PROMOTION,
                 _   => NULL_MOVE // FIXME
             };
-            if self.game.board[to] == EMPTY {
+            if self.game.board[to as usize] == EMPTY {
                 promotion
             } else {
                 promotion & CAPTURE
@@ -118,8 +117,8 @@ impl XBoard {
             KING_CASTLE
         } else if from == E1 ^ 56 * side && to == C1 ^ 56 * side {
             QUEEN_CASTLE
-        } else if self.game.board[to] == EMPTY {
-            let kind = self.game.board[from].kind();
+        } else if self.game.board[to as usize] == EMPTY {
+            let kind = self.game.board[from as usize].kind();
             let rank = (from ^ 56 * side).rank();
             if kind == PAWN && rank == 1 {
                 DOUBLE_PAWN_PUSH
@@ -142,7 +141,7 @@ impl XBoard {
     }
 
     pub fn think(&mut self) {
-        let m = self.game.root(MAX_PLY);
+        let m = self.game.root(MAX_PLY - 10);
         self.game.make_move(m);
 
         println!("move {}", m.to_can());

@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 
 pub type Bitboard = u64;
-pub type Color = usize;
-pub type Direction = usize; // FIXME: Use `int` instead
-pub type MoveType = usize;
-pub type Piece = usize;
-pub type Square = usize;
+pub type Color = u8;
+pub type Direction = i8;
+pub type MoveType = u8;
+pub type Piece = u8;
+pub type Square = u8;
 
 pub const INF: i32 = 29999;
 
@@ -168,39 +168,39 @@ lazy_static! {
         let mut piece_masks = [[0u64; 64]; 14];
 
         let deltas = [-2, -1, 0, 1, 2];
-        for x in range(0, 8) {
-            for y in range(0, 8) {
+        for x in 0..8 {
+            for y in 0..8 {
                 let from = 8 * x + y;
                 for &i in deltas.iter() {
                     for &j in deltas.iter() {
-                        for k in range(1, 7) {
+                        for k in 1..7 {
                             let dx = x + i * k;
                             let dy = y + j * k;
                             let to = 8 * dx + dy;
                             if to == from {
                                 break;
                             }
-                            if dx >= 8 || dy >= 8 {
+                            if dx as u8 >= 8 || dy as u8 >= 8 {
                                 break; // Out of board
                             }
                             if i == -2 || j == -2 || i == 2 || j == 2 {
                                 if i == -1 || j == -1 || i == 1 || j == 1 {
-                                    piece_masks[KNIGHT][from] |= 1 << to;
+                                    piece_masks[KNIGHT as usize][from as usize] |= 1 << to;
                                 }
                                 break;
                             }
                             if k == 1 {
-                                piece_masks[KING][from] |= 1 << to;
+                                piece_masks[KING as usize][from as usize] |= 1 << to;
                             }
-                            if dx + i >= 8 || dy + j >= 8 {
+                            if (dx + i) as u8 >= 8 || (dy + j) as u8 >= 8 {
                                 break; // Edge of the board
                             }
                             if i == 0 || j == 0 {
-                                piece_masks[ROOK][from] |= 1 << to;
+                                piece_masks[ROOK as usize][from as usize] |= 1 << to;
                             } else {
-                                piece_masks[BISHOP][from] |= 1 << to;
+                                piece_masks[BISHOP as usize][from as usize] |= 1 << to;
                             }
-                            piece_masks[QUEEN][from] |= 1 << to;
+                            piece_masks[QUEEN as usize][from as usize] |= 1 << to;
                         }
                     }
                 }
@@ -217,12 +217,12 @@ mod tests {
 
     #[test]
     fn test_piece_masks() {
-        assert_eq!(PIECE_MASKS[KING][A1],   0x0000000000000302);
-        assert_eq!(PIECE_MASKS[KING][E3],   0x0000000038283800);
-        assert_eq!(PIECE_MASKS[KNIGHT][B1], 0x0000000000050800);
-        assert_eq!(PIECE_MASKS[BISHOP][A1], 0x0040201008040200);
-        assert_eq!(PIECE_MASKS[BISHOP][E3], 0x0000024428002800);
-        assert_eq!(PIECE_MASKS[ROOK][E3],   0x00101010106E1000);
-        assert_eq!(PIECE_MASKS[ROOK][A1],   0x000101010101017E);
+        assert_eq!(PIECE_MASKS[KING as usize][A1 as usize],   0x0000000000000302);
+        assert_eq!(PIECE_MASKS[KING as usize][E3 as usize],   0x0000000038283800);
+        assert_eq!(PIECE_MASKS[KNIGHT as usize][B1 as usize], 0x0000000000050800);
+        assert_eq!(PIECE_MASKS[BISHOP as usize][A1 as usize], 0x0040201008040200);
+        assert_eq!(PIECE_MASKS[BISHOP as usize][E3 as usize], 0x0000024428002800);
+        assert_eq!(PIECE_MASKS[ROOK as usize][E3 as usize],   0x00101010106E1000);
+        assert_eq!(PIECE_MASKS[ROOK as usize][A1 as usize],   0x000101010101017E);
     }
 }

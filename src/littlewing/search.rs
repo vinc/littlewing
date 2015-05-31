@@ -20,7 +20,7 @@ impl Search for Game {
             self.generate_moves();
             let n = self.moves.len();
             let mut r = 0;
-            for i in range(0, n) {
+            for i in 0..n {
                 let m = self.moves[i];
                 self.make_move(m);
                 if !self.is_check(side) {
@@ -33,7 +33,7 @@ impl Search for Game {
     }
 
     fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32 {
-        if depth == 0 {
+        if depth <= 0 {
             return self.eval();
         }
 
@@ -41,7 +41,7 @@ impl Search for Game {
         self.generate_moves();
         let n = self.moves.len();
 
-        for i in range(0, n) {
+        for i in 0..n {
             let m = self.moves[i];
             self.make_move(m);
             if !self.is_check(side) {
@@ -71,13 +71,13 @@ impl Search for Game {
             println!(" ply  score   time  move");
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
-        for depth in range(1, max_depth) {
+        for depth in 1..max_depth {
             if self.clock.poll() {
                 break;
             }
             let mut alpha = -INF;
             let beta = INF;
-            for i in range(0, n) {
+            for i in 0..n {
                 let m = self.moves[i];
                 self.make_move(m);
                 if !self.is_check(side) {

@@ -1,5 +1,3 @@
-use std::num::Int;
-
 use littlewing::common::*;
 use littlewing::bitboard::BitboardExt;
 use littlewing::bitboard::dumb7fill;
@@ -13,43 +11,43 @@ pub trait Attack {
 
 impl Attack for Game {
     fn is_check(&self, side: Color) -> bool {
-        let king = self.bitboards[side | KING];
+        let king = self.bitboards[(side | KING) as usize];
         if king == 0 {
             return true; // FIXME: Obviously...
         }
-        let square = king.trailing_zeros();
+        let square = king.trailing_zeros() as Square;
         self.is_attacked(square, side)
     }
     fn is_attacked(&self, square: Square, side: Color) -> bool {
-        let occupied = self.bitboards[WHITE] | self.bitboards[BLACK];
+        let occupied = self.bitboards[(WHITE) as usize] | self.bitboards[(BLACK) as usize];
 
-        let pawns = self.bitboards[side ^ 1 | PAWN];
-        let attacks = PAWN_ATTACKS[side][square];
+        let pawns = self.bitboards[(side ^ 1 | PAWN) as usize];
+        let attacks = PAWN_ATTACKS[side as usize][square as usize];
         if attacks & pawns > 0 {
             return true;
         }
 
-        let knights = self.bitboards[side ^ 1 | KNIGHT];
-        let attacks = PIECE_MASKS[KNIGHT][square];
+        let knights = self.bitboards[(side ^ 1 | KNIGHT) as usize];
+        let attacks = PIECE_MASKS[KNIGHT as usize][square as usize];
         if attacks & knights > 0 {
             return true;
         }
 
-        let king = self.bitboards[side ^ 1 | KING];
-        let attacks = PIECE_MASKS[KING][square];
+        let king = self.bitboards[(side ^ 1 | KING) as usize];
+        let attacks = PIECE_MASKS[KING as usize][square as usize];
         if attacks & king > 0 {
             return true;
         }
 
-        let queens = self.bitboards[side ^ 1 | QUEEN];
+        let queens = self.bitboards[(side ^ 1 | QUEEN) as usize];
 
-        let bishops = self.bitboards[side ^ 1 | BISHOP];
+        let bishops = self.bitboards[(side ^ 1 | BISHOP) as usize];
         let attacks = bishop_attacks(square, occupied);
         if attacks & (bishops | queens) > 0 {
             return true;
         }
 
-        let rooks = self.bitboards[side ^ 1 | ROOK];
+        let rooks = self.bitboards[(side ^ 1 | ROOK) as usize];
         let attacks = rook_attacks(square, occupied);
         if attacks & (rooks | queens) > 0 {
             return true;
@@ -61,9 +59,9 @@ impl Attack for Game {
 
 pub fn attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
     match piece.kind() {
-        PAWN => PAWN_ATTACKS[piece.color()][square],
-        KNIGHT => PIECE_MASKS[KNIGHT][square],
-        KING => PIECE_MASKS[KING][square],
+        PAWN => PAWN_ATTACKS[piece.color() as usize][square as usize],
+        KNIGHT => PIECE_MASKS[KNIGHT as usize][square as usize],
+        KING => PIECE_MASKS[KING as usize][square as usize],
         BISHOP => bishop_attacks(square, occupied),
         ROOK => rook_attacks(square, occupied),
         QUEEN => bishop_attacks(square, occupied) & rook_attacks(square, occupied),
@@ -107,9 +105,9 @@ lazy_static! {
         let ydirs = [DOWN, UP];
         let files = [FILE_H, FILE_A];
         let mut attacks = [[0; 64]; 2];
-        for side in range(0, 2) {
-            for square in range(0, 64) {
-                for i in range(0, 2) {
+        for side in 0..2 {
+            for square in 0..64 {
+                for i in 0..2 {
                     let dir = ydirs[side ^ 1] + xdirs[i];
                     attacks[side][square] |= (1 << square).shift(dir) & !files[i];
                 }

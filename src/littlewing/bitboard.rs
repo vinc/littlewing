@@ -1,41 +1,40 @@
 use littlewing::common::*;
-use std::num::Int;
 
 pub trait BitboardExt {
-    fn shift(&self, x: usize) -> Bitboard;
-    fn toggle(&mut self, i: usize); // FIXME: Return instead of update?
-    fn set(&mut self, i: usize);
-    fn reset(&mut self, i: usize);
-    fn get(&self, i: usize) -> bool;
+    fn shift(&self, x: Direction) -> Bitboard;
+    fn toggle(&mut self, i: Square); // FIXME: Return instead of update?
+    fn set(&mut self, i: Square);
+    fn reset(&mut self, i: Square);
+    fn get(&self, i: Square) -> bool;
     fn debug(&self);
 }
 
 impl BitboardExt for Bitboard {
-    fn shift(&self, x: usize) -> Bitboard {
+    fn shift(&self, x: Direction) -> Bitboard {
         let v = *self;
-        if x < 64 {
+        if x > 0 {
             v << x
         } else {
             v >> -x
         }
     }
 
-    fn toggle(&mut self, i: usize) {
+    fn toggle(&mut self, i: Square) {
         *self ^= 1 << i
     }
-    fn set(&mut self, i: usize) {
+    fn set(&mut self, i: Square) {
         *self |= 1 << i
     }
-    fn reset(&mut self, i: usize) {
+    fn reset(&mut self, i: Square) {
         *self &= !(1 << i)
     }
-    fn get(&self, i: usize) -> bool {
+    fn get(&self, i: Square) -> bool {
         *self & (1 << i) > 0
     }
     fn debug(&self) {
         println!("DEBUG(bitboard): 0x{:016X}", *self);
-        for i in range(0, 8) {
-            for j in range(0, 8) {
+        for i in 0..8 {
+            for j in 0..8 {
                 print!("{:b}", self.get(8 * i + j) as usize);
             }
             println!("");
@@ -44,7 +43,7 @@ impl BitboardExt for Bitboard {
     }
 }
 
-pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: usize) -> Bitboard {
+pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: Direction) -> Bitboard {
     let mut flood: Bitboard = 0;
     while sliders > 0 {
         flood |= sliders;
@@ -56,7 +55,6 @@ pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: usize) -> Bitboard
 #[cfg(test)]
 mod tests {
     use littlewing::common::*;
-    use std::num::Int;
     use super::BitboardExt;
     use super::dumb7fill;
 

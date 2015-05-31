@@ -1,8 +1,10 @@
 extern crate time;
 
 use std::io;
-use std::io::BufferedReader;
-use std::io::File;
+use std::io::BufReader;
+use std::io::BufRead;
+use std::fs::File;
+use std::path::Path;
 
 use littlewing::common::*;
 use littlewing::attack::Attack;
@@ -25,9 +27,10 @@ impl CLI {
     pub fn run(&mut self) {
         loop {
             print!("> ");
-            let line = io::stdin().read_line().unwrap();
-            let args: Vec<&str> = line.as_slice().trim().split(' ').collect();
-            match args[0].as_slice() {
+            let mut line = String::new();
+            io::stdin().read_line(&mut line);
+            let args: Vec<&str> = line.trim().split(' ').collect();
+            match args[0] {
                 "quit"       => { break },
                 "setboard"   => { self.cmd_setboard(args.as_slice()) },
                 "print"      => { self.cmd_print() },
@@ -69,9 +72,8 @@ impl CLI {
             panic!("no fen given");
         }
 
-        let s = args.slice_from(1).connect(" ");
-        let fen = s.as_slice();
-
+        let s = args[1..].connect(" ");
+        let fen = s.as_str();
         self.game = FEN::from_fen(fen);
     }
 
@@ -92,7 +94,7 @@ impl CLI {
         let side = self.game.positions.top().side;
         self.game.generate_moves();
         let n = self.game.moves.len();
-        for i in range(0, n) {
+        for i in 0..n {
             let m = self.game.moves[i];
             self.game.make_move(m);
             //println!("{}", game.to_string());
@@ -130,7 +132,7 @@ impl CLI {
             panic!("no filename given");
         }
         let path = Path::new(args[1]);
-        let mut file = BufferedReader::new(File::open(&path));
+        let file = BufReader::new(File::open(&path).unwrap());
         for line in file.lines() {
             let l = line.unwrap();
             let mut fields = l.split(';');
@@ -139,7 +141,7 @@ impl CLI {
             self.game = FEN::from_fen(fen);
             for field in fields {
                 let mut it = field.trim().split(' ');
-                let d = it.next().unwrap().slice_from(1).parse::<usize>().unwrap();
+                let d = it.next().unwrap()[1..].parse::<usize>().unwrap();
                 let n = it.next().unwrap().parse::<u64>().unwrap();
                 if self.game.perft(d) == n {
                     print!(".");
@@ -162,7 +164,7 @@ impl CLI {
             10
         };
         let path = Path::new(args[1]);
-        let mut file = BufferedReader::new(File::open(&path));
+        let file = BufReader::new(File::open(&path).unwrap());
         let mut r = 0;
         let mut n = 0;
         for line in file.lines() {
@@ -175,7 +177,7 @@ impl CLI {
             self.game.clock = Clock::new(1, time);
 
             // TODO: There can be more than one move
-            let mut fields = fen.words().rev().take(2);
+            let mut fields = fen.split_whitespace().rev().take(2);
             let move_str = fields.next().unwrap();
             let type_str = fields.next().unwrap();
 

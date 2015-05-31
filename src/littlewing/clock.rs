@@ -1,7 +1,5 @@
 extern crate time;
 
-use littlewing::common::*;
-
 pub struct Clock {
     pub moves: u8,
     pub time: u16,

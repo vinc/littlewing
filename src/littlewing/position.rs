@@ -2,7 +2,7 @@ use std::ops::Index;
 
 use littlewing::common::*;
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Position {
     pub hash: u64,
     pub side: Color,
@@ -55,7 +55,7 @@ impl Positions {
 
 impl Index<usize> for Positions {
     type Output = Position;
-    fn index(&self, _index: &usize) -> &Position {
-        &self.stack[*_index]
+    fn index(&self, _index: usize) -> &Position {
+        &self.stack[_index]
     }
 }

@@ -1,5 +1,3 @@
-use std::num::Int;
-
 use littlewing::common::*;
 use littlewing::game::Game;
 
@@ -19,12 +17,12 @@ impl Eval for Game {
     fn eval_pieces(&self, c: Color) -> i32 {
         let mut score = 0;
 
-        score += PAWN_VALUE * self.bitboards[c | PAWN].count_ones() as i32;
-        score += KNIGHT_VALUE * self.bitboards[c | KNIGHT].count_ones() as i32;
-        score += BISHOP_VALUE * self.bitboards[c | BISHOP].count_ones() as i32;
-        score += ROOK_VALUE * self.bitboards[c | ROOK].count_ones() as i32;
-        score += QUEEN_VALUE * self.bitboards[c | QUEEN].count_ones() as i32;
-        score += KING_VALUE * self.bitboards[c | KING].count_ones() as i32;
+        score += PAWN_VALUE * self.bitboards[(c | PAWN) as usize].count_ones() as i32;
+        score += KNIGHT_VALUE * self.bitboards[(c | KNIGHT) as usize].count_ones() as i32;
+        score += BISHOP_VALUE * self.bitboards[(c | BISHOP) as usize].count_ones() as i32;
+        score += ROOK_VALUE * self.bitboards[(c | ROOK) as usize].count_ones() as i32;
+        score += QUEEN_VALUE * self.bitboards[(c | QUEEN) as usize].count_ones() as i32;
+        score += KING_VALUE * self.bitboards[(c | KING) as usize].count_ones() as i32;
 
         score
     }
@@ -51,7 +49,7 @@ mod tests {
 
     #[bench]
     fn bench_eval(b: &mut Bencher) {
-        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
+        let game: Game = FEN::from_fen(DEFAULT_FEN);
         b.iter(|| {
             game.eval()
         })

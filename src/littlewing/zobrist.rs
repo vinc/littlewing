@@ -1,7 +1,7 @@
-use std::rand::Rng;
-use std::rand::weak_rng;
+extern crate rand;
 
-use littlewing::common::*;
+use self::rand::Rng;
+use self::rand::weak_rng;
 
 pub struct Zobrist {
     pub positions: [[u64; 64]; 14],
@@ -20,16 +20,16 @@ impl Zobrist {
         };
 
         let mut rng = weak_rng();
-        for i in range(0, 14) {
-            for j in range(0, 64) {
+        for i in 0..14 {
+            for j in 0..64 {
                 zobrist.positions[i][j] = rng.next_u64();
             }
         }
-        for i in range(0, 64) {
+        for i in 0..64 {
             zobrist.en_passant[i] = rng.next_u64();
         }
-        for i in range(0, 2) {
-            for j in range(0, 2) {
+        for i in 0..2 {
+            for j in 0..2 {
                 zobrist.castling_rights[i][j] = rng.next_u64();
             }
         }
@@ -41,7 +41,6 @@ impl Zobrist {
 
 #[cfg(test)]
 mod tests {
-    use littlewing::common::*;
     use littlewing::zobrist::Zobrist;
 
     #[test]
