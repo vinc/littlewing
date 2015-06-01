@@ -38,6 +38,7 @@ impl Search for Game {
         }
 
         let side = self.positions.top().side;
+        self.nodes += 1;
         self.generate_moves();
         let n = self.moves.len();
 
@@ -62,13 +63,14 @@ impl Search for Game {
 
     fn root(&mut self, max_depth: usize) -> Move {
         let side = self.positions.top().side;
+        self.nodes = 0;
         self.clock.start();
         self.generate_moves();
 
         let n = self.moves.len();
 
         if self.is_verbose {
-            println!(" ply  score   time  move");
+            println!(" ply  score   time  nodes  pv");
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         for depth in 1..max_depth {
@@ -104,7 +106,7 @@ impl Search for Game {
         let move_str = self.move_to_san(m);
         self.make_move(m);
 
-        println!(" {:>3}  {:>5}  {:>5}  {}", depth, score, time, move_str);
+        println!(" {:>3}  {:>5}  {:>5}  {:>5}  {}", depth, score, time, self.nodes, move_str);
     }
 }
 
