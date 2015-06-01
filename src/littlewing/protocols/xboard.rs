@@ -97,7 +97,21 @@ impl XBoard {
 
     pub fn cmd_level(&mut self, args: &[&str]) {
         let moves = args[1].parse::<u8>().unwrap();
-        let time = args[2].parse::<u16>().unwrap();
+
+        let mut is_minutes = true;
+        let mut minutes = 0;
+        let mut seconds = 0;
+        for &c in args[2].as_bytes() {
+            let x = (c - b'0') as u16;
+            if c == b':' {
+                is_minutes = false;
+            } else if is_minutes {
+                minutes = minutes * 10 + x;
+            } else {
+                seconds = seconds * 10 + x;
+            }
+        }
+        let time = minutes * 60 + seconds;
 
         self.game.clock = Clock::new(moves, time);
     }
