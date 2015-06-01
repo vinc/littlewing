@@ -162,6 +162,7 @@ pub const SQUARES: [Square; 64] = [
 
 pub const MAX_PLY: usize = 128;
 pub const MAX_MOVES: usize = 256;
+pub const MAX_POSITIONS: usize = 512;
 
 lazy_static! {
     pub static ref PIECE_MASKS: [[Bitboard; 64]; 14] = { // TODO: s/12/5/

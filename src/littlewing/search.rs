@@ -64,6 +64,7 @@ impl Search for Game {
     fn root(&mut self, max_depth: usize) -> Move {
         let side = self.positions.top().side;
         self.nodes = 0;
+        self.moves.clear_all();
         self.clock.start();
         self.generate_moves();
 

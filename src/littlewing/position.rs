@@ -24,14 +24,14 @@ impl Position {
 }
 
 pub struct Positions {
-    stack: [Position; MAX_PLY],
+    stack: [Position; MAX_POSITIONS],
     ply: usize
 }
 
 impl Positions {
     pub fn new() -> Positions {
         Positions {
-            stack: [Position::new(); MAX_PLY],
+            stack: [Position::new(); MAX_POSITIONS],
             ply: 0
         }
     }
