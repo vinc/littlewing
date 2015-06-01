@@ -33,6 +33,10 @@ impl Search for Game {
     }
 
     fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32 {
+        if self.clock.poll(self.nodes_count) {
+            return 0;
+        }
+
         if depth <= 0 {
             return self.eval();
         }
@@ -75,7 +79,7 @@ impl Search for Game {
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         for depth in 1..max_depth {
-            if self.clock.poll() {
+            if self.clock.poll(self.nodes_count) {
                 break;
             }
             let mut alpha = -INF;
