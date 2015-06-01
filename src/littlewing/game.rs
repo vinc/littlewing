@@ -13,7 +13,7 @@ use littlewing::zobrist::Zobrist;
 
 pub struct Game {
     pub is_verbose: bool,
-    pub nodes: u64,
+    pub nodes_count: u64,
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
@@ -27,7 +27,7 @@ impl Game {
     pub fn new() -> Game {
         Game {
             is_verbose: false,
-            nodes: 0,
+            nodes_count: 0,
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
             board: [EMPTY; 64],
