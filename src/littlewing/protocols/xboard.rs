@@ -1,4 +1,5 @@
 use std::io;
+use regex::Regex;
 
 use littlewing::common::*;
 use littlewing::clock::Clock;
@@ -92,13 +93,15 @@ impl XBoard {
     }
 
     pub fn parse_move(&mut self, args: &[&str]) {
+        let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
+
+        if !re.is_match(args[0]) {
+            return;
+        }
+
         let side = self.game.positions.top().side;
         let from: Square = SquareString::from_coord(String::from_str(&args[0][0..2]));
         let to: Square = SquareString::from_coord(String::from_str(&args[0][2..4]));
-
-        if from > 63 || to > 63 {
-            return; // TODO
-        }
 
         let mt = if args[0].len() == 5 {
             let promotion = match args[0].char_at(4) {
@@ -132,7 +135,7 @@ impl XBoard {
         };
 
         let m = Move::new(from, to, mt);
-        println!("parsed: {}", self.game.move_to_san(m));
+        //println!("parsed: {}", self.game.move_to_san(m));
         self.game.make_move(m);
 
         if !self.force {

@@ -6,5 +6,6 @@ authors = ["Vincent Ollivier <v@vinc.cc>"]
 
 [dependencies]
 lazy_static = "*"
-time = "*"
 rand = "*"
+regex = "*"
+time = "*"
