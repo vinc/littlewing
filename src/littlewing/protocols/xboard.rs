@@ -19,7 +19,7 @@ impl XBoard {
     pub fn new() -> XBoard {
         XBoard {
             game: FEN::from_fen(DEFAULT_FEN),
-            force: true
+            force: false
         }
     }
     pub fn run(&mut self) {
