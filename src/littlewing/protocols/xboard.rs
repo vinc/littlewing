@@ -35,6 +35,8 @@ impl XBoard {
                 "go"       => self.cmd_go(),
                 "post"     => self.cmd_post(),
                 "nopost"   => self.cmd_nopost(),
+                "undo"     => self.cmd_undo(),
+                "remove"   => self.cmd_remove(),
                 "ping"     => self.cmd_ping(args.as_slice()),
                 "setboard" => self.cmd_setboard(args.as_slice()),
                 "level"    => self.cmd_level(args.as_slice()),
@@ -64,6 +66,19 @@ impl XBoard {
 
     pub fn cmd_nopost(&mut self) {
         self.game.is_verbose = false;
+    }
+
+    pub fn cmd_undo(&mut self) {
+        let m = self.game.history.pop().unwrap();
+        self.game.undo_move(m);
+    }
+
+    pub fn cmd_remove(&mut self) {
+        let m = self.game.history.pop().unwrap();
+        self.game.undo_move(m);
+
+        let m = self.game.history.pop().unwrap();
+        self.game.undo_move(m);
     }
 
     pub fn cmd_ping(&mut self, args: &[&str]) {
@@ -137,6 +152,7 @@ impl XBoard {
         let m = Move::new(from, to, mt);
         //println!("parsed: {}", self.game.move_to_san(m));
         self.game.make_move(m);
+        self.game.history.push(m);
 
         if !self.force {
             self.think();
@@ -146,6 +162,7 @@ impl XBoard {
     pub fn think(&mut self) {
         let m = self.game.root(MAX_PLY - 10);
         self.game.make_move(m);
+        self.game.history.push(m);
 
         println!("move {}", m.to_can());
     }

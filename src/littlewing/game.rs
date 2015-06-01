@@ -19,7 +19,8 @@ pub struct Game {
     pub board: [Piece; 64],
     pub moves: Moves,
     pub positions: Positions,
-    pub zobrist: Zobrist
+    pub zobrist: Zobrist,
+    pub history: Vec<Move>
 }
 
 impl Game {
@@ -32,7 +33,8 @@ impl Game {
             board: [EMPTY; 64],
             moves: Moves::new(),
             positions: Positions::new(),
-            zobrist: Zobrist::new()
+            zobrist: Zobrist::new(),
+            history: Vec::new()
         }
     }
 
@@ -41,6 +43,7 @@ impl Game {
         self.board = [EMPTY; 64];
         self.moves.clear_all();
         self.positions.clear();
+        self.history.clear();
     }
 
     pub fn to_string(&self) -> String {
