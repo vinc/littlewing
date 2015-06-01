@@ -1,9 +1,10 @@
 extern crate time;
 
 use std::io;
-use std::io::BufReader;
-use std::io::BufRead;
 use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+use std::io::Write;
 use std::path::Path;
 
 use littlewing::common::*;
@@ -27,6 +28,7 @@ impl CLI {
     pub fn run(&mut self) {
         loop {
             print!("> ");
+            io::stdout().flush().unwrap();
             let mut line = String::new();
             io::stdin().read_line(&mut line);
             let args: Vec<&str> = line.trim().split(' ').collect();
@@ -145,6 +147,7 @@ impl CLI {
                 let n = it.next().unwrap().parse::<u64>().unwrap();
                 if self.game.perft(d) == n {
                     print!(".");
+                    io::stdout().flush().unwrap();
                 } else {
                     print!("x");
                     break;
