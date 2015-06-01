@@ -156,6 +156,7 @@ impl Game {
             self.bitboards[(side ^ 1) as usize].toggle(m.to());
             new_position.hash ^= self.zobrist.positions[capture as usize][m.to() as usize];
         }
+
         if m.kind() == EN_PASSANT {
             //let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
             let square = ((((m.to() as i8) ^ (56 * (side as i8))) + DOWN) ^ (56 * (side as i8))) as Square;

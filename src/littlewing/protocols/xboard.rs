@@ -129,7 +129,7 @@ impl XBoard {
             if self.game.board[to as usize] == EMPTY {
                 promotion
             } else {
-                promotion & CAPTURE
+                promotion | CAPTURE
             }
         } else if from == E1 ^ 56 * side && to == G1 ^ 56 * side {
             KING_CASTLE
