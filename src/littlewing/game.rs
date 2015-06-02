@@ -292,11 +292,11 @@ impl Game {
             out.push(piece.kind().to_char());
         }
 
-        // Piece disambiguation
-        if piece.kind() != PAWN {
+        // Piece disambiguation or pawn capture
+        if piece.kind() != PAWN || m.is_capture() {
             let occupied = self.bitboards[piece as usize];
             let attackers = attacks(piece, m.to(), occupied) & occupied;
-            if attackers.count_ones() > 1 {
+            if attackers.count_ones() > 1 || piece.kind() == PAWN {
                 let rank = m.from().to_coord().as_str().char_at(0);
                 out.push(rank);
             }
