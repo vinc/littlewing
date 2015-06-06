@@ -12,6 +12,7 @@ use littlewing::moves::Move;
 
 pub struct XBoard {
     game: Game,
+    max_depth: usize,
     force: bool
 }
 
@@ -19,6 +20,7 @@ impl XBoard {
     pub fn new() -> XBoard {
         XBoard {
             game: FEN::from_fen(DEFAULT_FEN),
+            max_depth: MAX_PLY - 10,
             force: false
         }
     }
@@ -39,6 +41,7 @@ impl XBoard {
                 "remove"   => self.cmd_remove(),
                 "ping"     => self.cmd_ping(args.as_slice()),
                 "setboard" => self.cmd_setboard(args.as_slice()),
+                "sd"       => self.cmd_depth(args.as_slice()),
                 "level"    => self.cmd_level(args.as_slice()),
                 "protover" => self.cmd_protover(args.as_slice()),
                 _          => self.parse_move(args.as_slice())
@@ -51,6 +54,7 @@ impl XBoard {
     }
 
     pub fn cmd_new(&mut self) {
+        self.max_depth = MAX_PLY - 10;
         self.game.clear();
         self.game.load_fen(DEFAULT_FEN);
     }
@@ -105,6 +109,10 @@ impl XBoard {
         };
 
         self.game.clock = Clock::new(moves, time);
+    }
+
+    pub fn cmd_depth(&mut self, args: &[&str]) {
+        self.max_depth = args[1].parse::<usize>().unwrap() + 1;
     }
 
     pub fn cmd_protover(&mut self, args: &[&str]) {
@@ -165,7 +173,7 @@ impl XBoard {
     }
 
     pub fn think(&mut self) {
-        let m = self.game.root(MAX_PLY - 10);
+        let m = self.game.root(self.max_depth);
         self.game.make_move(m);
         self.game.history.push(m);
 
