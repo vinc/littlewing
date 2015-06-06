@@ -131,6 +131,9 @@ impl XBoard {
         let from: Square = SquareString::from_coord(String::from_str(&args[0][0..2]));
         let to: Square = SquareString::from_coord(String::from_str(&args[0][2..4]));
 
+        let piece = self.game.board[from as usize];
+        let capture = self.game.board[to as usize];
+
         let mt = if args[0].len() == 5 {
             let promotion = match args[0].char_at(4) {
                 'n' => KNIGHT_PROMOTION,
@@ -139,21 +142,20 @@ impl XBoard {
                 'q' => QUEEN_PROMOTION,
                 _   => NULL_MOVE // FIXME
             };
-            if self.game.board[to as usize] == EMPTY {
+            if capture == EMPTY {
                 promotion
             } else {
                 promotion | CAPTURE
             }
-        } else if from == E1 ^ 56 * side && to == G1 ^ 56 * side {
+        } else if piece.kind() == KING && from == E1 ^ 56 * side && to == G1 ^ 56 * side {
             KING_CASTLE
-        } else if from == E1 ^ 56 * side && to == C1 ^ 56 * side {
+        } else if piece.kind() == KING && from == E1 ^ 56 * side && to == C1 ^ 56 * side {
             QUEEN_CASTLE
-        } else if self.game.board[to as usize] == EMPTY {
-            let kind = self.game.board[from as usize].kind();
-            let d = ((to ^ 56 * side) - (from ^ 56 * side)) as Direction;
-            if kind == PAWN && (d == 2 * UP) {
+        } else if capture == EMPTY {
+            let d = (to ^ 56 * side) as Direction - (from ^ 56 * side) as Direction;
+            if piece.kind() == PAWN && (d == 2 * UP) {
                 DOUBLE_PAWN_PUSH
-            } else if kind == PAWN && to == self.game.positions.top().en_passant {
+            } else if piece.kind() == PAWN && to == self.game.positions.top().en_passant {
                 EN_PASSANT
             } else {
                 QUIET_MOVE
