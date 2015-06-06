@@ -150,8 +150,8 @@ impl XBoard {
             QUEEN_CASTLE
         } else if self.game.board[to as usize] == EMPTY {
             let kind = self.game.board[from as usize].kind();
-            let rank = (from ^ 56 * side).rank();
-            if kind == PAWN && rank == 1 {
+            let d = ((to ^ 56 * side) - (from ^ 56 * side)) as Direction;
+            if kind == PAWN && (d == 2 * UP) {
                 DOUBLE_PAWN_PUSH
             } else if kind == PAWN && to == self.game.positions.top().en_passant {
                 EN_PASSANT
