@@ -271,11 +271,10 @@ impl Game {
         }
     }
 
-    // This function assumes that the move as not already been done
+    // This function assumes that the move has not been played yet
     pub fn move_to_san(&mut self, m: Move) -> String {
         let side = self.positions.top().side;
         let piece = self.board[m.from() as usize];
-        //let capture = self.board[m.to() as usize];
 
         let mut out = String::new();
 
@@ -300,10 +299,10 @@ impl Game {
                 let rank = m.from().to_coord().as_str().char_at(0);
                 out.push(rank);
             }
+            // TODO: Pawn disambiguation
         }
 
         if m.is_capture() {
-            // TODO: Pawn disambiguation
             out.push('x');
         }
 

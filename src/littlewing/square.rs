@@ -14,6 +14,7 @@ impl SquareString for Square {
         ((bytes[0] - b'a') + 8 * (bytes[1] - b'1')) as Square
     }
     fn to_coord(&self) -> String {
+        // FIXME: OUT.to_coord() => a9
         let f = b'a' + self.file();
         let r = b'1' + self.rank();
 

@@ -95,7 +95,9 @@ impl Moves {
     pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
         while targets != 0 {
             let to = targets.trailing_zeros() as Square;
-            let from = ((to as Direction) - dir) as Square; // FIXME
+            debug_assert!((to as Direction) - dir >= 0);
+            debug_assert!((to as Direction) - dir < 64);
+            let from = ((to as Direction) - dir) as Square;
             self.add_move(from, to, mt);
             targets.reset(to);
         }
@@ -159,7 +161,7 @@ impl Moves {
         }
     }
     pub fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut kings = bitboards[(side | KING) as usize];
 
         while kings > 0 {
@@ -172,7 +174,7 @@ impl Moves {
         }
     }
     pub fn add_bishops_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut bishops = bitboards[(side | BISHOP) as usize];
         while bishops > 0 {
             let from = bishops.trailing_zeros() as Square;
@@ -183,7 +185,7 @@ impl Moves {
         }
     }
     pub fn add_rooks_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut rooks = bitboards[(side | ROOK) as usize];
         while rooks > 0 {
             let from = rooks.trailing_zeros() as Square;
@@ -194,7 +196,7 @@ impl Moves {
         }
     }
     pub fn add_queens_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut queens = bitboards[(side | QUEEN) as usize];
         while queens > 0 {
             let from = queens.trailing_zeros() as Square;

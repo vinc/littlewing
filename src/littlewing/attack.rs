@@ -19,7 +19,7 @@ impl Attack for Game {
         self.is_attacked(square, side)
     }
     fn is_attacked(&self, square: Square, side: Color) -> bool {
-        let occupied = self.bitboards[(WHITE) as usize] | self.bitboards[(BLACK) as usize];
+        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
 
         let pawns = self.bitboards[(side ^ 1 | PAWN) as usize];
         let attacks = PAWN_ATTACKS[side as usize][square as usize];
