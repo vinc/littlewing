@@ -128,8 +128,8 @@ impl XBoard {
         }
 
         let side = self.game.positions.top().side;
-        let from: Square = SquareString::from_coord(String::from_str(&args[0][0..2]));
-        let to: Square = SquareString::from_coord(String::from_str(&args[0][2..4]));
+        let from: Square = SquareString::from_coord(String::from(&args[0][0..2]));
+        let to: Square = SquareString::from_coord(String::from(&args[0][2..4]));
 
         let piece = self.game.board[from as usize];
         let capture = self.game.board[to as usize];

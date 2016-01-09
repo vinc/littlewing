@@ -57,7 +57,7 @@ impl Game {
             (0..8)
                 .map(|j| {
                     let c = (self.board[8 * (7 - i) + j as usize]).to_char();
-                    String::from_str("| ") + c.to_string().as_str() + " "
+                    String::from("| ") + c.to_string().as_str() + " "
                 })
                 .fold(String::new(), |r, s| {
                     r + s.as_str()
