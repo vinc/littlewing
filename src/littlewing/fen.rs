@@ -126,7 +126,7 @@ impl FEN for Game {
         if castles.len() == 0 {
             castles.push('-');
         }
-        fen.push_str(castles.as_str());
+        fen.push_str(&*castles);
 
         fen.push_str(" - 0 1"); // TODO
 
@@ -155,7 +155,7 @@ mod tests {
         ];
         for &fen in fens.iter() {
             let game: Game = FEN::from_fen(fen);
-            assert_eq!(game.to_fen().as_str(), fen);
+            assert_eq!(&*(game.to_fen()), fen);
         }
     }
 }

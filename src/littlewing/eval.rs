@@ -38,6 +38,7 @@ impl Eval for Game {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     extern crate test;
@@ -55,3 +56,4 @@ mod tests {
         })
     }
 }
+*/

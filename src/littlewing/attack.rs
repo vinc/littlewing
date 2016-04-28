@@ -117,10 +117,12 @@ lazy_static! {
     };
 }
 
+/*
 #[cfg(test)]
 mod tests {
     extern crate test;
-    use self::test::Bencher;
+
+    //use self::test::Bencher;
     use littlewing::common::*;
     use littlewing::attack::{bishop_attacks, rook_attacks};
 
@@ -138,3 +140,4 @@ mod tests {
         })
     }
 }
+*/

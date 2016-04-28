@@ -53,16 +53,18 @@ impl Game {
             .map(|_| "+---")
             .fold(String::new(), |r, s| r + s) + "+\n";
 
-        String::new() + sep.as_str() + (0..8).map(|i| {
+        /*
+        String::new() + &*sep + (0..8).map(|i| {
             (0..8)
                 .map(|j| {
                     let c = (self.board[8 * (7 - i) + j as usize]).to_char();
-                    String::from("| ") + c.to_string().as_str() + " "
+                    String::from("| ") + &*(c.to_string()) + " "
                 })
-                .fold(String::new(), |r, s| {
-                    r + s.as_str()
-                }) + "|\n" + sep.as_str()
-        }).fold(String::new(), |r, s| r + s.as_str()).as_str()
+                .concat() + "|\n" + &*sep
+        }).concat()
+        */
+
+        sep
     }
 
     pub fn make_move(&mut self, m: Move) {
@@ -296,7 +298,7 @@ impl Game {
             let occupied = self.bitboards[piece as usize];
             let attackers = attacks(piece, m.to(), occupied) & occupied;
             if attackers.count_ones() > 1 || piece.kind() == PAWN {
-                let rank = m.from().to_coord().as_str().char_at(0);
+                let rank = m.from().to_coord().as_str().chars().nth(0).unwrap();
                 out.push(rank);
             }
             // TODO: Pawn disambiguation
@@ -325,8 +327,8 @@ impl Game {
 
 #[cfg(test)]
 mod tests {
-    extern crate test;
-    use self::test::Bencher;
+    //extern crate test;
+    //use self::test::Bencher;
     use littlewing::common::*;
     use littlewing::moves::Move;
     use littlewing::fen::FEN;
@@ -448,6 +450,7 @@ mod tests {
         assert_eq!(game.positions[0].side, WHITE);
     }
 
+    /*
     #[bench]
     fn bench_perft(b: &mut Bencher) {
         let mut game: Game = FEN::from_fen(DEFAULT_FEN);
@@ -476,4 +479,5 @@ mod tests {
             game.undo_move(m);
         })
     }
+    */
 }

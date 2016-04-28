@@ -34,15 +34,15 @@ impl CLI {
             let args: Vec<&str> = line.trim().split(' ').collect();
             match args[0] {
                 "quit"       => { break },
-                "setboard"   => { self.cmd_setboard(args.as_slice()) },
+                "setboard"   => { self.cmd_setboard(&*args) },
                 "print"      => { self.cmd_print() },
-                "divide"     => { self.cmd_divide(args.as_slice()) },
+                "divide"     => { self.cmd_divide(&*args) },
                 "perft"      => { self.cmd_perft() },
-                "perftsuite" => { self.cmd_perftsuite(args.as_slice()) },
-                "testsuite"  => { self.cmd_testsuite(args.as_slice()) },
+                "perftsuite" => { self.cmd_perftsuite(&*args) },
+                "testsuite"  => { self.cmd_testsuite(&*args) },
                 "xboard"     => { self.cmd_xboard(); break },
                 "help"       => { self.cmd_usage() },
-                _            => { self.error(args.as_slice()); self.cmd_usage() }
+                _            => { self.error(&*args); self.cmd_usage() }
             }
         }
     }
@@ -75,7 +75,7 @@ impl CLI {
         }
 
         let s = args[1..].connect(" ");
-        let fen = s.as_str();
+        let fen = &*s;
         self.game = FEN::from_fen(fen);
     }
 

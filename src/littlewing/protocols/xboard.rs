@@ -39,12 +39,12 @@ impl XBoard {
                 "nopost"   => self.cmd_nopost(),
                 "undo"     => self.cmd_undo(),
                 "remove"   => self.cmd_remove(),
-                "ping"     => self.cmd_ping(args.as_slice()),
-                "setboard" => self.cmd_setboard(args.as_slice()),
-                "sd"       => self.cmd_depth(args.as_slice()),
-                "level"    => self.cmd_level(args.as_slice()),
-                "protover" => self.cmd_protover(args.as_slice()),
-                _          => self.parse_move(args.as_slice())
+                "ping"     => self.cmd_ping(&*args),
+                "setboard" => self.cmd_setboard(&*args),
+                "sd"       => self.cmd_depth(&*args),
+                "level"    => self.cmd_level(&*args),
+                "protover" => self.cmd_protover(&*args),
+                _          => self.parse_move(&*args)
             }
         }
     }
@@ -95,7 +95,7 @@ impl XBoard {
         }
 
         let s = args[1..].connect(" ");
-        let fen = s.as_str();
+        let fen = &*s;
         self.game = FEN::from_fen(fen);
     }
 
@@ -135,11 +135,11 @@ impl XBoard {
         let capture = self.game.board[to as usize];
 
         let mt = if args[0].len() == 5 {
-            let promotion = match args[0].char_at(4) {
-                'n' => KNIGHT_PROMOTION,
-                'b' => BISHOP_PROMOTION,
-                'r' => ROOK_PROMOTION,
-                'q' => QUEEN_PROMOTION,
+            let promotion = match &args[0][4..4] {
+                "n" => KNIGHT_PROMOTION,
+                "b" => BISHOP_PROMOTION,
+                "r" => ROOK_PROMOTION,
+                "q" => QUEEN_PROMOTION,
                 _   => NULL_MOVE // FIXME
             };
             if capture == EMPTY {
