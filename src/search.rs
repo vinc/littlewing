@@ -79,7 +79,7 @@ impl Search for Game {
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         for depth in 1..max_depth {
-            let mut best_move_at_current_depth = Move::new_null();
+            let mut bm = Move::new_null(); // Best move at the current depth
             let mut alpha = -INF;
             let beta = INF;
             for i in 0..n {
@@ -96,15 +96,16 @@ impl Search for Game {
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
-                        best_move_at_current_depth = m;
+                        bm = m;
                     }
                 }
                 self.undo_move(m);
             }
-            if !self.clock.poll(self.nodes_count) {
-                // Save the best move only if we finished searching
-                // at this depth in time.
-                best_move = best_move_at_current_depth;
+
+            // Save the best move only if we found one and if we still have
+            // some time left after the search at this depth.
+            if !bm.is_null() && !self.clock.poll(self.nodes_count) {
+                best_move = bm;
             }
         }
 
@@ -128,6 +129,7 @@ mod tests {
     use fen::FEN;
     use game::Game;
     use search::Search;
+    use moves::Move;
 
     use clock::Clock;
     use eval;
@@ -204,5 +206,18 @@ mod tests {
                 assert!(score >= eval::QUEEN_VALUE);
             }
         }
+    }
+
+    #[test]
+    fn test_root() {
+        let mut game = Game::new();
+        let fen = "2k4r/ppp3pp/8/2b2p1P/PPP2p2/N4P2/3r2K1/1q5R w - - 4 29";
+        game.load_fen(fen);
+        //game.is_verbose = true;
+
+        let max_depth = 10;
+        let best_move = Move::new(G2, H3, QUIET_MOVE);
+        let m = game.root(max_depth);
+        assert_eq!(m.to_string(), best_move.to_string());
     }
 }
