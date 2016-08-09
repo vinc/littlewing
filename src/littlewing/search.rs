@@ -37,7 +37,7 @@ impl Search for Game {
             return 0;
         }
 
-        if depth <= 0 {
+        if depth == 0 {
             return self.eval();
         }
 

@@ -88,6 +88,9 @@ impl Moves {
     pub fn len(&self) -> usize {
         self.lens[self.ply]
     }
+    pub fn is_empty(&self) -> bool {
+        self.lens[self.ply] == 0
+    }
     pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
         self.lists[self.ply][self.lens[self.ply]] = Move::new(from, to, mt);
         self.lens[self.ply] += 1;

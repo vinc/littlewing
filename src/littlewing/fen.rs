@@ -48,7 +48,7 @@ impl FEN for Game {
         position.side = match fields.next().unwrap() {
             "w" => WHITE,
             "b" => BLACK,
-            _   => BLACK // FIXME
+            _   => panic!("wrong side char")
         };
 
         for c in fields.next().unwrap().chars() {
@@ -123,7 +123,7 @@ impl FEN for Game {
         if castling_rights[BLACK as usize][(QUEEN >> 3) as usize] {
             castles.push('q');
         }
-        if castles.len() == 0 {
+        if castles.is_empty() {
             castles.push('-');
         }
         fen.push_str(&*castles);

@@ -172,8 +172,8 @@ lazy_static! {
         for x in 0..8 {
             for y in 0..8 {
                 let from = 8 * x + y;
-                for &i in deltas.iter() {
-                    for &j in deltas.iter() {
+                for &i in &deltas {
+                    for &j in &deltas {
                         for k in 1..7 {
                             let dx = x + i * k;
                             let dy = y + j * k;

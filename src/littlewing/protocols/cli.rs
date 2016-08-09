@@ -74,7 +74,7 @@ impl CLI {
             panic!("no fen given");
         }
 
-        let s = args[1..].connect(" ");
+        let s = args[1..].join(" ");
         let fen = &*s;
         self.game = FEN::from_fen(fen);
     }
