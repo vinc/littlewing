@@ -7,13 +7,13 @@ use std::io::BufReader;
 use std::io::Write;
 use std::path::Path;
 
-use littlewing::common::*;
-use littlewing::attack::Attack;
-use littlewing::clock::Clock;
-use littlewing::fen::FEN;
-use littlewing::game::Game;
-use littlewing::search::Search;
-use littlewing::protocols::xboard::XBoard;
+use common::*;
+use attack::Attack;
+use clock::Clock;
+use fen::FEN;
+use game::Game;
+use search::Search;
+use protocols::xboard::XBoard;
 
 pub struct CLI {
     game: Game

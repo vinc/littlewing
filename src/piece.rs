@@ -1,4 +1,4 @@
-use littlewing::common::*;
+use common::*;
 
 pub trait PieceChar {
     fn from_char(c: char) -> Self;

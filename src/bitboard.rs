@@ -1,4 +1,4 @@
-use littlewing::common::*;
+use common::*;
 
 pub trait BitboardExt {
     fn shift(&self, x: Direction) -> Bitboard;
@@ -54,7 +54,7 @@ pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: Direction) -> Bitb
 
 #[cfg(test)]
 mod tests {
-    use littlewing::common::*;
+    use common::*;
     use super::BitboardExt;
     use super::dumb7fill;
 

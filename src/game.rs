@@ -1,15 +1,15 @@
-use littlewing::common::*;
-use littlewing::attack::Attack;
-use littlewing::attack::attacks;
-use littlewing::bitboard::BitboardExt;
-use littlewing::clock::Clock;
-use littlewing::moves::Move;
-use littlewing::moves::Moves;
-use littlewing::piece::PieceAttr;
-use littlewing::piece::PieceChar;
-use littlewing::position::Positions;
-use littlewing::square::SquareString;
-use littlewing::zobrist::Zobrist;
+use common::*;
+use attack::Attack;
+use attack::attacks;
+use bitboard::BitboardExt;
+use clock::Clock;
+use moves::Move;
+use moves::Moves;
+use piece::PieceAttr;
+use piece::PieceChar;
+use position::Positions;
+use square::SquareString;
+use zobrist::Zobrist;
 
 pub struct Game {
     pub is_verbose: bool,
@@ -329,11 +329,11 @@ impl Game {
 mod tests {
     //extern crate test;
     //use self::test::Bencher;
-    use littlewing::common::*;
-    use littlewing::moves::Move;
-    use littlewing::fen::FEN;
-    use littlewing::game::Game;
-    use littlewing::search::Search;
+    use common::*;
+    use moves::Move;
+    use fen::FEN;
+    use game::Game;
+    use search::Search;
 
     #[test]
     fn test_generate_moves() {

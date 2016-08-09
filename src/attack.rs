@@ -1,8 +1,8 @@
-use littlewing::common::*;
-use littlewing::bitboard::BitboardExt;
-use littlewing::bitboard::dumb7fill;
-use littlewing::game::Game;
-use littlewing::piece::PieceAttr;
+use common::*;
+use bitboard::BitboardExt;
+use bitboard::dumb7fill;
+use game::Game;
+use piece::PieceAttr;
 
 pub trait Attack {
     fn is_check(&self, side: Color) -> bool;
@@ -123,8 +123,8 @@ mod tests {
     extern crate test;
 
     //use self::test::Bencher;
-    use littlewing::common::*;
-    use littlewing::attack::{bishop_attacks, rook_attacks};
+    use common::*;
+    use attack::{bishop_attacks, rook_attacks};
 
     #[bench]
     fn bench_bishop_attacks(b: &mut Bencher) {

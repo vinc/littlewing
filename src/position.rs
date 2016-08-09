@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use littlewing::common::*;
+use common::*;
 
 #[derive(Copy, Clone)]
 pub struct Position {

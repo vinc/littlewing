@@ -1,10 +1,10 @@
 use std::ops::Index;
 
-use littlewing::common::*;
-use littlewing::attack::{bishop_attacks, rook_attacks};
-use littlewing::piece::PieceChar;
-use littlewing::square::SquareString;
-use littlewing::bitboard::BitboardExt;
+use common::*;
+use attack::{bishop_attacks, rook_attacks};
+use piece::PieceChar;
+use square::SquareString;
+use bitboard::BitboardExt;
 
 #[derive(Copy, Clone)]
 pub struct Move(u16);
@@ -227,7 +227,7 @@ impl Index<usize> for Moves {
 
 #[cfg(test)]
 mod tests {
-    use littlewing::common::*;
+    use common::*;
     use super::Move;
 
     #[test]

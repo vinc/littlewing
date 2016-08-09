@@ -1,10 +1,10 @@
 use std;
 
-use littlewing::common::*;
-use littlewing::bitboard::BitboardExt;
-use littlewing::game::Game;
-use littlewing::piece::PieceChar;
-use littlewing::position::Position;
+use common::*;
+use bitboard::BitboardExt;
+use game::Game;
+use piece::PieceChar;
+use position::Position;
 
 pub trait FEN {
     fn from_fen(fen: &str) -> Self;
@@ -136,9 +136,9 @@ impl FEN for Game {
 
 #[cfg(test)]
 mod tests {
-    use littlewing::common::*;
-    use littlewing::fen::FEN;
-    use littlewing::game::Game;
+    use common::*;
+    use fen::FEN;
+    use game::Game;
 
     #[test]
     fn test_from_fen() {

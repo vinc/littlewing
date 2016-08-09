@@ -1,14 +1,14 @@
 use std::io;
 use regex::Regex;
 
-use littlewing::common::*;
-use littlewing::clock::Clock;
-use littlewing::fen::FEN;
-use littlewing::game::Game;
-use littlewing::piece::PieceAttr;
-use littlewing::search::Search;
-use littlewing::square::SquareString;
-use littlewing::moves::Move;
+use common::*;
+use clock::Clock;
+use fen::FEN;
+use game::Game;
+use piece::PieceAttr;
+use search::Search;
+use square::SquareString;
+use moves::Move;
 
 pub struct XBoard {
     game: Game,

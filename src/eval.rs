@@ -1,5 +1,5 @@
-use littlewing::common::*;
-use littlewing::game::Game;
+use common::*;
+use game::Game;
 
 pub const PAWN_VALUE:   i32 = 100;
 pub const KNIGHT_VALUE: i32 = 325;
@@ -43,10 +43,10 @@ impl Eval for Game {
 mod tests {
     extern crate test;
     use self::test::Bencher;
-    use littlewing::common::*;
-    use littlewing::game::Game;
-    use littlewing::eval::Eval;
-    use littlewing::fen::FEN;
+    use common::*;
+    use game::Game;
+    use eval::Eval;
+    use fen::FEN;
 
     #[bench]
     fn bench_eval(b: &mut Bencher) {

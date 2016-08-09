@@ -1,4 +1,4 @@
-use littlewing::common::*;
+use common::*;
 
 pub trait SquareString {
     fn from_coord(s: String) -> Self;
@@ -30,7 +30,7 @@ impl SquareString for Square {
 
 #[cfg(test)]
 mod tests {
-    use littlewing::common::*;
+    use common::*;
     use super::SquareString;
 
     #[test]

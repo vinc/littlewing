@@ -41,7 +41,7 @@ impl Zobrist {
 
 #[cfg(test)]
 mod tests {
-    use littlewing::zobrist::Zobrist;
+    use zobrist::Zobrist;
 
     #[test]
     fn test_new() {

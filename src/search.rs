@@ -1,8 +1,8 @@
-use littlewing::common::*;
-use littlewing::attack::Attack;
-use littlewing::eval::Eval;
-use littlewing::game::Game;
-use littlewing::moves::Move;
+use common::*;
+use attack::Attack;
+use eval::Eval;
+use game::Game;
+use moves::Move;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
@@ -124,13 +124,13 @@ impl Search for Game {
 
 #[cfg(test)]
 mod tests {
-    use littlewing::common::*;
-    use littlewing::fen::FEN;
-    use littlewing::game::Game;
-    use littlewing::search::Search;
+    use common::*;
+    use fen::FEN;
+    use game::Game;
+    use search::Search;
 
-    use littlewing::clock::Clock;
-    use littlewing::eval;
+    use clock::Clock;
+    use eval;
 
     #[test]
     fn test_perft() {
