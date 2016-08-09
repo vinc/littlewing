@@ -79,25 +79,32 @@ impl Search for Game {
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         for depth in 1..max_depth {
-            if self.clock.poll(self.nodes_count) {
-                break;
-            }
+            let mut best_move_at_current_depth = Move::new_null();
             let mut alpha = -INF;
             let beta = INF;
             for i in 0..n {
+                if self.clock.poll(self.nodes_count) {
+                    break; // Discard search at this depth if time is out
+                }
+
                 let m = self.moves[i];
                 self.make_move(m);
+                let score = -self.search(-beta, -alpha, depth - 1);
                 if !self.is_check(side) {
-                    let score = -self.search(-beta, -alpha, depth - 1);
                     if score > alpha {
                         if self.is_verbose {
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
-                        best_move = m;
+                        best_move_at_current_depth = m;
                     }
                 }
                 self.undo_move(m);
+            }
+            if !self.clock.poll(self.nodes_count) {
+                // Save the best move only if we finished searching
+                // at this depth in time.
+                best_move = best_move_at_current_depth;
             }
         }
 
@@ -121,6 +128,9 @@ mod tests {
     use littlewing::fen::FEN;
     use littlewing::game::Game;
     use littlewing::search::Search;
+
+    use littlewing::clock::Clock;
+    use littlewing::eval;
 
     #[test]
     fn test_perft() {
@@ -171,5 +181,28 @@ mod tests {
         assert_eq!(game.perft(1), 42);
         assert_eq!(game.perft(2), 1352);
         assert_eq!(game.perft(3), 53392);
+    }
+
+    #[test]
+    fn test_search() {
+        let mut game = Game::new();
+        let fen = "4k3/8/4q3/8/8/4Q3/8/4K3 w - - 0 1";
+        game.load_fen(fen);
+
+        game.nodes_count = 0;
+        game.clock = Clock::new(1, 5); // 5 seconds
+        game.clock.start();
+
+        let alpha = -INF;
+        let beta = INF;
+
+        for depth in 0..5 {
+            let score = game.search(alpha, beta, depth);
+            if depth == 0 {
+                assert!(score == 0);
+            } else {
+                assert!(score >= eval::QUEEN_VALUE);
+            }
+        }
     }
 }
