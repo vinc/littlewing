@@ -31,15 +31,28 @@ impl Clock {
         self.last_nodes_count = 0;
         self.started_at = (time::precise_time_s() * 1000.0) as u64;
 
-        self.moves_remaining = self.moves_level - ((ply / 2) as u16) % self.moves_level + 1;
-        //println!("DEBUG:   `-> {} ms per move", self.time_level / self.moves_level as u64);
-        //println!("DEBUG:   `-> {} ms per move", self.time_remaining / self.moves_remaining as u64);
+        assert!(ply > 0);
+        let moves_done = (((ply - 1) / 2) as u16) % self.moves_level;
+        self.moves_remaining = self.moves_level - moves_done;
+
+        println!("#        {} moves remaining", self.moves_remaining);
+        println!("# level: {} ms per move", self.time_level / self.moves_level as u64);
+        println!("# real:  {} ms per move", self.time_remaining / self.moves_remaining as u64);
     }
     pub fn set_time(&mut self, time: u64) {
         self.time_remaining = time;
     }
     pub fn allocated_time(&self) -> u64 {
-        self.time_remaining / self.moves_remaining as u64
+        let time_per_move = self.time_remaining / self.moves_remaining as u64;
+        let time_between_polls = self.polling_nodes_count / 4;
+        let time_to_play = 5;
+        let delta = time_between_polls + time_to_play;
+
+        if time_per_move < delta {
+            0
+        } else {
+            time_per_move - delta
+        }
     }
     pub fn elapsed_time(&self) -> u64 {
         ((time::precise_time_s() * 1000.0) as u64) - self.started_at

@@ -75,7 +75,7 @@ impl Search for Game {
         let n = self.moves.len();
 
         if self.is_verbose {
-            println!(" ply  score   time  nodes  pv");
+            println!(" ply  score   time    nodes  pv");
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         for depth in 1..max_depth {
@@ -93,7 +93,7 @@ impl Search for Game {
                 let score = -self.search(-beta, -alpha, depth - 1);
                 if !self.is_check(side) {
                     if score > alpha {
-                        if self.is_verbose && self.nodes_count > 1000 {
+                        if self.is_verbose { // && self.nodes_count > 1000 {
                             // We skip the first thousand nodes to gain time
                             // TODO: do we need this?
                             self.print_thinking(depth, score, m);
@@ -112,7 +112,8 @@ impl Search for Game {
             }
         }
 
-        //println!("DEBUG: used  {} ms to move", self.clock.elapsed_time());
+        println!("# used:  {} ms to move", self.clock.elapsed_time());
+
         best_move
     }
 
@@ -123,7 +124,7 @@ impl Search for Game {
         let move_str = self.move_to_san(m);
         self.make_move(m);
 
-        println!(" {:>3}  {:>5}  {:>5}  {:>5}  {}", depth, score, time, self.nodes_count, move_str);
+        println!(" {:>3}  {:>5}  {:>5}  {:>7}  {}", depth, score, time, self.nodes_count, move_str);
     }
 }
 

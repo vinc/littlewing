@@ -103,7 +103,7 @@ impl XBoard {
 
         let s = args[1..].join(" ");
         let fen = &*s;
-        self.game = FEN::from_fen(fen);
+        self.game = Game::from_fen(fen);
     }
 
     pub fn cmd_level(&mut self, args: &[&str]) {
