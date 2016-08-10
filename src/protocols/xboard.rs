@@ -121,6 +121,7 @@ impl XBoard {
         println!("feature sigint=0 ping=1 setboard=1 done=1");
     }
 
+    // TODO: move the code doing the actual parsing to `Move::from()`
     pub fn parse_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
 
@@ -136,12 +137,12 @@ impl XBoard {
         let capture = self.game.board[to as usize];
 
         let mt = if args[0].len() == 5 {
-            let promotion = match &args[0][4..4] {
-                "n" => KNIGHT_PROMOTION,
-                "b" => BISHOP_PROMOTION,
-                "r" => ROOK_PROMOTION,
-                "q" => QUEEN_PROMOTION,
-                _   => NULL_MOVE // FIXME
+            let promotion = match args[0].chars().nth(4) {
+                Some('n') => KNIGHT_PROMOTION,
+                Some('b') => BISHOP_PROMOTION,
+                Some('r') => ROOK_PROMOTION,
+                Some('q') => QUEEN_PROMOTION,
+                _         => panic!("could not parse promotion")
             };
             if capture == EMPTY {
                 promotion
@@ -166,7 +167,6 @@ impl XBoard {
         };
 
         let m = Move::new(from, to, mt);
-        //println!("parsed: {}", self.game.move_to_san(m));
         self.game.make_move(m);
         self.game.history.push(m);
 
