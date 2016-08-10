@@ -20,7 +20,7 @@ mod zobrist;
 use protocols::cli::CLI;
 
 fn main() {
-    println!("Little Wing v0.0.1");
+    println!("Little Wing v0.1.0");
     println!("");
 
     let mut cli = CLI::new();
