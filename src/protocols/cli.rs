@@ -162,7 +162,7 @@ impl CLI {
             panic!("no filename given");
         }
         let time = if args.len() == 3 {
-            args[2].parse::<u16>().unwrap()
+            args[2].parse::<u64>().unwrap() // `time` is given in seconds
         } else {
             10
         };
@@ -177,7 +177,7 @@ impl CLI {
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
             self.game = FEN::from_fen(fen);
-            self.game.clock = Clock::new(1, time);
+            self.game.clock = Clock::new(1, time * 1000);
 
             // TODO: There can be more than one move
             let mut fields = fen.split_whitespace().rev().take(2);

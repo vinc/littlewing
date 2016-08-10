@@ -69,7 +69,7 @@ impl Search for Game {
         let side = self.positions.top().side;
         self.nodes_count = 0;
         self.moves.clear_all();
-        self.clock.start();
+        self.clock.start(self.positions.len());
         self.generate_moves();
 
         let n = self.moves.len();
@@ -83,6 +83,7 @@ impl Search for Game {
             let mut alpha = -INF;
             let beta = INF;
             for i in 0..n {
+
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out
                 }
@@ -92,7 +93,9 @@ impl Search for Game {
                 let score = -self.search(-beta, -alpha, depth - 1);
                 if !self.is_check(side) {
                     if score > alpha {
-                        if self.is_verbose {
+                        if self.is_verbose && self.nodes_count > 1000 {
+                            // We skip the first thousand nodes to gain time
+                            // TODO: do we need this?
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
@@ -109,11 +112,12 @@ impl Search for Game {
             }
         }
 
+        //println!("DEBUG: used  {} ms to move", self.clock.elapsed_time());
         best_move
     }
 
     fn print_thinking(&mut self, depth: usize, score: i32, m: Move) {
-        let time = (self.clock.elapsed_time() * 100.0) as u64;
+        let time = self.clock.elapsed_time() / 10; // In centiseconds
 
         self.undo_move(m);
         let move_str = self.move_to_san(m);
@@ -192,8 +196,8 @@ mod tests {
         game.load_fen(fen);
 
         game.nodes_count = 0;
-        game.clock = Clock::new(1, 5); // 5 seconds
-        game.clock.start();
+        game.clock = Clock::new(1, 5 * 1000); // 5 seconds
+        self.clock.start(game.positions.len());
 
         let alpha = -INF;
         let beta = INF;

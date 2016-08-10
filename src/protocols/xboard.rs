@@ -39,6 +39,7 @@ impl XBoard {
                 "nopost"   => self.cmd_nopost(),
                 "undo"     => self.cmd_undo(),
                 "remove"   => self.cmd_remove(),
+                "time"     => self.cmd_time(&*args),
                 "ping"     => self.cmd_ping(&*args),
                 "setboard" => self.cmd_setboard(&*args),
                 "sd"       => self.cmd_depth(&*args),
@@ -85,6 +86,12 @@ impl XBoard {
         self.game.undo_move(m);
     }
 
+    pub fn cmd_time(&mut self, args: &[&str]) {
+        // `time` is given in centiseconds
+        let time = args[1].parse::<u64>().unwrap();
+        self.game.clock.set_time(time * 10);
+    }
+
     pub fn cmd_ping(&mut self, args: &[&str]) {
         println!("pong {}", args[1].parse::<usize>().unwrap());
     }
@@ -100,15 +107,16 @@ impl XBoard {
     }
 
     pub fn cmd_level(&mut self, args: &[&str]) {
-        let moves = args[1].parse::<u8>().unwrap();
+        let moves = args[1].parse::<u16>().unwrap();
 
+        // `time` is given in `mm:ss` or `ss`.
         let time = match args[2].find(':') {
-            Some(i) => args[2][0..i].parse::<u16>().unwrap() * 60 +
-                       args[2][(i + 1)..].parse::<u16>().unwrap(),
-            None    => args[2].parse::<u16>().unwrap()
+            Some(i) => args[2][0..i].parse::<u64>().unwrap() * 60 +
+                       args[2][(i + 1)..].parse::<u64>().unwrap(),
+            None    => args[2].parse::<u64>().unwrap()
         };
 
-        self.game.clock = Clock::new(moves, time);
+        self.game.clock = Clock::new(moves, time * 1000);
     }
 
     pub fn cmd_depth(&mut self, args: &[&str]) {
