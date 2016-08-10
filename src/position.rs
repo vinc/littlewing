@@ -35,19 +35,25 @@ impl Positions {
             ply: 0
         }
     }
+
     pub fn push(&mut self, position: Position) {
         self.stack[self.ply] = position;
         self.ply += 1;
     }
+
     pub fn pop(&mut self) { // TODO: pop() should return last Position
         self.ply -= 1;
     }
+
     pub fn clear(&mut self) {
         self.ply = 0;
     }
+
     pub fn top(&self) -> &Position {
         &self.stack[self.ply - 1]
     }
+
+    #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.ply
     }
@@ -55,6 +61,7 @@ impl Positions {
 
 impl Index<usize> for Positions {
     type Output = Position;
+
     fn index(&self, _index: usize) -> &Position {
         &self.stack[_index]
     }

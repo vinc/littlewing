@@ -333,7 +333,6 @@ mod tests {
     use moves::Move;
     use fen::FEN;
     use game::Game;
-    use search::Search;
 
     #[test]
     fn test_generate_moves() {

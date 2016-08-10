@@ -115,7 +115,8 @@ impl XBoard {
         self.max_depth = args[1].parse::<usize>().unwrap() + 1;
     }
 
-    pub fn cmd_protover(&mut self, args: &[&str]) {
+    #[allow(unused_variables)]
+    pub fn cmd_protover(&mut self, args: &[&str]) { // FIXME
         println!("feature myname=\"Little Wing v0.0.1\"");
         println!("feature sigint=0 ping=1 setboard=1 done=1");
     }

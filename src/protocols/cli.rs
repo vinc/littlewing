@@ -30,7 +30,7 @@ impl CLI {
             print!("> ");
             io::stdout().flush().unwrap();
             let mut line = String::new();
-            io::stdin().read_line(&mut line);
+            let _ = io::stdin().read_line(&mut line);
             let args: Vec<&str> = line.trim().split(' ').collect();
             match args[0] {
                 "quit"       => { break },
