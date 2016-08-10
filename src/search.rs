@@ -197,7 +197,7 @@ mod tests {
 
         game.nodes_count = 0;
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
-        self.clock.start(game.positions.len());
+        game.clock.start(game.positions.len());
 
         let alpha = -INF;
         let beta = INF;
