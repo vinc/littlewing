@@ -21,10 +21,8 @@ impl Search for Game {
             let side = self.positions.top().side;
             self.moves.clear();
             self.generate_moves();
-            let n = self.moves.len();
             let mut r = 0;
-            for i in 0..n {
-                let m = self.moves[i];
+            while let Some(m) = self.moves.next() {
                 self.make_move(m);
                 if !self.is_check(side) {
                     r += self.perft(depth - 1);
@@ -48,9 +46,7 @@ impl Search for Game {
             alpha = stand_path;
         }
 
-        let n = self.moves.len();
-        for i in 0..n {
-            let m = self.moves[i];
+        while let Some(m) = self.moves.next() {
             self.make_move(m);
             let score = -self.quiescence(-beta, -alpha);
             self.undo_move(m);
@@ -95,10 +91,7 @@ impl Search for Game {
             self.moves.add_best_move(best_move);
         }
         self.generate_moves();
-        let n = self.moves.len();
-
-        for i in 0..n {
-            let m = self.moves[i];
+        while let Some(m) = self.moves.next() {
             self.make_move(m);
             if !self.is_check(side) {
                 let score = -self.search(-beta, -alpha, depth - 1);
@@ -143,13 +136,8 @@ impl Search for Game {
                 self.moves.add_best_move(best_move);
             }
             self.generate_moves();
-            let n = self.moves.len();
 
-            // FIXME: Create iterator; Though `self.moves.next()` need an
-            // internal index, so it must be mutable, but `self.make_move(m)`
-            // also need to borrow self as mutable.
-            for i in 0..n {
-                let m = self.moves[i];
+            while let Some(m) = self.moves.next() {
 
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out
