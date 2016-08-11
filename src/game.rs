@@ -9,6 +9,7 @@ use piece::PieceAttr;
 use piece::PieceChar;
 use position::Positions;
 use square::SquareString;
+use transpositions::Transpositions;
 use zobrist::Zobrist;
 
 pub struct Game {
@@ -20,7 +21,8 @@ pub struct Game {
     pub moves: Moves,
     pub positions: Positions,
     pub zobrist: Zobrist,
-    pub history: Vec<Move>
+    pub history: Vec<Move>,
+    pub tt: Transpositions
 }
 
 impl Game {
@@ -34,7 +36,8 @@ impl Game {
             moves: Moves::new(),
             positions: Positions::new(),
             zobrist: Zobrist::new(),
-            history: Vec::new()
+            history: Vec::new(),
+            tt: Transpositions::with_capacity(100000)
         }
     }
 

@@ -42,9 +42,25 @@ impl Search for Game {
             return self.eval();
         }
 
+        let hash = self.positions.top().hash;
         let side = self.positions.top().side;
         self.nodes_count += 1;
+
+        let mut best_move = match self.tt.get(&hash) {
+            Some(t) => {
+                if t.depth > depth { // This node has already been searched
+                    return t.score
+                }
+
+                t.best_move
+            },
+            None    => Move::new_null()
+        };
+
         self.moves.clear();
+        if !best_move.is_null() {
+            self.moves.add_best_move(best_move);
+        }
         self.generate_moves();
         let n = self.moves.len();
 
@@ -59,18 +75,25 @@ impl Search for Game {
                 }
                 if score > alpha {
                     alpha = score;
+                    best_move = m;
                 }
             }
             self.undo_move(m);
+        }
+
+        if !best_move.is_null() {
+            self.tt.set(hash, best_move, alpha, depth);
         }
 
         alpha
     }
 
     fn root(&mut self, max_depth: usize) -> Move {
+        let hash = self.positions.top().hash;
         let side = self.positions.top().side;
         self.nodes_count = 0;
         self.moves.clear_all();
+        self.tt.clear_stats();
         self.clock.start(self.positions.len());
 
         if self.is_verbose {
@@ -78,7 +101,7 @@ impl Search for Game {
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
         for depth in 1..max_depth {
-            let mut bm = Move::new_null(); // Best move at the current depth
+            let mut bm = best_move; // Best move at the current depth
             let mut alpha = -INF;
             let beta = INF;
 
@@ -119,10 +142,14 @@ impl Search for Game {
             // some time left after the search at this depth.
             if !bm.is_null() && !self.clock.poll(self.nodes_count) {
                 best_move = bm;
+
+                self.tt.set(hash, bm, alpha, depth);
             }
         }
 
         println!("# used:  {} ms to move", self.clock.elapsed_time());
+
+        self.tt.print_stats();
 
         best_move
     }

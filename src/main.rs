@@ -2,7 +2,6 @@
 extern crate lazy_static;
 extern crate regex;
 
-mod protocols;
 mod attack;
 mod bitboard;
 mod clock;
@@ -13,8 +12,10 @@ mod game;
 mod moves;
 mod piece;
 mod position;
+mod protocols;
 mod search;
 mod square;
+mod transpositions;
 mod zobrist;
 
 use protocols::cli::CLI;
