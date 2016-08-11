@@ -78,7 +78,7 @@ impl fmt::Display for Move {
 
 pub struct Moves {
     lists: [[Move; MAX_MOVES]; MAX_PLY],
-    lens: [usize; MAX_PLY],
+    sizes: [usize; MAX_PLY],
     ply: usize
 }
 
@@ -86,7 +86,7 @@ impl Moves {
     pub fn new() -> Moves {
         Moves {
             lists: [[Move::new(A1, A1, QUIET_MOVE); MAX_MOVES]; MAX_PLY],
-            lens: [0; MAX_PLY],
+            sizes: [0; MAX_PLY],
             ply: 0
         }
     }
@@ -100,26 +100,26 @@ impl Moves {
     }
 
     pub fn clear(&mut self) {
-        self.lens[self.ply] = 0;
+        self.sizes[self.ply] = 0;
     }
 
     pub fn clear_all(&mut self) {
-        self.lens = [0; MAX_PLY];
+        self.sizes = [0; MAX_PLY];
         self.ply = 0;
     }
 
     pub fn len(&self) -> usize {
-        self.lens[self.ply]
+        self.sizes[self.ply]
     }
 
     #[allow(dead_code)]
     pub fn is_empty(&self) -> bool {
-        self.lens[self.ply] == 0
+        self.sizes[self.ply] == 0
     }
 
     pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
-        self.lists[self.ply][self.lens[self.ply]] = Move::new(from, to, mt);
-        self.lens[self.ply] += 1;
+        self.lists[self.ply][self.sizes[self.ply]] = Move::new(from, to, mt);
+        self.sizes[self.ply] += 1;
     }
 
     pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
@@ -257,8 +257,8 @@ impl Moves {
 impl Index<usize> for Moves {
     type Output = Move;
 
-    fn index(&self, _index: usize) -> &Move {
-        &self.lists[self.ply][_index]
+    fn index(&self, index: usize) -> &Move {
+        &self.lists[self.ply][index]
     }
 }
 

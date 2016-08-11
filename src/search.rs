@@ -82,13 +82,17 @@ impl Search for Game {
             let mut bm = Move::new_null(); // Best move at the current depth
             let mut alpha = -INF;
             let beta = INF;
+
+            // FIXME: Create iterator; Though `self.moves.next()` need an
+            // internal index, so it must be mutable, but `self.make_move(m)`
+            // also need to borrow self as mutable.
             for i in 0..n {
+                let m = self.moves[i];
 
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out
                 }
 
-                let m = self.moves[i];
                 self.make_move(m);
                 let score = -self.search(-beta, -alpha, depth - 1);
                 if !self.is_check(side) {
