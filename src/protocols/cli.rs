@@ -55,8 +55,8 @@ impl CLI {
         println!("perft                     Count the nodes at each depth");
         println!("perftsuite <epd>          Compare perft results to each position of <epd>");
         println!("testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
-        println!("xboard                Start XBoard mode");
-        println!("quit                  Exit this program");
+        println!("xboard                    Start XBoard mode");
+        println!("quit                      Exit this program");
     }
 
     pub fn error(&mut self, args: &[&str]) {

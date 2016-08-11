@@ -9,6 +9,7 @@ use piece::PieceAttr;
 use search::Search;
 use square::SquareString;
 use moves::Move;
+use version;
 
 pub struct XBoard {
     game: Game,
@@ -125,7 +126,7 @@ impl XBoard {
 
     #[allow(unused_variables)]
     pub fn cmd_protover(&mut self, args: &[&str]) { // FIXME
-        println!("feature myname=\"Little Wing v0.1.0\"");
+        println!("feature myname=\"{}\"", version());
         println!("feature sigint=0 ping=1 setboard=1 done=1");
     }
 

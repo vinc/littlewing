@@ -20,8 +20,14 @@ mod zobrist;
 
 use protocols::cli::CLI;
 
+fn version() -> String {
+    let ver = String::from("v") + env!("CARGO_PKG_VERSION");
+    let ver = option_env!("LITTLEWING_VERSION").unwrap_or(&ver);
+    format!("Little Wing {}", ver)
+}
+
 fn main() {
-    println!("Little Wing v0.1.0");
+    println!("{}", version());
     println!("");
 
     let mut cli = CLI::new();
