@@ -6,6 +6,7 @@ use moves::Move;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
+    fn quiescence(&mut self, mut alpha: i32, beta: i32) -> i32;
     fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32;
     fn root(&mut self, max_depth: usize) -> Move;
     fn print_thinking(&mut self, depth: usize, score: i32, m: Move);
@@ -33,13 +34,44 @@ impl Search for Game {
         }
     }
 
+    fn quiescence(&mut self, mut alpha: i32, beta: i32) -> i32 {
+        if self.clock.poll(self.nodes_count) {
+            return 0
+        }
+
+        let stand_path = self.eval();
+        if stand_path >= beta {
+            return beta
+        }
+        if alpha < stand_path {
+            alpha = stand_path;
+        }
+
+        let n = self.moves.len();
+        for i in 0..n {
+            let m = self.moves[i];
+            self.make_move(m);
+            let score = -self.quiescence(-beta, -alpha);
+            self.undo_move(m);
+
+            if score >= beta {
+                return beta
+            }
+            if alpha < score {
+                alpha = score;
+            }
+        }
+
+        alpha
+    }
+
     fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32 {
         if self.clock.poll(self.nodes_count) {
             return 0;
         }
 
         if depth == 0 {
-            return self.eval();
+            return self.quiescence(alpha, beta);
         }
 
         let hash = self.positions.top().hash;
