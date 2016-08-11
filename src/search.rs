@@ -17,6 +17,7 @@ impl Search for Game {
             1
         } else {
             let side = self.positions.top().side;
+            self.moves.clear();
             self.generate_moves();
             let n = self.moves.len();
             let mut r = 0;
@@ -43,6 +44,7 @@ impl Search for Game {
 
         let side = self.positions.top().side;
         self.nodes_count += 1;
+        self.moves.clear();
         self.generate_moves();
         let n = self.moves.len();
 
@@ -70,9 +72,6 @@ impl Search for Game {
         self.nodes_count = 0;
         self.moves.clear_all();
         self.clock.start(self.positions.len());
-        self.generate_moves();
-
-        let n = self.moves.len();
 
         if self.is_verbose {
             println!(" ply  score   time    nodes  pv");
@@ -82,6 +81,13 @@ impl Search for Game {
             let mut bm = Move::new_null(); // Best move at the current depth
             let mut alpha = -INF;
             let beta = INF;
+
+            self.moves.clear();
+            if !best_move.is_null() {
+                self.moves.add_best_move(best_move);
+            }
+            self.generate_moves();
+            let n = self.moves.len();
 
             // FIXME: Create iterator; Though `self.moves.next()` need an
             // internal index, so it must be mutable, but `self.make_move(m)`

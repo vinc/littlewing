@@ -94,6 +94,7 @@ impl CLI {
         let d = args[1].parse::<usize>().unwrap();
 
         let side = self.game.positions.top().side;
+        self.game.moves.clear();
         self.game.generate_moves();
         let n = self.game.moves.len();
         for i in 0..n {

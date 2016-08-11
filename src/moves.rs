@@ -7,7 +7,7 @@ use piece::PieceChar;
 use square::SquareString;
 use bitboard::BitboardExt;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Move(u16);
 
 impl Move {
@@ -79,6 +79,7 @@ impl fmt::Display for Move {
 pub struct Moves {
     lists: [[Move; MAX_MOVES]; MAX_PLY],
     sizes: [usize; MAX_PLY],
+    best_moves_counts: [usize; MAX_PLY],
     ply: usize
 }
 
@@ -87,6 +88,7 @@ impl Moves {
         Moves {
             lists: [[Move::new(A1, A1, QUIET_MOVE); MAX_MOVES]; MAX_PLY],
             sizes: [0; MAX_PLY],
+            best_moves_counts: [0; MAX_PLY],
             ply: 0
         }
     }
@@ -101,10 +103,12 @@ impl Moves {
 
     pub fn clear(&mut self) {
         self.sizes[self.ply] = 0;
+        self.best_moves_counts[self.ply] = 0;
     }
 
     pub fn clear_all(&mut self) {
         self.sizes = [0; MAX_PLY];
+        self.best_moves_counts = [0; MAX_PLY];
         self.ply = 0;
     }
 
@@ -118,7 +122,23 @@ impl Moves {
     }
 
     pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
-        self.lists[self.ply][self.sizes[self.ply]] = Move::new(from, to, mt);
+        let m = Move::new(from, to, mt);
+
+        // Avoid adding again a best move
+        let n = self.best_moves_counts[self.ply];
+        for i in 0..n {
+            if self.lists[self.ply][i] == m {
+                return;
+            }
+        }
+
+        self.lists[self.ply][self.sizes[self.ply]] = m;
+        self.sizes[self.ply] += 1;
+    }
+
+    pub fn add_best_move(&mut self, m: Move) {
+        self.best_moves_counts[self.ply] += 1;
+        self.lists[self.ply][self.sizes[self.ply]] = m;
         self.sizes[self.ply] += 1;
     }
 

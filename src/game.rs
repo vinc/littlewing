@@ -239,7 +239,6 @@ impl Game {
         let side = position.side;
         let ep = position.en_passant;
 
-        self.moves.clear();
         self.moves.add_pawns_moves(&self.bitboards, side, ep);
         self.moves.add_knights_moves(&self.bitboards, side);
         self.moves.add_king_moves(&self.bitboards, side);
@@ -273,7 +272,7 @@ impl Game {
         }
     }
 
-    // This function assumes that the move has not been played yet
+    // NOTE: this function assumes that the move has not been played yet
     pub fn move_to_san(&mut self, m: Move) -> String {
         let side = self.positions.top().side;
         let piece = self.board[m.from() as usize];
@@ -340,6 +339,7 @@ mod tests {
         let mut game = Game::new();
 
         game.load_fen(DEFAULT_FEN);
+        game.moves.clear();
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 20);
@@ -347,12 +347,14 @@ mod tests {
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b - -";
         game.load_fen(fen);
+        game.moves.clear();
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 9);
 
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w - -";
         game.load_fen(fen);
+        game.moves.clear();
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 9);
@@ -360,12 +362,14 @@ mod tests {
         // Pawn left capture
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w - -";
         game.load_fen(fen);
+        game.moves.clear();
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 3);
 
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b - -";
         game.load_fen(fen);
+        game.moves.clear();
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 3);
@@ -373,6 +377,7 @@ mod tests {
         // Bishop
         let fen = "8/8/8/8/3B4/8/8/8 w - -";
         game.load_fen(fen);
+        game.moves.clear();
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 13);
@@ -380,6 +385,7 @@ mod tests {
         // Rook
         let fen = "8/8/8/8/1r1R4/8/8/8 w - -";
         game.load_fen(fen);
+        game.moves.clear();
         game.generate_moves();
         println!("{}", game.to_string());
         assert_eq!(game.moves.len(), 13);
@@ -464,6 +470,7 @@ mod tests {
         let mut game: Game = FEN::from_fen(DEFAULT_FEN);
 
         b.iter(|| {
+            game.moves.clear();
             game.generate_moves();
         })
     }
