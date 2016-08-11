@@ -10,6 +10,7 @@ mod eval;
 mod fen;
 mod game;
 mod moves;
+mod moves_generator;
 mod piece;
 mod position;
 mod protocols;

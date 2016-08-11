@@ -12,8 +12,9 @@ use attack::Attack;
 use clock::Clock;
 use fen::FEN;
 use game::Game;
-use search::Search;
+use moves_generator::MovesGenerator;
 use protocols::xboard::XBoard;
+use search::Search;
 
 pub struct CLI {
     game: Game

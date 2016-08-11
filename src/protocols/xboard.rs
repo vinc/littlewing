@@ -1,14 +1,15 @@
 use std::io;
 use regex::Regex;
 
-use common::*;
 use clock::Clock;
+use common::*;
 use fen::FEN;
 use game::Game;
+use moves::Move;
+use moves_generator::MovesGenerator;
 use piece::PieceAttr;
 use search::Search;
 use square::SquareString;
-use moves::Move;
 use version;
 
 pub struct XBoard {

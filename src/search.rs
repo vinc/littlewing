@@ -3,6 +3,7 @@ use attack::Attack;
 use eval::Eval;
 use game::Game;
 use moves::Move;
+use moves_generator::MovesGenerator;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
