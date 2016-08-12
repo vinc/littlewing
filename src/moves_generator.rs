@@ -7,12 +7,36 @@ use moves::Move;
 use piece::{PieceAttr, PieceChar};
 use square::SquareString;
 
+lazy_static! {
+    // PxP =  7, PxN = 15, PxB = 23, PxR = 31, PxQ = 39, PxK = 47
+    // NxP =  6, NxN = 14, NxB = 22, NxR = 30, NxQ = 38, NxK = 46
+    // BxP =  5, BxN = 13, BxB = 21, BxR = 29, BxQ = 37, BxK = 45
+    // RxP =  4, RxN = 12, RxB = 20, RxR = 28, RxQ = 36, RxK = 44
+    // QxP =  3, QxN = 11, QxB = 19, QxR = 27, QxQ = 35, QxK = 43
+    // KxP =  2, KxN = 10, KxB = 18, KxR = 26, KxQ = 34, KxK = 42
+    pub static ref MVV_LVA_SCORES: [[u8; 13]; 13] = {
+        let pieces = vec![EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING];
+        let mut mvv_lva_scores = [[0; 13]; 13];
+        for i in 1..7 {
+            for j in 1..7 {
+                let a = pieces[i as usize];
+                let v = pieces[j as usize];
+                mvv_lva_scores[a as usize][v as usize] = (8 * j) - i;
+            }
+        }
+        mvv_lva_scores
+    };
+}
+
 pub trait MovesGenerator {
     fn generate_moves(&mut self);
     fn next_move(&mut self) -> Option<Move>;
     fn make_move(&mut self, m: Move);
     fn undo_move(&mut self, m: Move);
+    fn sort_moves(&mut self);
     fn move_to_san(&mut self, m: Move) -> String;
+
+    fn mvv_lva(&self, m: Move) -> u8;
 }
 
 impl MovesGenerator for Game {
@@ -272,6 +296,32 @@ impl MovesGenerator for Game {
         out
     }
 
+    fn sort_moves(&mut self) {
+        let a = self.moves.len_best_moves();
+        let b = self.moves.len();
+        for i in a..b {
+            if self.moves[i].m.is_capture() {
+                self.moves[i].s = self.mvv_lva(self.moves[i].m);
+            }
+            for j in a..i {
+                if self.moves[j].s < self.moves[i].s {
+                    self.moves.swap(i, j);
+                }
+            }
+        }
+    }
+
+    fn mvv_lva(&self, m: Move) -> u8 {
+        let a = self.board[m.from() as usize].kind();
+        let v = if m.is_en_passant() {
+            PAWN
+        } else {
+            self.board[m.to() as usize].kind()
+        };
+
+        MVV_LVA_SCORES[a as usize][v as usize]
+    }
+
     fn next_move(&mut self) -> Option<Move> {
         let old_state = self.moves.state();
 
@@ -283,6 +333,7 @@ impl MovesGenerator for Game {
         // then we generate all the other moves and search those.
         if new_state != old_state {
             self.generate_moves();
+            self.sort_moves();
         }
 
         self.moves.next()
@@ -365,7 +416,7 @@ mod tests {
         ];
         let m = Move::new(E2, E3, QUIET_MOVE);
 
-        let mut game: Game = FEN::from_fen(fens[0]);
+        let mut game = Game::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_str(), fens[0]);
 
         game.make_move(m);
@@ -380,7 +431,7 @@ mod tests {
         ];
         let m = Move::new(E2, E3, QUIET_MOVE);
 
-        let mut game: Game = FEN::from_fen(fens[0]);
+        let mut game = Game::from_fen(fens[0]);
 
         game.make_move(m);
         assert_eq!(game.to_fen().as_str(), fens[1]);
@@ -397,7 +448,7 @@ mod tests {
         ];
         let m = Move::new(B5, C6, CAPTURE);
 
-        let mut game: Game = FEN::from_fen(fens[0]);
+        let mut game = Game::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_str(), fens[0]);
         assert_eq!(game.positions.len(), 1);
         assert_eq!(game.positions.top().capture, EMPTY);
@@ -421,10 +472,32 @@ mod tests {
         assert_eq!(game.positions[0].side, WHITE);
     }
 
+    #[test]
+    fn test_mvv_lva() {
+        let mut game = Game::from_fen("8/8/8/8/8/1Qn5/1PpK1k2/8 w - - 0 1");
+
+        assert_eq!(game.mvv_lva(Move::new(B2, C3, CAPTURE)), 15); // PxN
+        assert_eq!(game.mvv_lva(Move::new(B3, C3, CAPTURE)), 11); // QxN
+        assert_eq!(game.mvv_lva(Move::new(D2, C3, CAPTURE)), 10); // KxN
+        assert_eq!(game.mvv_lva(Move::new(B3, C2, CAPTURE)),  3); // QxP
+        assert_eq!(game.mvv_lva(Move::new(D2, C2, CAPTURE)),  2); // KxP
+
+        game.generate_moves();
+        game.sort_moves();
+
+        assert_eq!(game.moves.next(), Some(Move::new(B2, C3, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(Move::new(B3, C3, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(Move::new(D2, C3, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(Move::new(B3, C2, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(Move::new(D2, C2, CAPTURE)));
+
+        assert!(!game.moves.next().unwrap().is_capture());
+    }
+
     /*
     #[bench]
     fn bench_perft(b: &mut Bencher) {
-        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(fens[0]);
 
         b.iter(|| {
             game.perft(1);
@@ -433,7 +506,7 @@ mod tests {
 
     #[bench]
     fn bench_generate_moves(b: &mut Bencher) {
-        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(fens[0]);
 
         b.iter(|| {
             game.moves.clear();

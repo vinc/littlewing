@@ -107,10 +107,7 @@ impl CLI {
 
         let side = self.game.positions.top().side;
         self.game.moves.clear();
-        self.game.generate_moves();
-        let n = self.game.moves.len();
-        for i in 0..n {
-            let m = self.game.moves[i];
+        while let Some(m) = self.game.next_move() {
             self.game.make_move(m);
             //println!("{}", game.to_string());
             if !self.game.is_check(side) {

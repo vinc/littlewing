@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops::Index;
+use std::ops::{Index, IndexMut};
 
 use common::*;
 use attack::{bishop_attacks, rook_attacks};
@@ -7,7 +7,11 @@ use piece::PieceChar;
 use square::SquareString;
 use bitboard::BitboardExt;
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+const QUIET_MOVE_SCORE: u8 = 0;
+const CAPTURE_SCORE:    u8 = 1;
+const BEST_MOVE_SCORE:  u8 = 255;
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct Move(u16);
 
 impl Move {
@@ -43,6 +47,10 @@ impl Move {
         self.kind() == CAPTURE || self.kind() & 0b1100 == 0b1100
     }
 
+    pub fn is_en_passant(&self) -> bool {
+        self.kind() == EN_PASSANT
+    }
+
     pub fn is_castle(&self) -> bool {
         self.kind() == KING_CASTLE || self.kind() == QUEEN_CASTLE
     }
@@ -76,12 +84,14 @@ impl fmt::Display for Move {
     }
 }
 
-const QUIET_MOVE_SCORE: u8 = 0;
-const CAPTURE_SCORE:    u8 = 1;
-const BEST_MOVE_SCORE:  u8 = 2;
+impl fmt::Debug for Move {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
 
 #[derive(Copy, Clone, PartialEq)]
-struct MoveExt {
+pub struct MoveExt {
     pub m: Move,
     pub s: u8
 }
@@ -160,6 +170,10 @@ impl Moves {
         self.best_moves_counts = [0; MAX_PLY];
         self.states = [MovesState::BestMove; MAX_PLY];
         self.ply = 0;
+    }
+
+    pub fn len_best_moves(&self) -> usize {
+        self.best_moves_counts[self.ply]
     }
 
     pub fn len(&self) -> usize {
@@ -350,6 +364,10 @@ impl Moves {
             self.states[self.ply] = MovesState::QuietMove;
         }
     }
+
+    pub fn swap(&mut self, i: usize, j: usize) {
+        self.lists[self.ply].swap(i, j);
+    }
 }
 
 impl Iterator for Moves {
@@ -383,10 +401,16 @@ impl Iterator for Moves {
 }
 
 impl Index<usize> for Moves {
-    type Output = Move;
+    type Output = MoveExt;
 
-    fn index(&self, index: usize) -> &Move {
-        &self.lists[self.ply][index].m
+    fn index(&self, index: usize) -> &MoveExt {
+        &self.lists[self.ply][index]
+    }
+}
+
+impl IndexMut<usize> for Moves {
+    fn index_mut(&mut self, index: usize) -> &mut MoveExt {
+        &mut self.lists[self.ply][index]
     }
 }
 
@@ -432,8 +456,13 @@ mod tests {
         moves.add_move(m2, MovesState::QuietMove);
         moves.add_move(m3, MovesState::QuietMove);
 
+        println!("m1 = {}, {}", moves[0].m, moves[0].s);
+        println!("m2 = {}, {}", moves[1].m, moves[1].s);
+        println!("m3 = {}, {}", moves[2].m, moves[2].s);
+
         assert_eq!(moves.next(), Some(m1));
         assert_eq!(moves.next(), Some(m3));
         assert_eq!(moves.next(), Some(m2));
+        assert_eq!(moves.next(), None);
     }
 }
