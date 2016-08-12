@@ -8,9 +8,10 @@ use piece::{PieceAttr, PieceChar};
 use square::SquareString;
 
 pub trait MovesGenerator {
+    fn generate_moves(&mut self);
+    fn next_move(&mut self) -> Option<Move>;
     fn make_move(&mut self, m: Move);
     fn undo_move(&mut self, m: Move);
-    fn generate_moves(&mut self);
     fn move_to_san(&mut self, m: Move) -> String;
 }
 
@@ -269,6 +270,22 @@ impl MovesGenerator for Game {
         self.undo_move(m);
 
         out
+    }
+
+    fn next_move(&mut self) -> Option<Move> {
+        let old_state = self.moves.state;
+
+        self.moves.update_state();
+
+        let new_state = self.moves.state;
+
+        // First we search the best move if there is one,
+        // then we generate all the other moves and search those.
+        if new_state != old_state {
+            self.generate_moves();
+        }
+
+        self.moves.next()
     }
 }
 

@@ -76,12 +76,39 @@ impl fmt::Display for Move {
     }
 }
 
+
+#[repr(usize)]
+#[derive(Clone, Copy, PartialEq)]
+pub enum MovesState {
+    BestMoves,
+    //GoodCaptures,
+    //KillerMoves,
+    //BadCaptures,
+    QuietMoves
+}
+
 pub struct Moves {
+    // We store the generated moves for each ply in a two dimensional array
+    // used by the recursive search function. It must be able to store any
+    // ply up to `MAX_PLY`, the theoretical maximum number of plies in a chess
+    // game. And likewise it must be able to store the generated moves up to
+    // the maximum of any chess position `MAX_MOVES`.
     lists: [[Move; MAX_MOVES]; MAX_PLY],
-    sizes: [usize; MAX_PLY],
-    indexes: [usize; MAX_PLY],
+
+    // Number of best moves at a given ply.
     best_moves_counts: [usize; MAX_PLY],
-    ply: usize
+
+    // Number of moves at a given ply.
+    sizes: [usize; MAX_PLY],
+
+    // Index of the current move being search at a given ply.
+    indexes: [usize; MAX_PLY],
+
+    // Index of the ply currently searched.
+    ply: usize,
+
+    // State of the search (best move first, then the generated moves).
+    pub state: MovesState
 }
 
 impl Moves {
@@ -91,7 +118,8 @@ impl Moves {
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
             best_moves_counts: [0; MAX_PLY],
-            ply: 0
+            ply: 0,
+            state: MovesState::BestMoves
         }
     }
 
@@ -104,12 +132,14 @@ impl Moves {
     }
 
     pub fn clear(&mut self) {
+        self.state = MovesState::BestMoves;
         self.sizes[self.ply] = 0;
         self.indexes[self.ply] = 0;
         self.best_moves_counts[self.ply] = 0;
     }
 
     pub fn clear_all(&mut self) {
+        self.state = MovesState::BestMoves;
         self.sizes = [0; MAX_PLY];
         self.indexes = [0; MAX_PLY];
         self.best_moves_counts = [0; MAX_PLY];
@@ -275,6 +305,19 @@ impl Moves {
 
     pub fn add_queen_castle(&mut self, side: Color) {
         self.add_move(E1 ^ 56 * side, C1 ^ 56 * side, QUEEN_CASTLE);
+    }
+
+    pub fn update_state(&mut self) {
+        // TODO: add killers moves and sort the remaining moves
+        // between good captures, bad captures and quiet moves.
+        let current_move_index = self.indexes[self.ply];
+        let number_of_best_moves = self.best_moves_counts[self.ply];
+
+        if current_move_index < number_of_best_moves {
+            self.state = MovesState::BestMoves;
+        } else {
+            self.state = MovesState::QuietMoves;
+        }
     }
 }
 

@@ -20,9 +20,8 @@ impl Search for Game {
         } else {
             let side = self.positions.top().side;
             self.moves.clear();
-            self.generate_moves();
             let mut r = 0;
-            while let Some(m) = self.moves.next() {
+            while let Some(m) = self.next_move() {
                 self.make_move(m);
                 if !self.is_check(side) {
                     r += self.perft(depth - 1);
@@ -46,7 +45,7 @@ impl Search for Game {
             alpha = stand_path;
         }
 
-        while let Some(m) = self.moves.next() {
+        while let Some(m) = self.next_move() {
             self.make_move(m);
             let score = -self.quiescence(-beta, -alpha);
             self.undo_move(m);
@@ -90,8 +89,7 @@ impl Search for Game {
         if !best_move.is_null() {
             self.moves.add_best_move(best_move);
         }
-        self.generate_moves();
-        while let Some(m) = self.moves.next() {
+        while let Some(m) = self.next_move() {
             self.make_move(m);
             if !self.is_check(side) {
                 let score = -self.search(-beta, -alpha, depth - 1);
@@ -135,9 +133,8 @@ impl Search for Game {
             if !best_move.is_null() {
                 self.moves.add_best_move(best_move);
             }
-            self.generate_moves();
 
-            while let Some(m) = self.moves.next() {
+            while let Some(m) = self.next_move() {
 
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out
@@ -261,13 +258,10 @@ mod tests {
         let alpha = -INF;
         let beta = INF;
 
-        for depth in 0..5 {
+        for depth in 1..5 {
             let score = game.search(alpha, beta, depth);
-            if depth == 0 {
-                assert!(score == 0);
-            } else {
-                assert!(score >= eval::QUEEN_VALUE);
-            }
+
+            assert!(score >= eval::QUEEN_VALUE);
         }
     }
 
