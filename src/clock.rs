@@ -34,10 +34,6 @@ impl Clock {
         assert!(ply > 0);
         let moves_done = (((ply - 1) / 2) as u16) % self.moves_level;
         self.moves_remaining = self.moves_level - moves_done;
-
-        println!("#        {} moves remaining", self.moves_remaining);
-        println!("# level: {} ms per move", self.time_level / self.moves_level as u64);
-        println!("# real:  {} ms per move", self.time_remaining / self.moves_remaining as u64);
     }
     pub fn set_time(&mut self, time: u64) {
         self.time_remaining = time;

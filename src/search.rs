@@ -121,6 +121,10 @@ impl Search for Game {
         self.clock.start(self.positions.len());
 
         if self.is_verbose {
+            println!("# allocating {} ms to move", self.clock.allocated_time());
+        }
+
+        if self.is_verbose {
             println!(" ply  score   time    nodes  pv");
         }
         let mut best_move = Move::new_null(); // best_move.is_null() == true
@@ -165,9 +169,10 @@ impl Search for Game {
             }
         }
 
-        println!("# used:  {} ms to move", self.clock.elapsed_time());
-
-        self.tt.print_stats();
+        if self.is_verbose {
+            println!("# used {} ms to move", self.clock.elapsed_time());
+            self.tt.print_stats();
+        }
 
         best_move
     }
