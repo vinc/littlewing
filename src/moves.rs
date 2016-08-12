@@ -7,7 +7,7 @@ use piece::PieceChar;
 use square::SquareString;
 use bitboard::BitboardExt;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Move(u16);
 
 impl Move {
@@ -76,6 +76,22 @@ impl fmt::Display for Move {
     }
 }
 
+const QUIET_MOVE_SCORE: u8 = 0;
+const CAPTURE_SCORE:    u8 = 1;
+const BEST_MOVE_SCORE:  u8 = 2;
+
+#[derive(Copy, Clone, PartialEq)]
+struct MoveExt {
+    pub m: Move,
+    pub s: u8
+}
+
+impl MoveExt {
+    pub fn new(m: Move, s: u8) -> MoveExt {
+        MoveExt { m: m, s: s }
+    }
+}
+
 #[repr(usize)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum MovesState {
@@ -92,7 +108,7 @@ pub struct Moves {
     // ply up to `MAX_PLY`, the theoretical maximum number of plies in a chess
     // game. And likewise it must be able to store the generated moves up to
     // the maximum of any chess position `MAX_MOVES`.
-    lists: [[Move; MAX_MOVES]; MAX_PLY],
+    lists: [[MoveExt; MAX_MOVES]; MAX_PLY],
 
     // Number of best moves at a given ply.
     best_moves_counts: [usize; MAX_PLY],
@@ -114,7 +130,7 @@ pub struct Moves {
 impl Moves {
     pub fn new() -> Moves {
         Moves {
-            lists: [[Move::new_null(); MAX_MOVES]; MAX_PLY],
+            lists: [[MoveExt::new(Move::new_null(), 0); MAX_MOVES]; MAX_PLY],
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
             best_moves_counts: [0; MAX_PLY],
@@ -160,22 +176,30 @@ impl Moves {
     }
 
     pub fn add_move(&mut self, m: Move, state: MovesState) {
-        match state {
+        let score = match state {
             MovesState::BestMove => {
                 self.best_moves_counts[self.ply] += 1;
+
+                BEST_MOVE_SCORE
             },
             MovesState::QuietMove => {
                 // Avoid adding again a best move
                 let n = self.best_moves_counts[self.ply];
                 for i in 0..n {
-                    if self.lists[self.ply][i] == m {
+                    if self.lists[self.ply][i].m == m {
                         return;
                     }
                 }
-            }
-        }
 
-        self.lists[self.ply][self.sizes[self.ply]] = m;
+                if m.is_capture() {
+                    CAPTURE_SCORE
+                } else {
+                    QUIET_MOVE_SCORE
+                }
+            }
+        };
+
+        self.lists[self.ply][self.sizes[self.ply]] = MoveExt::new(m, score);
         self.sizes[self.ply] += 1;
     }
 
@@ -338,7 +362,16 @@ impl Iterator for Moves {
         self.indexes[self.ply] += 1;
 
         if i < n {
-            Some(self.lists[self.ply][i])
+            // Swap the next move with the highest scored one remaining
+            let mut j = i;
+            for k in i..n {
+                if self.lists[self.ply][j].s < self.lists[self.ply][k].s {
+                    j = k
+                }
+            }
+            self.lists[self.ply].swap(i, j);
+
+            Some(self.lists[self.ply][i].m)
         } else {
             None
         }
@@ -349,14 +382,14 @@ impl Index<usize> for Moves {
     type Output = Move;
 
     fn index(&self, index: usize) -> &Move {
-        &self.lists[self.ply][index]
+        &self.lists[self.ply][index].m
     }
 }
 
 #[cfg(test)]
 mod tests {
     use common::*;
-    use super::Move;
+    use super::*;
 
     #[test]
     fn test_move_is_castle() {
@@ -382,5 +415,21 @@ mod tests {
     fn test_move_promotion_kind() {
         assert_eq!(Move::new(E7, E8, QUEEN_PROMOTION).promotion_kind(), QUEEN);
         assert_eq!(Move::new(E7, D8, ROOK_PROMOTION_CAPTURE).promotion_kind(), ROOK);
+    }
+
+    #[test]
+    fn test_moves_ordering() {
+        let m1 = Move::new(D2, C2, CAPTURE);
+        let m2 = Move::new(D2, C1, QUIET_MOVE);
+        let m3 = Move::new(D2, C3, CAPTURE);
+
+        let mut moves = Moves::new();
+        moves.add_move(m1, MovesState::BestMove);
+        moves.add_move(m2, MovesState::QuietMove);
+        moves.add_move(m3, MovesState::QuietMove);
+
+        assert_eq!(moves.next(), Some(m1));
+        assert_eq!(moves.next(), Some(m3));
+        assert_eq!(moves.next(), Some(m2));
     }
 }
