@@ -2,7 +2,7 @@ extern crate time;
 
 pub struct Clock {
     moves_level: u16,
-    time_level: u64,
+    //time_level: u64, // TODO: check that we really don't need it
 
     moves_remaining: u16,
     time_remaining: u64,
@@ -17,7 +17,7 @@ impl Clock {
     pub fn new(moves: u16, time: u64) -> Clock {
         Clock {
             moves_level: moves,
-            time_level: time,
+            //time_level: time,
             moves_remaining: moves,
             time_remaining: time,
             started_at: 0,
