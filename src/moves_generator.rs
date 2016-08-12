@@ -273,11 +273,11 @@ impl MovesGenerator for Game {
     }
 
     fn next_move(&mut self) -> Option<Move> {
-        let old_state = self.moves.state;
+        let old_state = self.moves.state();
 
         self.moves.update_state();
 
-        let new_state = self.moves.state;
+        let new_state = self.moves.state();
 
         // First we search the best move if there is one,
         // then we generate all the other moves and search those.

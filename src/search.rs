@@ -247,9 +247,8 @@ mod tests {
 
     #[test]
     fn test_search() {
-        let mut game = Game::new();
         let fen = "4k3/8/4q3/8/8/4Q3/8/4K3 w - - 0 1";
-        game.load_fen(fen);
+        let mut game = Game::from_fen(fen);
 
         game.nodes_count = 0;
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
@@ -267,14 +266,19 @@ mod tests {
 
     #[test]
     fn test_root() {
-        let mut game = Game::new();
         let fen = "2k4r/ppp3pp/8/2b2p1P/PPP2p2/N4P2/3r2K1/1q5R w - - 4 29";
-        game.load_fen(fen);
-        //game.is_verbose = true;
-
-        let max_depth = 10;
         let best_move = Move::new(G2, H3, QUIET_MOVE);
-        let m = game.root(max_depth);
+        let mut game = Game::from_fen(fen);
+        game.clock = Clock::new(1, 5 * 1000); // 5 seconds
+        let m = game.root(10);
+        assert_eq!(m.to_string(), best_move.to_string());
+
+
+        let fen = "r1bq2rk/pp3pbp/2p1p1pQ/7P/3P4/2PB1N2/PP3PPR/2KR4 w - -";
+        let best_move = Move::new(H6, H7, CAPTURE);
+        let mut game = Game::from_fen(fen);
+        game.clock = Clock::new(1, 5 * 1000); // 5 seconds
+        let m = game.root(10);
         assert_eq!(m.to_string(), best_move.to_string());
     }
 }

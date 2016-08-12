@@ -104,11 +104,12 @@ pub struct Moves {
     // Index of the current move being searched at a given ply.
     indexes: [usize; MAX_PLY],
 
+    // State of the search (best move first, then generated moves)
+    // at a given ply.
+    states: [MovesState; MAX_PLY],
+
     // Index of the ply currently searched.
     ply: usize,
-
-    // State of the search (best move first, then the generated moves).
-    pub state: MovesState
 }
 
 impl Moves {
@@ -118,8 +119,8 @@ impl Moves {
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
             best_moves_counts: [0; MAX_PLY],
+            states: [MovesState::BestMove; MAX_PLY],
             ply: 0,
-            state: MovesState::BestMove
         }
     }
 
@@ -132,22 +133,26 @@ impl Moves {
     }
 
     pub fn clear(&mut self) {
-        self.state = MovesState::BestMove;
         self.sizes[self.ply] = 0;
         self.indexes[self.ply] = 0;
         self.best_moves_counts[self.ply] = 0;
+        self.states[self.ply] = MovesState::BestMove;
     }
 
     pub fn clear_all(&mut self) {
-        self.state = MovesState::BestMove;
         self.sizes = [0; MAX_PLY];
         self.indexes = [0; MAX_PLY];
         self.best_moves_counts = [0; MAX_PLY];
+        self.states = [MovesState::BestMove; MAX_PLY];
         self.ply = 0;
     }
 
     pub fn len(&self) -> usize {
         self.sizes[self.ply]
+    }
+
+    pub fn state(&self) -> MovesState {
+        self.states[self.ply]
     }
 
     #[allow(dead_code)]
@@ -317,9 +322,9 @@ impl Moves {
         let number_of_best_moves = self.best_moves_counts[self.ply];
 
         if current_move_index < number_of_best_moves {
-            self.state = MovesState::BestMove;
+            self.states[self.ply] = MovesState::BestMove;
         } else {
-            self.state = MovesState::QuietMove;
+            self.states[self.ply] = MovesState::QuietMove;
         }
     }
 }
