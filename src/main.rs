@@ -19,6 +19,8 @@ mod square;
 mod transpositions;
 mod zobrist;
 
+use std::env;
+
 use protocols::cli::CLI;
 
 fn version() -> String {
@@ -31,6 +33,6 @@ fn main() {
     println!("{}", version());
     println!("");
 
-    let mut cli = CLI::new();
+    let mut cli = CLI::new(env::args().collect());
     cli.run();
 }

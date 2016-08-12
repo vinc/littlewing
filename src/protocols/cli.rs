@@ -17,13 +17,24 @@ use protocols::xboard::XBoard;
 use search::Search;
 
 pub struct CLI {
-    game: Game
+    game: Game,
+    is_colored: bool
 }
 
 impl CLI {
-    pub fn new() -> CLI {
+    pub fn new(args: Vec<String>) -> CLI {
+        let mut is_colored = false;
+
+        for arg in &args {
+            match arg.as_str() {
+                "-c" | "--color" => { is_colored = true; }
+                _                => { }
+            }
+        }
+
         CLI {
-            game: FEN::from_fen(DEFAULT_FEN)
+            game: FEN::from_fen(DEFAULT_FEN),
+            is_colored: is_colored
         }
     }
     pub fn run(&mut self) {
@@ -148,10 +159,10 @@ impl CLI {
                 let d = it.next().unwrap()[1..].parse::<usize>().unwrap();
                 let n = it.next().unwrap().parse::<u64>().unwrap();
                 if self.game.perft(d) == n {
-                    print!(".");
+                    print!("{}", self.colorize_green(".".into()));
                     io::stdout().flush().unwrap();
                 } else {
-                    print!("x");
+                    print!("{}", self.colorize_red("x".into()));
                     break;
                 }
             }
@@ -195,10 +206,27 @@ impl CLI {
             };
             if found {
                 r += 1;
+                println!("{}", self.colorize_green(best_move_str));
+            } else {
+                println!("{}", self.colorize_red(best_move_str));
             }
-            print!("{}", best_move_str);
-            println!("");
         }
         println!("Result {}/{}", r, n);
+    }
+
+    fn colorize_red(&self, text: String) -> String {
+        if self.is_colored {
+            format!("\x1B[31m{}\x1B[0m", text)
+        } else {
+            text
+        }
+    }
+
+    fn colorize_green(&self, text: String) -> String {
+        if self.is_colored {
+            format!("\x1B[32m{}\x1B[0m", text)
+        } else {
+            text
+        }
     }
 }
