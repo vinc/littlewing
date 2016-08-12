@@ -362,14 +362,18 @@ impl Iterator for Moves {
         self.indexes[self.ply] += 1;
 
         if i < n {
-            // Swap the next move with the highest scored one remaining
+            // Find the next best move by selection sort
             let mut j = i;
-            for k in i..n {
+            for k in (i + 1)..n {
                 if self.lists[self.ply][j].s < self.lists[self.ply][k].s {
                     j = k
                 }
             }
-            self.lists[self.ply].swap(i, j);
+
+            // Swap it with the current next move
+            if i != j {
+                self.lists[self.ply].swap(i, j);
+            }
 
             Some(self.lists[self.ply][i].m)
         } else {
