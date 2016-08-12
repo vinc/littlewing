@@ -80,11 +80,11 @@ impl fmt::Display for Move {
 #[repr(usize)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum MovesState {
-    BestMoves,
-    //GoodCaptures,
-    //KillerMoves,
-    //BadCaptures,
-    QuietMoves
+    BestMove,
+    //GoodCapture,
+    //KillerMove,
+    //BadCapture,
+    QuietMove
 }
 
 pub struct Moves {
@@ -119,7 +119,7 @@ impl Moves {
             indexes: [0; MAX_PLY],
             best_moves_counts: [0; MAX_PLY],
             ply: 0,
-            state: MovesState::BestMoves
+            state: MovesState::BestMove
         }
     }
 
@@ -132,14 +132,14 @@ impl Moves {
     }
 
     pub fn clear(&mut self) {
-        self.state = MovesState::BestMoves;
+        self.state = MovesState::BestMove;
         self.sizes[self.ply] = 0;
         self.indexes[self.ply] = 0;
         self.best_moves_counts[self.ply] = 0;
     }
 
     pub fn clear_all(&mut self) {
-        self.state = MovesState::BestMoves;
+        self.state = MovesState::BestMove;
         self.sizes = [0; MAX_PLY];
         self.indexes = [0; MAX_PLY];
         self.best_moves_counts = [0; MAX_PLY];
@@ -155,23 +155,22 @@ impl Moves {
         self.sizes[self.ply] == 0
     }
 
-    pub fn add_move(&mut self, from: Square, to: Square, mt: MoveType) {
-        let m = Move::new(from, to, mt);
-
-        // Avoid adding again a best move
-        let n = self.best_moves_counts[self.ply];
-        for i in 0..n {
-            if self.lists[self.ply][i] == m {
-                return;
+    pub fn add_move(&mut self, m: Move, state: MovesState) {
+        match state {
+            MovesState::BestMove => {
+                self.best_moves_counts[self.ply] += 1;
+            },
+            MovesState::QuietMove => {
+                // Avoid adding again a best move
+                let n = self.best_moves_counts[self.ply];
+                for i in 0..n {
+                    if self.lists[self.ply][i] == m {
+                        return;
+                    }
+                }
             }
         }
 
-        self.lists[self.ply][self.sizes[self.ply]] = m;
-        self.sizes[self.ply] += 1;
-    }
-
-    pub fn add_best_move(&mut self, m: Move) {
-        self.best_moves_counts[self.ply] += 1;
         self.lists[self.ply][self.sizes[self.ply]] = m;
         self.sizes[self.ply] += 1;
     }
@@ -182,7 +181,8 @@ impl Moves {
             debug_assert!((to as Direction) - dir >= 0);
             debug_assert!((to as Direction) - dir < 64);
             let from = ((to as Direction) - dir) as Square;
-            self.add_move(from, to, mt);
+            let m = Move::new(from, to, mt);
+            self.add_move(m, MovesState::QuietMove);
             targets.reset(to);
         }
     }
@@ -190,7 +190,8 @@ impl Moves {
     pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Square, mt: MoveType) {
         while targets != 0 {
             let to = targets.trailing_zeros() as Square;
-            self.add_move(from, to, mt);
+            let m = Move::new(from, to, mt);
+            self.add_move(m, MovesState::QuietMove);
             targets.reset(to);
         }
     }
@@ -300,11 +301,13 @@ impl Moves {
     }
 
     pub fn add_king_castle(&mut self, side: Color) {
-        self.add_move(E1 ^ 56 * side, G1 ^ 56 * side, KING_CASTLE);
+        let m = Move::new(E1 ^ 56 * side, G1 ^ 56 * side, KING_CASTLE);
+        self.add_move(m, MovesState::QuietMove);
     }
 
     pub fn add_queen_castle(&mut self, side: Color) {
-        self.add_move(E1 ^ 56 * side, C1 ^ 56 * side, QUEEN_CASTLE);
+        let m = Move::new(E1 ^ 56 * side, C1 ^ 56 * side, QUEEN_CASTLE);
+        self.add_move(m, MovesState::QuietMove);
     }
 
     pub fn update_state(&mut self) {
@@ -314,9 +317,9 @@ impl Moves {
         let number_of_best_moves = self.best_moves_counts[self.ply];
 
         if current_move_index < number_of_best_moves {
-            self.state = MovesState::BestMoves;
+            self.state = MovesState::BestMove;
         } else {
-            self.state = MovesState::QuietMoves;
+            self.state = MovesState::QuietMove;
         }
     }
 }

@@ -2,7 +2,7 @@ use common::*;
 use attack::Attack;
 use eval::Eval;
 use game::Game;
-use moves::Move;
+use moves::{Move, MovesState};
 use moves_generator::MovesGenerator;
 
 pub trait Search {
@@ -87,7 +87,7 @@ impl Search for Game {
 
         self.moves.clear();
         if !best_move.is_null() {
-            self.moves.add_best_move(best_move);
+            self.moves.add_move(best_move, MovesState::BestMove);
         }
         while let Some(m) = self.next_move() {
             self.make_move(m);
@@ -131,7 +131,7 @@ impl Search for Game {
 
             self.moves.clear();
             if !best_move.is_null() {
-                self.moves.add_best_move(best_move);
+                self.moves.add_move(best_move, MovesState::BestMove);
             }
 
             while let Some(m) = self.next_move() {
