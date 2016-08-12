@@ -76,7 +76,6 @@ impl fmt::Display for Move {
     }
 }
 
-
 #[repr(usize)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum MovesState {
@@ -115,7 +114,7 @@ pub struct Moves {
 impl Moves {
     pub fn new() -> Moves {
         Moves {
-            lists: [[Move::new(A1, A1, QUIET_MOVE); MAX_MOVES]; MAX_PLY],
+            lists: [[Move::new_null(); MAX_MOVES]; MAX_PLY],
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
             best_moves_counts: [0; MAX_PLY],
