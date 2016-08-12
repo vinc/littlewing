@@ -101,7 +101,7 @@ pub struct Moves {
     // Number of moves at a given ply.
     sizes: [usize; MAX_PLY],
 
-    // Index of the current move being search at a given ply.
+    // Index of the current move being searched at a given ply.
     indexes: [usize; MAX_PLY],
 
     // Index of the ply currently searched.
