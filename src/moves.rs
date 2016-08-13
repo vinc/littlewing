@@ -247,7 +247,7 @@ impl Moves {
 
         let ydir = YDIRS[side as usize];
 
-        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
 
         let pushes = bitboards[(side | PAWN) as usize].shift(ydir) & !occupied;
         self.add_moves(pushes & !END_RANKS[side as usize], ydir, QUIET_MOVE);
@@ -269,6 +269,7 @@ impl Moves {
             self.add_moves(targets & epb, dir, EN_PASSANT);
 
             let attacks = targets & bitboards[(side ^ 1) as usize];
+
             self.add_moves(attacks & !END_RANKS[side as usize], dir, CAPTURE);
             self.add_moves(attacks & END_RANKS[side as usize], dir, KNIGHT_PROMOTION_CAPTURE);
             self.add_moves(attacks & END_RANKS[side as usize], dir, BISHOP_PROMOTION_CAPTURE);
@@ -278,7 +279,7 @@ impl Moves {
     }
 
     pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[(WHITE) as usize] | bitboards[(BLACK) as usize];
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut knights = bitboards[(side | KNIGHT) as usize];
 
         while knights > 0 {

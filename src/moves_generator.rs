@@ -341,7 +341,7 @@ impl MovesGenerator for Game {
         // then we generate all the other moves and search those.
         if new_state != old_state {
             self.generate_moves();
-            self.sort_moves();
+            self.sort_moves(); // TODO: Disable when running perft
         }
 
         self.moves.next()
@@ -360,7 +360,6 @@ mod tests {
 
     #[test]
     fn test_generate_moves() {
-        println!("test_generate_moves()");
         let mut game = Game::new();
 
         game.load_fen(DEFAULT_FEN);

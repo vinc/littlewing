@@ -267,13 +267,14 @@ impl Search for Game {
 #[cfg(test)]
 mod tests {
     use common::*;
-    use fen::FEN;
-    use game::Game;
-    use search::Search;
-    use moves::Move;
-
+    use bitboard::BitboardExt;
     use clock::Clock;
     use eval;
+    use fen::FEN;
+    use game::Game;
+    use moves::Move;
+    use moves_generator::MovesGenerator;
+    use search::Search;
 
     #[test]
     fn test_perft() {
@@ -362,5 +363,28 @@ mod tests {
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         let m = game.root(10);
         assert_eq!(m.to_string(), best_move.to_string());
+    }
+
+    #[test]
+    fn test_bug_promotion() {
+        let fen = "5n2/1k4P1/8/8/8/8/6K1/8 w - - 0 1";
+        let mut game = Game::from_fen(fen);
+
+        let m = Move::new(G7, G8, KNIGHT_PROMOTION);
+        game.make_move(m);
+        //assert!(!game.bitboards[WHITE as usize].get(G7));
+        game.bitboards[(WHITE | PAWN) as usize].debug();
+        assert!(!game.bitboards[(WHITE | PAWN) as usize].get(G8));
+        game.undo_move(m);
+        game.bitboards[(WHITE | PAWN) as usize].debug();
+        assert!(!game.bitboards[(WHITE | PAWN) as usize].get(G8));
+
+        let m = Move::new(G7, F8, KNIGHT_PROMOTION_CAPTURE);
+        game.make_move(m);
+        game.bitboards[(WHITE | PAWN) as usize].debug();
+        assert!(!game.bitboards[(WHITE | PAWN) as usize].get(F8));
+        game.undo_move(m);
+        game.bitboards[(WHITE | PAWN) as usize].debug();
+        assert!(!game.bitboards[(WHITE | PAWN) as usize].get(F8));
     }
 }

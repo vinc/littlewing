@@ -6,7 +6,7 @@ pub trait BitboardExt {
     fn set(&mut self, i: Square);
     fn reset(&mut self, i: Square);
     fn get(&self, i: Square) -> bool;
-    fn debug(&self);
+    fn debug(&self); // TODO: impl fmt::Debug
 }
 
 impl BitboardExt for Bitboard {
