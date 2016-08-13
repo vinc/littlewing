@@ -1,6 +1,7 @@
 use common::*;
 use attack::Attack;
 use eval::Eval;
+use fen::FEN;
 use game::Game;
 use moves::{Move, MovesState};
 use moves_generator::MovesGenerator;
@@ -45,17 +46,25 @@ impl Search for Game {
             alpha = stand_path;
         }
 
-        while let Some(m) = self.next_move() {
-            self.make_move(m);
-            let score = -self.quiescence(-beta, -alpha);
-            self.undo_move(m);
+        let side = self.positions.top().side;
 
-            if score >= beta {
-                return beta
+        while let Some(m) = self.next_move() {
+            if !m.is_capture() {
+                continue;
             }
-            if alpha < score {
-                alpha = score;
+            self.make_move(m);
+            if !self.is_check(side) {
+                let score = -self.quiescence(-beta, -alpha);
+
+                if score >= beta {
+                    self.undo_move(m);
+                    return beta
+                }
+                if alpha < score {
+                    alpha = score;
+                }
             }
+            self.undo_move(m);
         }
 
         alpha
@@ -67,6 +76,7 @@ impl Search for Game {
         }
 
         if depth == 0 {
+            //return self.eval();
             return self.quiescence(alpha, beta);
         }
 
@@ -120,7 +130,9 @@ impl Search for Game {
         self.tt.clear_stats();
         self.clock.start(self.positions.len());
 
+        let old_fen = self.to_fen();
         if self.is_verbose {
+            println!("# FEN {}", old_fen);
             println!("# allocating {} ms to move", self.clock.allocated_time());
         }
 
@@ -169,10 +181,13 @@ impl Search for Game {
             }
         }
 
+        let new_fen = self.to_fen();
         if self.is_verbose {
+            println!("# FEN {}", new_fen);
             println!("# used {} ms to move", self.clock.elapsed_time());
             self.tt.print_stats();
         }
+        assert_eq!(old_fen, new_fen);
 
         best_move
     }
