@@ -1,9 +1,12 @@
+use std::fmt;
+
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};
 use position::Positions;
 use transpositions::Transpositions;
 use zobrist::Zobrist;
+use piece::{PieceAttr, PieceChar};
 
 pub struct Game {
     pub is_verbose: bool,
@@ -41,25 +44,32 @@ impl Game {
         self.positions.clear();
         self.history.clear();
     }
+}
 
-    pub fn to_string(&self) -> String {
-        // FIXME: Testing `map` and `fold` for the lulz
+impl fmt::Display for Game {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut lines = vec![];
 
-        let sep = (0..8)
-            .map(|_| "+---")
-            .fold(String::new(), |r, s| r + s) + "+\n";
+        let sep = (0..8).map(|_| "+---").fold(String::new(), |r, s| r + s) + "+";
+        lines.push(sep.clone());
+        for i in 0..8 {
+            let mut line = String::from("");
+            for j in 0..8 {
+                line.push_str("| ");
+                let p = self.board[8 * (7 - i) + j];
+                let c = p.to_char();
+                if p.color() == WHITE {
+                    line.push_str(&format!("\x1B[1m\x1B[37m{}\x1B[0m", c));
+                } else if p.color() == BLACK {
+                    line.push_str(&format!("\x1B[1m\x1B[31m{}\x1B[0m", c));
+                }
+                line.push_str(" ");
+            }
+            line.push_str("|");
+            lines.push(line);
+            lines.push(sep.clone());
+        }
 
-        /*
-        String::new() + &*sep + (0..8).map(|i| {
-            (0..8)
-                .map(|j| {
-                    let c = (self.board[8 * (7 - i) + j as usize]).to_char();
-                    String::from("| ") + &*(c.to_string()) + " "
-                })
-                .concat() + "|\n" + &*sep
-        }).concat()
-        */
-
-        sep
+        write!(f, "{}", lines.join("\n"))
     }
 }
