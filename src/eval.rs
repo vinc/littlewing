@@ -34,6 +34,12 @@ impl Eval for Game {
         score += self.eval_pieces(side);
         score -= self.eval_pieces(side ^ 1);
 
+        if score > KING_VALUE {
+            return INF; // Win
+        } else if score < -KING_VALUE {
+            return -INF; // Loss
+        }
+
         score
     }
 }
