@@ -48,7 +48,10 @@ impl MovesGenerator for Game {
         let piece = self.board[m.from() as usize];
         let capture = self.board[m.to() as usize]; // TODO: En passant
 
+        debug_assert_eq!(piece.color(), side);
+
         self.bitboards[piece as usize].toggle(m.from());
+        debug_assert!(!self.bitboards[piece as usize].get(m.from()));
         self.board[m.from() as usize] = EMPTY;
         new_position.hash ^= self.zobrist.positions[piece as usize][m.from() as usize];
 
@@ -124,7 +127,9 @@ impl MovesGenerator for Game {
         }
 
         self.bitboards[side as usize].toggle(m.from());
+        debug_assert!(!self.bitboards[side as usize].get(m.from()));
         self.bitboards[side as usize].toggle(m.to());
+        debug_assert!(self.bitboards[side as usize].get(m.to()));
 
         if capture != EMPTY {
             self.bitboards[capture as usize].toggle(m.to());
@@ -219,12 +224,13 @@ impl MovesGenerator for Game {
         self.moves.add_rooks_moves(&self.bitboards, side);
         self.moves.add_queens_moves(&self.bitboards, side);
 
-
         let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
 
         let mask = CASTLING_MASKS[side as usize][(KING >> 3) as usize];
         let can_castle =
             !occupied & mask == mask &&
+            self.board[(E1 ^ 56 * side) as usize] == side | KING &&
+            self.board[(H1 ^ 56 * side) as usize] == side | ROOK &&
             position.castling_rights[side as usize][(KING >> 3) as usize] &&
             !self.is_attacked(E1 ^ 56 * side, side) &&
             !self.is_attacked(F1 ^ 56 * side, side) &&
@@ -236,6 +242,8 @@ impl MovesGenerator for Game {
         let mask = CASTLING_MASKS[side as usize][(QUEEN >> 3) as usize];
         let can_castle =
             !occupied & mask == mask &&
+            self.board[(E1 ^ 56 * side) as usize] == side | KING &&
+            self.board[(A1 ^ 56 * side) as usize] == side | ROOK &&
             position.castling_rights[side as usize][(QUEEN >> 3) as usize] &&
             !self.is_attacked(E1 ^ 56 * side, side) &&
             !self.is_attacked(D1 ^ 56 * side, side) &&
