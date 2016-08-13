@@ -207,6 +207,7 @@ impl MovesGenerator for Game {
     }
 
     fn generate_moves(&mut self) {
+        // TODO: make sure that `moves.clear()` has been called at this ply
         let &position = self.positions.top();
         let side = position.side;
         let ep = position.en_passant;
