@@ -8,8 +8,8 @@ use moves_generator::MovesGenerator;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
-    fn quiescence(&mut self, mut alpha: i32, beta: i32) -> i32;
-    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32;
+    fn quiescence(&mut self, mut alpha: i32, beta: i32, ply: usize) -> i32;
+    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize, ply: usize) -> i32;
     fn root(&mut self, max_depth: usize) -> Move;
     fn print_thinking(&mut self, depth: usize, score: i32, m: Move);
 }
@@ -33,12 +33,15 @@ impl Search for Game {
         }
     }
 
-    fn quiescence(&mut self, mut alpha: i32, beta: i32) -> i32 {
+    fn quiescence(&mut self, mut alpha: i32, beta: i32, ply: usize) -> i32 {
         if self.clock.poll(self.nodes_count) {
             return 0
         }
 
         let stand_path = self.eval();
+        if ply >= MAX_PLY {
+            return stand_path;
+        }
         if stand_path >= beta {
             return beta
         }
@@ -53,35 +56,43 @@ impl Search for Game {
                 continue;
             }
             self.make_move(m);
-            if !self.is_check(side) {
-                let score = -self.quiescence(-beta, -alpha);
 
-                if score >= beta {
-                    self.undo_move(m);
-                    return beta
-                }
-                if alpha < score {
-                    alpha = score;
-                }
+            if self.is_check(side) {
+                self.undo_move(m);
+                continue;
             }
+
+            let score = -self.quiescence(-beta, -alpha, ply + 1);
+
             self.undo_move(m);
+
+            if score >= beta {
+                return beta
+            }
+            if alpha < score {
+                alpha = score;
+            }
         }
 
         alpha
     }
 
-    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize) -> i32 {
+    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize, ply: usize) -> i32 {
         if self.clock.poll(self.nodes_count) {
             return 0;
         }
 
         if depth == 0 {
             //return self.eval();
-            return self.quiescence(alpha, beta);
+            return self.quiescence(alpha, beta, ply + 1);
         }
 
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
+
+        let is_in_check = self.is_check(side);
+        let mut has_legal_moves = false;
+
         self.nodes_count += 1;
 
         let mut best_move = match self.tt.get(&hash) {
@@ -99,20 +110,38 @@ impl Search for Game {
         if !best_move.is_null() {
             self.moves.add_move(best_move, MovesState::BestMove);
         }
+
         while let Some(m) = self.next_move() {
             self.make_move(m);
-            if !self.is_check(side) {
-                let score = -self.search(-beta, -alpha, depth - 1);
-                if score >= beta {
-                    self.undo_move(m);
-                    return beta;
-                }
-                if score > alpha {
-                    alpha = score;
-                    best_move = m;
-                }
+
+            if self.is_check(side) {
+                self.undo_move(m);
+                continue;
             }
+
+            has_legal_moves = true;
+
+            let score = -self.search(-beta, -alpha, depth - 1, ply + 1);
+
             self.undo_move(m);
+
+            if score >= beta {
+                return beta;
+            }
+
+            if score > alpha {
+                alpha = score;
+                best_move = m;
+            }
+        }
+
+        // TODO: could we just use `best_move.is_null()` ?
+        if !has_legal_moves { // End of game
+            if is_in_check {
+                return -INF + (ply as i32); // Checkmate
+            } else {
+                return 0; // Stalemate
+            }
         }
 
         if !best_move.is_null() {
@@ -125,6 +154,7 @@ impl Search for Game {
     fn root(&mut self, max_depth: usize) -> Move {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
+        let ply = 0;
         self.nodes_count = 0;
         self.moves.clear_all();
         self.tt.clear_stats();
@@ -137,11 +167,17 @@ impl Search for Game {
         }
 
         if self.is_verbose {
-            println!(" ply  score   time    nodes  pv");
+            println!(" ply   score   time     nodes  pv");
         }
-        let mut best_move = Move::new_null(); // best_move.is_null() == true
+
+        // Current best move
+        let mut best_move = Move::new_null();
+
+        // Keep track of previous values at shallower depths
+        let mut best_moves = [Move::new_null(); MAX_PLY];
+        let mut best_scores = [0; MAX_PLY];
+
         for depth in 1..max_depth {
-            let mut bm = best_move; // Best move at the current depth
             let mut alpha = -INF;
             let beta = INF;
 
@@ -150,14 +186,31 @@ impl Search for Game {
                 self.moves.add_move(best_move, MovesState::BestMove);
             }
 
-            while let Some(m) = self.next_move() {
+            // Mate pruning
+            if depth > 6 {
+                // Stop the search if the position was mate at the 3 previous
+                // shallower depths.
+                let mut is_mate = true;
+                let inf = INF - (MAX_PLY as i32);
+                for d in 1..4 {
+                    let score = best_scores[depth - d];
+                    if -inf < score && score < inf {
+                        is_mate = false;
+                        break;
+                    }
+                }
+                if is_mate {
+                    break;
+                }
+            }
 
+            while let Some(m) = self.next_move() {
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out
                 }
 
                 self.make_move(m);
-                let score = -self.search(-beta, -alpha, depth - 1);
+                let score = -self.search(-beta, -alpha, depth - 1, ply + 1);
                 if !self.is_check(side) {
                     if score > alpha {
                         if self.is_verbose { // && self.nodes_count > 1000 {
@@ -166,7 +219,8 @@ impl Search for Game {
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
-                        bm = m;
+                        best_scores[depth] = score;
+                        best_moves[depth] = m;
                     }
                 }
                 self.undo_move(m);
@@ -174,10 +228,10 @@ impl Search for Game {
 
             // Save the best move only if we found one and if we still have
             // some time left after the search at this depth.
-            if !bm.is_null() && !self.clock.poll(self.nodes_count) {
-                best_move = bm;
+            if !best_moves[depth].is_null() && !self.clock.poll(self.nodes_count) {
+                best_move = best_moves[depth];
 
-                self.tt.set(hash, bm, alpha, depth);
+                self.tt.set(hash, best_move, alpha, depth);
             }
         }
 
@@ -199,7 +253,7 @@ impl Search for Game {
         let move_str = self.move_to_san(m);
         self.make_move(m);
 
-        println!(" {:>3}  {:>5}  {:>5}  {:>7}  {}", depth, score, time, self.nodes_count, move_str);
+        println!(" {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time, self.nodes_count, move_str);
     }
 }
 
@@ -274,11 +328,12 @@ mod tests {
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         game.clock.start(game.positions.len());
 
+        let ply = 0;
         let alpha = -INF;
         let beta = INF;
 
         for depth in 1..5 {
-            let score = game.search(alpha, beta, depth);
+            let score = game.search(alpha, beta, depth, ply + 1);
 
             assert!(score >= eval::QUEEN_VALUE);
         }
