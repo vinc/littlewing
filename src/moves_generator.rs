@@ -181,7 +181,6 @@ impl MovesGenerator for Game {
             let pawn = position.side | PAWN;
             self.board[m.from() as usize] = pawn;
             self.bitboards[pawn as usize].toggle(m.from());
-            self.bitboards[pawn as usize].toggle(m.to());
         } else {
             self.board[m.from() as usize] = piece;
             self.bitboards[piece as usize].toggle(m.from());
