@@ -20,7 +20,8 @@ use search::Search;
 
 pub struct CLI {
     game: Game,
-    max_depth: usize
+    max_depth: usize,
+    show_board: bool
 }
 
 impl CLI {
@@ -36,7 +37,8 @@ impl CLI {
 
         CLI {
             game: game,
-            max_depth: MAX_PLY - 10
+            max_depth: MAX_PLY - 10,
+            show_board: false
         }
     }
     pub fn run(&mut self) {
@@ -49,18 +51,19 @@ impl CLI {
             match args[0] {
                 "quit"       => { break },
                 "help"       => { self.cmd_usage() },
-                "show"       => { self.cmd_show() },
                 "play"       => { self.cmd_play() },
                 "undo"       => { self.cmd_undo() },
                 "move"       => { self.cmd_move(&*args) },
                 "time"       => { self.cmd_time(&*args) },
+                "show"       => { self.cmd_show(&*args) },
+                "hide"       => { self.cmd_hide(&*args) },
                 "setboard"   => { self.cmd_setboard(&*args) },
                 "perft"      => { self.cmd_perft() },
                 "perftsuite" => { self.cmd_perftsuite(&*args) },
                 "testsuite"  => { self.cmd_testsuite(&*args) },
                 "divide"     => { self.cmd_divide(&*args) },
                 "xboard"     => { self.cmd_xboard(); break },
-                _            => { self.error(&*args); self.cmd_usage() }
+                _            => { self.cmd_error(&*args); self.cmd_usage() }
             }
         }
     }
@@ -68,10 +71,11 @@ impl CLI {
     pub fn cmd_usage(&self) {
         println!("quit                      Exit this program");
         println!("help                      Display this screen");
-        println!("show                      Show the board");
         println!("play                      Search and play a move");
         println!("undo                      Undo the last move");
         println!("move <move>               Play <move> on the board");
+        println!("show board|think          Show board/think");
+        println!("hide board|think          Hide board/think");
         println!("time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
         println!("setboard <fen>            Set the board to <fen>");
         println!("perft                     Count the nodes at each depth");
@@ -81,12 +85,6 @@ impl CLI {
         println!("xboard                    Start XBoard mode");
     }
 
-    pub fn error(&mut self, args: &[&str]) {
-        let err = self.colorize_red("error:".into());
-        println!("{} unrecognized command '{}'", err, args[0]);
-        println!("");
-    }
-
     pub fn cmd_xboard(&self) {
         let mut xboard = XBoard::new();
         xboard.run();
@@ -94,7 +92,8 @@ impl CLI {
 
     pub fn cmd_setboard(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            panic!("no fen given");
+            self.print_error(format!("no fen given"));
+            return;
         }
 
         let s = args[1..].join(" ");
@@ -102,8 +101,34 @@ impl CLI {
         self.game = FEN::from_fen(fen);
     }
 
-    pub fn cmd_show(&self) {
-        println!("{}", self.game.to_string());
+    pub fn cmd_show(&mut self, args: &[&str]) {
+        if args.len() != 2 {
+            self.print_error(format!("no subcommand given"));
+            return;
+        }
+
+        match args[1] {
+            "board" => { self.show_board = true; }
+            "think" => { self.game.is_verbose = true; }
+            _       => { self.print_error(format!("unrecognized subcommand '{}'", args[1])); }
+        }
+
+        if self.show_board {
+            println!("{}", self.game.to_string());
+        }
+    }
+
+    pub fn cmd_hide(&mut self, args: &[&str]) {
+        if args.len() != 2 {
+            format!("no subcommand given");
+            return;
+        }
+
+        match args[1] {
+            "board" => { self.show_board = false; }
+            "think" => { self.game.is_verbose = false; }
+            _       => { self.print_error(format!("unrecognized subcommand '{}'", args[1])); }
+        }
     }
 
     pub fn cmd_play(&mut self) {
@@ -112,18 +137,25 @@ impl CLI {
         self.game.history.push(m);
 
         println!("move {}", m.to_can());
+
+        if self.show_board {
+            println!("{}", self.game.to_string());
+        }
     }
 
     pub fn cmd_undo(&mut self) {
         let m = self.game.history.pop().unwrap();
         self.game.undo_move(m);
+
+        if self.show_board {
+            println!("{}", self.game.to_string());
+        }
     }
 
     pub fn cmd_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
         if !re.is_match(args[1]) {
-            let err = self.colorize_red("error:".into());
-            println!("{} could not parse move '{}'", err, args[1]);
+            self.print_error(format!("could not parse move '{}'", args[1]));
             return;
         }
         let parsed_move = self.game.move_from_can(&args[1]);
@@ -142,13 +174,16 @@ impl CLI {
             }
         }
         if !is_valid {
-            let err = self.colorize_red("error:".into());
-            println!("{} move '{}' is not a valid move", err, args[1]);
+            self.print_error(format!("move '{}' is not a valid move", args[1]));
             return;
         }
 
         self.game.make_move(parsed_move);
         self.game.history.push(parsed_move);
+
+        if self.show_board {
+            println!("{}", self.game.to_string());
+        }
     }
 
     pub fn cmd_time(&mut self, args: &[&str]) {
@@ -163,7 +198,8 @@ impl CLI {
         let mut nodes_count = 0u64;
 
         if args.len() != 2 {
-            panic!("no depth given");
+            self.print_error(format!("no depth given"));
+            return;
         }
 
         let d = args[1].parse::<usize>().unwrap();
@@ -205,7 +241,8 @@ impl CLI {
 
     pub fn cmd_perftsuite(&mut self, args: &[&str]) {
         if args.len() != 2 {
-            panic!("no filename given");
+            self.print_error(format!("no filename given"));
+            return;
         }
         let path = Path::new(args[1]);
         let file = BufReader::new(File::open(&path).unwrap());
@@ -234,7 +271,8 @@ impl CLI {
 
     pub fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            panic!("no filename given");
+            self.print_error(format!("no filename given"));
+            return;
         }
         let time = if args.len() == 3 {
             args[2].parse::<u64>().unwrap() // `time` is given in seconds
@@ -274,6 +312,20 @@ impl CLI {
             }
         }
         println!("Result {}/{}", r, n);
+    }
+
+    pub fn cmd_error(&mut self, args: &[&str]) {
+        self.print_error(format!("unrecognized command '{}'", args[0]));
+        println!("");
+    }
+
+    fn print_error(&self, msg: String) {
+        let err = if self.game.is_colored {
+            self.colorize_red("error:".into())
+        } else {
+            "error:".into()
+        };
+        println!("{} {}", err, msg);
     }
 
     fn colorize_red(&self, text: String) -> String {
