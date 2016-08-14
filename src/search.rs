@@ -100,7 +100,6 @@ impl Search for Game {
         let is_in_check = self.is_check(side);
         let mut has_legal_moves = false;
 
-        self.nodes_count += 1;
 
         let mut best_move = match self.tt.get(&hash) {
             Some(t) => {

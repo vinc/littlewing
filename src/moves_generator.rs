@@ -41,6 +41,7 @@ pub trait MovesGenerator {
 
 impl MovesGenerator for Game {
     fn make_move(&mut self, m: Move) {
+        self.nodes_count += 1;
         let &position = self.positions.top();
         let mut new_position = position;
         let side = position.side;
