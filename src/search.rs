@@ -12,6 +12,7 @@ pub trait Search {
     fn search(&mut self, mut alpha: i32, beta: i32, depth: usize, ply: usize) -> i32;
     fn root(&mut self, max_depth: usize) -> Move;
     fn print_thinking(&mut self, depth: usize, score: i32, m: Move);
+    fn get_pv(&mut self, depth: usize) -> String;
 }
 
 impl Search for Game {
@@ -66,6 +67,7 @@ impl Search for Game {
                 debug_assert_eq!(old_fen, new_fen);
                 continue;
             }
+            self.nodes_count += 1;
 
             let score = -self.quiescence(-beta, -alpha, ply + 1);
 
@@ -125,6 +127,7 @@ impl Search for Game {
                 continue;
             }
 
+            self.nodes_count += 1;
             has_legal_moves = true;
 
             let score = -self.search(-beta, -alpha, depth - 1, ply + 1);
@@ -218,10 +221,16 @@ impl Search for Game {
                 self.make_move(m);
                 let score = -self.search(-beta, -alpha, depth - 1, ply + 1);
                 if !self.is_check(side) {
+                    self.nodes_count += 1;
                     if score > alpha {
                         if self.is_verbose { // && self.nodes_count > 1000 {
                             // We skip the first thousand nodes to gain time
                             // TODO: do we need this?
+
+                            // Get the PV line from the TT.
+                            if depth == 1 {
+                                self.tt.set(hash, m, score, depth);
+                            }
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
@@ -260,10 +269,45 @@ impl Search for Game {
         let time = self.clock.elapsed_time() / 10; // In centiseconds
 
         self.undo_move(m);
-        let move_str = self.move_to_san(m);
+        let mut pv = self.get_pv(depth);
+
+        if self.positions.top().side == BLACK {
+            let ply = self.positions.len();
+            pv = format!("{}. ... {}", 1 + ply / 2, pv);
+        }
         self.make_move(m);
 
-        println!(" {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time, self.nodes_count, move_str);
+        println!(" {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time, self.nodes_count, pv);
+    }
+
+    fn get_pv(&mut self, depth: usize) -> String {
+        if depth == 0 {
+            return String::new()
+        }
+
+        let mut res = vec![];
+        let mut m = Move::new_null();
+
+        let hash = self.positions.top().hash;
+        if let Some(t) = self.tt.get(&hash) {
+            m = t.best_move;
+
+            if self.positions.top().side == WHITE {
+                let ply = self.positions.len();
+                res.push(format!("{}.", 1 + ply / 2));
+            }
+
+            // TODO: put the rest of the code here (if the compiler allow it)
+        }
+
+        if !m.is_null() {
+            res.push(self.move_to_san(m));
+            self.make_move(m);
+            res.push(self.get_pv(depth - 1));
+            self.undo_move(m);
+        }
+
+        res.join(" ")
     }
 }
 
