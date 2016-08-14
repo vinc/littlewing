@@ -244,8 +244,12 @@ impl Search for Game {
 
         let new_fen = self.to_fen();
         if self.is_verbose {
+            let n = self.nodes_count;
+            let t = self.clock.elapsed_time();
+            let nps = (n as f64) / ((t as f64) / 1000.0);
             println!("# FEN {}", new_fen);
-            println!("# used {} ms to move", self.clock.elapsed_time());
+            println!("# {} ms used in search", t);
+            println!("# {} nodes visited ({:.2e} nps)", n, nps);
             self.tt.print_stats();
         }
         debug_assert_eq!(old_fen, new_fen);

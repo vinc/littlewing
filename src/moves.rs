@@ -7,9 +7,8 @@ use piece::PieceChar;
 use square::SquareString;
 use bitboard::BitboardExt;
 
-const QUIET_MOVE_SCORE: u8 = 0;
-const CAPTURE_SCORE:    u8 = 1;
 const BEST_MOVE_SCORE:  u8 = 255;
+const QUIET_MOVE_SCORE: u8 = 0;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Move(u16);
@@ -129,9 +128,7 @@ pub struct Moves {
     // Index of the current move being searched at a given ply.
     indexes: [usize; MAX_PLY],
 
-    // State of the search (best move first, then generated moves)
-    // at a given ply.
-    states: [MovesState; MAX_PLY],
+    pub skip_moves_ordering: bool,
 
     // Index of the ply currently searched.
     ply: usize,
@@ -144,7 +141,7 @@ impl Moves {
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
             best_moves_counts: [0; MAX_PLY],
-            states: [MovesState::BestMove; MAX_PLY],
+            skip_moves_ordering: false,
             ply: 0,
         }
     }
@@ -161,14 +158,12 @@ impl Moves {
         self.sizes[self.ply] = 0;
         self.indexes[self.ply] = 0;
         self.best_moves_counts[self.ply] = 0;
-        self.states[self.ply] = MovesState::BestMove;
     }
 
     pub fn clear_all(&mut self) {
         self.sizes = [0; MAX_PLY];
         self.indexes = [0; MAX_PLY];
         self.best_moves_counts = [0; MAX_PLY];
-        self.states = [MovesState::BestMove; MAX_PLY];
         self.ply = 0;
     }
 
@@ -180,8 +175,8 @@ impl Moves {
         self.sizes[self.ply]
     }
 
-    pub fn state(&self) -> MovesState {
-        self.states[self.ply]
+    pub fn index(&self) -> usize {
+        self.indexes[self.ply]
     }
 
     #[allow(dead_code)]
@@ -190,6 +185,16 @@ impl Moves {
     }
 
     pub fn add_move(&mut self, m: Move, state: MovesState) {
+        if !self.skip_moves_ordering {
+            // Avoid adding again a best move
+            let n = self.best_moves_counts[self.ply];
+            for i in 0..n {
+                if self.lists[self.ply][i].m == m {
+                    return;
+                }
+            }
+        }
+
         let score = match state {
             MovesState::BestMove => {
                 self.best_moves_counts[self.ply] += 1;
@@ -197,19 +202,10 @@ impl Moves {
                 BEST_MOVE_SCORE
             },
             MovesState::QuietMove => {
-                // Avoid adding again a best move
-                let n = self.best_moves_counts[self.ply];
-                for i in 0..n {
-                    if self.lists[self.ply][i].m == m {
-                        return;
-                    }
-                }
-
-                if m.is_capture() {
-                    CAPTURE_SCORE
-                } else {
-                    QUIET_MOVE_SCORE
-                }
+                // NOTE: we cannot use MVV/LVA or SEE to assign a score to
+                // captures here because we don't have access to the board
+                // from `Moves`.
+                QUIET_MOVE_SCORE
             }
         };
 
@@ -353,19 +349,6 @@ impl Moves {
         self.add_move(m, MovesState::QuietMove);
     }
 
-    pub fn update_state(&mut self) {
-        // TODO: add killers moves and sort the remaining moves
-        // between good captures, bad captures and quiet moves.
-        let current_move_index = self.indexes[self.ply];
-        let number_of_best_moves = self.best_moves_counts[self.ply];
-
-        if current_move_index < number_of_best_moves {
-            self.states[self.ply] = MovesState::BestMove;
-        } else {
-            self.states[self.ply] = MovesState::QuietMove;
-        }
-    }
-
     pub fn swap(&mut self, i: usize, j: usize) {
         self.lists[self.ply].swap(i, j);
     }
@@ -381,17 +364,21 @@ impl Iterator for Moves {
         self.indexes[self.ply] += 1;
 
         if i < n {
-            // Find the next best move by selection sort
-            let mut j = i;
-            for k in (i + 1)..n {
-                if self.lists[self.ply][j].s < self.lists[self.ply][k].s {
-                    j = k
+            if !self.skip_moves_ordering {
+                /*
+                // Find the next best move by selection sort
+                let mut j = i;
+                for k in (i + 1)..n {
+                    if self.lists[self.ply][j].s < self.lists[self.ply][k].s {
+                        j = k
+                    }
                 }
-            }
 
-            // Swap it with the current next move
-            if i != j {
-                self.lists[self.ply].swap(i, j);
+                // Swap it with the current next move
+                if i != j {
+                    self.lists[self.ply].swap(i, j);
+                }
+                */
             }
 
             Some(self.lists[self.ply][i].m)
@@ -448,21 +435,22 @@ mod tests {
 
     #[test]
     fn test_moves_ordering() {
+        // NOTE: move ordering is now done outside of Moves to access the board
         let m1 = Move::new(D2, C2, CAPTURE);
         let m2 = Move::new(D2, C1, QUIET_MOVE);
-        let m3 = Move::new(D2, C3, CAPTURE);
+        //let m3 = Move::new(D2, C3, CAPTURE);
 
         let mut moves = Moves::new();
         moves.add_move(m1, MovesState::BestMove);
         moves.add_move(m2, MovesState::QuietMove);
-        moves.add_move(m3, MovesState::QuietMove);
+        //moves.add_move(m3, MovesState::QuietMove);
 
         println!("m1 = {}, {}", moves[0].m, moves[0].s);
         println!("m2 = {}, {}", moves[1].m, moves[1].s);
-        println!("m3 = {}, {}", moves[2].m, moves[2].s);
+        //println!("m3 = {}, {}", moves[2].m, moves[2].s);
 
         assert_eq!(moves.next(), Some(m1));
-        assert_eq!(moves.next(), Some(m3));
+        //assert_eq!(moves.next(), Some(m3));
         assert_eq!(moves.next(), Some(m2));
         assert_eq!(moves.next(), None);
     }

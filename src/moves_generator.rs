@@ -331,17 +331,16 @@ impl MovesGenerator for Game {
     }
 
     fn next_move(&mut self) -> Option<Move> {
-        let old_state = self.moves.state();
-
-        self.moves.update_state();
-
-        let new_state = self.moves.state();
-
-        // First we search the best move if there is one,
-        // then we generate all the other moves and search those.
-        if new_state != old_state {
+        // FIXME: it's more costly in perft to do this here rather
+        // than before the while loop calling this method.
+        // Lazy moves generation
+        if self.moves.index() == self.moves.len_best_moves() {
             self.generate_moves();
-            self.sort_moves(); // TODO: Disable when running perft
+
+            // No move ordering in perft and perfsuite
+            if !self.moves.skip_moves_ordering {
+                self.sort_moves();
+            }
         }
 
         self.moves.next()
