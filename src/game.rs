@@ -10,6 +10,7 @@ use piece::{PieceAttr, PieceChar};
 
 pub struct Game {
     pub is_verbose: bool,
+    pub is_colored: bool,
     pub nodes_count: u64,
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
@@ -25,6 +26,7 @@ impl Game {
     pub fn new() -> Game {
         Game {
             is_verbose: false,
+            is_colored: false,
             nodes_count: 0,
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
@@ -58,10 +60,14 @@ impl fmt::Display for Game {
                 line.push_str("| ");
                 let p = self.board[8 * (7 - i) + j];
                 let c = p.to_char();
-                if p.color() == WHITE {
-                    line.push_str(&format!("\x1B[1m\x1B[37m{}\x1B[0m", c));
-                } else if p.color() == BLACK {
-                    line.push_str(&format!("\x1B[1m\x1B[31m{}\x1B[0m", c));
+                if self.is_colored {
+                    if p.color() == WHITE {
+                        line.push_str(&format!("\x1B[1m\x1B[37m{}\x1B[0m", c));
+                    } else if p.color() == BLACK {
+                        line.push_str(&format!("\x1B[1m\x1B[31m{}\x1B[0m", c));
+                    }
+                } else {
+                    line.push(c);
                 }
                 line.push_str(" ");
             }

@@ -5,11 +5,8 @@ use clock::Clock;
 use common::*;
 use fen::FEN;
 use game::Game;
-use moves::Move;
 use moves_generator::MovesGenerator;
-use piece::PieceAttr;
 use search::Search;
-use square::SquareString;
 use version;
 
 pub struct XBoard {
@@ -21,7 +18,7 @@ pub struct XBoard {
 impl XBoard {
     pub fn new() -> XBoard {
         XBoard {
-            game: FEN::from_fen(DEFAULT_FEN),
+            game: Game::from_fen(DEFAULT_FEN),
             max_depth: MAX_PLY - 10,
             force: false
         }
@@ -134,49 +131,11 @@ impl XBoard {
     // TODO: move the code doing the actual parsing to `Move::from()`
     pub fn parse_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
-
         if !re.is_match(args[0]) {
             return;
         }
 
-        let side = self.game.positions.top().side;
-        let from: Square = SquareString::from_coord(String::from(&args[0][0..2]));
-        let to: Square = SquareString::from_coord(String::from(&args[0][2..4]));
-
-        let piece = self.game.board[from as usize];
-        let capture = self.game.board[to as usize];
-
-        let mt = if args[0].len() == 5 {
-            let promotion = match args[0].chars().nth(4) {
-                Some('n') => KNIGHT_PROMOTION,
-                Some('b') => BISHOP_PROMOTION,
-                Some('r') => ROOK_PROMOTION,
-                Some('q') => QUEEN_PROMOTION,
-                _         => panic!("could not parse promotion")
-            };
-            if capture == EMPTY {
-                promotion
-            } else {
-                promotion | CAPTURE
-            }
-        } else if piece.kind() == KING && from == E1 ^ 56 * side && to == G1 ^ 56 * side {
-            KING_CASTLE
-        } else if piece.kind() == KING && from == E1 ^ 56 * side && to == C1 ^ 56 * side {
-            QUEEN_CASTLE
-        } else if capture == EMPTY {
-            let d = (to ^ 56 * side) as Direction - (from ^ 56 * side) as Direction;
-            if piece.kind() == PAWN && (d == 2 * UP) {
-                DOUBLE_PAWN_PUSH
-            } else if piece.kind() == PAWN && to == self.game.positions.top().en_passant {
-                EN_PASSANT
-            } else {
-                QUIET_MOVE
-            }
-        } else {
-            CAPTURE
-        };
-
-        let m = Move::new(from, to, mt);
+        let m = self.game.move_from_can(&args[0]);
         self.game.make_move(m);
         self.game.history.push(m);
 

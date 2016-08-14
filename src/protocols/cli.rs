@@ -7,6 +7,8 @@ use std::io::BufReader;
 use std::io::Write;
 use std::path::Path;
 
+use regex::Regex;
+
 use common::*;
 use attack::Attack;
 use clock::Clock;
@@ -18,23 +20,23 @@ use search::Search;
 
 pub struct CLI {
     game: Game,
-    is_colored: bool
+    max_depth: usize
 }
 
 impl CLI {
     pub fn new(args: Vec<String>) -> CLI {
-        let mut is_colored = false;
+        let mut game = Game::from_fen(DEFAULT_FEN);
 
         for arg in &args {
             match arg.as_str() {
-                "-c" | "--color" => { is_colored = true; }
+                "-c" | "--color" => { game.is_colored = true; }
                 _                => { }
             }
         }
 
         CLI {
-            game: FEN::from_fen(DEFAULT_FEN),
-            is_colored: is_colored
+            game: game,
+            max_depth: MAX_PLY - 10
         }
     }
     pub fn run(&mut self) {
@@ -46,33 +48,42 @@ impl CLI {
             let args: Vec<&str> = line.trim().split(' ').collect();
             match args[0] {
                 "quit"       => { break },
+                "help"       => { self.cmd_usage() },
+                "show"       => { self.cmd_show() },
+                "play"       => { self.cmd_play() },
+                "undo"       => { self.cmd_undo() },
+                "move"       => { self.cmd_move(&*args) },
+                "time"       => { self.cmd_time(&*args) },
                 "setboard"   => { self.cmd_setboard(&*args) },
-                "print"      => { self.cmd_print() },
-                "divide"     => { self.cmd_divide(&*args) },
                 "perft"      => { self.cmd_perft() },
                 "perftsuite" => { self.cmd_perftsuite(&*args) },
                 "testsuite"  => { self.cmd_testsuite(&*args) },
+                "divide"     => { self.cmd_divide(&*args) },
                 "xboard"     => { self.cmd_xboard(); break },
-                "help"       => { self.cmd_usage() },
                 _            => { self.error(&*args); self.cmd_usage() }
             }
         }
     }
 
     pub fn cmd_usage(&self) {
+        println!("quit                      Exit this program");
         println!("help                      Display this screen");
+        println!("show                      Show the board");
+        println!("play                      Search and play a move");
+        println!("undo                      Undo the last move");
+        println!("move <move>               Play <move> on the board");
+        println!("time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
         println!("setboard <fen>            Set the board to <fen>");
-        println!("print                     Print the board");
-        println!("divide <depth>            Count the nodes at <depth> for each moves");
         println!("perft                     Count the nodes at each depth");
         println!("perftsuite <epd>          Compare perft results to each position of <epd>");
         println!("testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
+        println!("divide <depth>            Count the nodes at <depth> for each moves");
         println!("xboard                    Start XBoard mode");
-        println!("quit                      Exit this program");
     }
 
     pub fn error(&mut self, args: &[&str]) {
-        println!("Unrecognized command '{}'", args[0]);
+        let err = self.colorize_red("error:".into());
+        println!("{} unrecognized command '{}'", err, args[0]);
         println!("");
     }
 
@@ -91,8 +102,59 @@ impl CLI {
         self.game = FEN::from_fen(fen);
     }
 
-    pub fn cmd_print(&self) {
+    pub fn cmd_show(&self) {
         println!("{}", self.game.to_string());
+    }
+
+    pub fn cmd_play(&mut self) {
+        let m = self.game.root(self.max_depth);
+        self.game.make_move(m);
+        self.game.history.push(m);
+
+        println!("move {}", m.to_can());
+    }
+
+    pub fn cmd_undo(&mut self) {
+        let m = self.game.history.pop().unwrap();
+        self.game.undo_move(m);
+    }
+
+    pub fn cmd_move(&mut self, args: &[&str]) {
+        let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
+        if !re.is_match(args[1]) {
+            let err = self.colorize_red("error:".into());
+            println!("{} could not parse move '{}'", err, args[1]);
+            return;
+        }
+        let parsed_move = self.game.move_from_can(&args[1]);
+
+        let mut is_valid = false;
+        let side = self.game.positions.top().side;
+        self.game.moves.clear();
+        while let Some(m) = self.game.next_move() {
+            if m == parsed_move {
+                self.game.make_move(m);
+                if !self.game.is_check(side) {
+                    is_valid = true;
+                }
+                self.game.undo_move(m);
+                break;
+            }
+        }
+        if !is_valid {
+            let err = self.colorize_red("error:".into());
+            println!("{} move '{}' is not a valid move", err, args[1]);
+            return;
+        }
+
+        self.game.make_move(parsed_move);
+        self.game.history.push(parsed_move);
+    }
+
+    pub fn cmd_time(&mut self, args: &[&str]) {
+        let moves = args[1].parse::<u16>().unwrap();
+        let time = args[2].parse::<u64>().unwrap();
+        self.game.clock = Clock::new(moves, time * 1000);
     }
 
     pub fn cmd_divide(&mut self, args: &[&str]) {
@@ -215,7 +277,7 @@ impl CLI {
     }
 
     fn colorize_red(&self, text: String) -> String {
-        if self.is_colored {
+        if self.game.is_colored {
             format!("\x1B[31m{}\x1B[0m", text)
         } else {
             text
@@ -223,7 +285,7 @@ impl CLI {
     }
 
     fn colorize_green(&self, text: String) -> String {
-        if self.is_colored {
+        if self.game.is_colored {
             format!("\x1B[32m{}\x1B[0m", text)
         } else {
             text
