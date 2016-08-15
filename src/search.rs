@@ -8,10 +8,10 @@ use moves_generator::MovesGenerator;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
-    fn quiescence(&mut self, mut alpha: i32, beta: i32, ply: usize) -> i32;
-    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize, ply: usize) -> i32;
+    fn quiescence(&mut self, mut alpha: Score, beta: Score, ply: usize) -> Score;
+    fn search(&mut self, mut alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
     fn root(&mut self, max_depth: usize) -> Move;
-    fn print_thinking(&mut self, depth: usize, score: i32, m: Move);
+    fn print_thinking(&mut self, depth: usize, score: Score, m: Move);
     fn get_pv(&mut self, depth: usize) -> String;
 }
 
@@ -34,7 +34,7 @@ impl Search for Game {
         }
     }
 
-    fn quiescence(&mut self, mut alpha: i32, beta: i32, ply: usize) -> i32 {
+    fn quiescence(&mut self, mut alpha: Score, beta: Score, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
             return 0
         }
@@ -86,7 +86,7 @@ impl Search for Game {
         alpha
     }
 
-    fn search(&mut self, mut alpha: i32, beta: i32, depth: usize, ply: usize) -> i32 {
+    fn search(&mut self, mut alpha: Score, beta: Score, depth: usize, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
             return 0;
         }
@@ -105,11 +105,11 @@ impl Search for Game {
 
         let mut best_move = match self.tt.get(&hash) {
             Some(t) => {
-                if t.depth > depth { // This node has already been searched
-                    return t.score
+                if t.depth() > depth { // This node has already been searched
+                    return t.score()
                 }
 
-                t.best_move
+                t.best_move()
             },
             None    => Move::new_null()
         };
@@ -147,7 +147,7 @@ impl Search for Game {
         // TODO: could we just use `best_move.is_null()` ?
         if !has_legal_moves { // End of game
             if is_in_check {
-                return -INF + (ply as i32); // Checkmate
+                return -INF + (ply as Score); // Checkmate
             } else {
                 return 0; // Stalemate
             }
@@ -166,7 +166,7 @@ impl Search for Game {
         let ply = 0;
         self.nodes_count = 0;
         self.moves.clear_all();
-        self.tt.clear_stats();
+        self.tt.clear();
         self.clock.start(self.positions.len());
 
         let old_fen = self.to_fen();
@@ -200,7 +200,7 @@ impl Search for Game {
                 // Stop the search if the position was mate at the 3 previous
                 // shallower depths.
                 let mut is_mate = true;
-                let inf = INF - (MAX_PLY as i32);
+                let inf = INF - (MAX_PLY as Score);
                 for d in 1..4 {
                     let score = best_scores[depth - d];
                     if -inf < score && score < inf {
@@ -265,7 +265,7 @@ impl Search for Game {
         best_move
     }
 
-    fn print_thinking(&mut self, depth: usize, score: i32, m: Move) {
+    fn print_thinking(&mut self, depth: usize, score: Score, m: Move) {
         let time = self.clock.elapsed_time() / 10; // In centiseconds
 
         self.undo_move(m);
@@ -290,7 +290,7 @@ impl Search for Game {
 
         let hash = self.positions.top().hash;
         if let Some(t) = self.tt.get(&hash) {
-            m = t.best_move;
+            m = t.best_move();
 
             if self.positions.top().side == WHITE {
                 let ply = self.positions.len();

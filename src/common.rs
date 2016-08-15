@@ -6,8 +6,9 @@ pub type Direction = i8;
 pub type MoveType = u8;
 pub type Piece = u8;
 pub type Square = u8;
+pub type Score = i16;
 
-pub const INF: i32 = 29999;
+pub const INF: Score = 29999;
 
 pub const WHITE:  Color = 0b0000; // 0
 pub const BLACK:  Color = 0b0001; // 1
@@ -163,6 +164,8 @@ pub const SQUARES: [Square; 64] = [
 pub const MAX_PLY: usize = 128;
 pub const MAX_MOVES: usize = 256;
 pub const MAX_POSITIONS: usize = 512;
+
+pub const TT_SIZE: usize = 8 << 20; // 8 Mb
 
 lazy_static! {
     pub static ref PIECE_MASKS: [[Bitboard; 64]; 14] = { // TODO: s/12/5/

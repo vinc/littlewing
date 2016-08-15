@@ -1,10 +1,11 @@
+use std::mem;
 use std::fmt;
 
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};
 use position::Positions;
-use transpositions::Transpositions;
+use transpositions::{Transposition, Transpositions};
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
@@ -24,6 +25,8 @@ pub struct Game {
 
 impl Game {
     pub fn new() -> Game {
+        let tt_size = TT_SIZE / mem::size_of::<Transposition>();
+
         Game {
             is_verbose: false,
             is_colored: false,
@@ -35,7 +38,7 @@ impl Game {
             positions: Positions::new(),
             zobrist: Zobrist::new(),
             history: Vec::new(),
-            tt: Transpositions::with_capacity(100000)
+            tt: Transpositions::with_capacity(tt_size)
         }
     }
 
