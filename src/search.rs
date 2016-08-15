@@ -273,7 +273,7 @@ impl Search for Game {
 
         if self.positions.top().side == BLACK {
             let ply = self.positions.len();
-            pv = format!("{}. ... {}", 1 + ply / 2, pv);
+            pv = format!("{}. ... {}", ply / 2, pv);
         }
         self.make_move(m);
 
@@ -294,7 +294,7 @@ impl Search for Game {
 
             if self.positions.top().side == WHITE {
                 let ply = self.positions.len();
-                res.push(format!("{}.", 1 + ply / 2));
+                res.push(format!("{}.", 1 + (ply / 2)));
             }
 
             // TODO: put the rest of the code here (if the compiler allow it)
