@@ -133,10 +133,21 @@ impl CLI {
 
     pub fn cmd_play(&mut self) {
         let m = self.game.root(self.max_depth);
-        self.game.make_move(m);
-        self.game.history.push(m);
 
-        println!("move {}", m.to_can());
+        if m.is_null() {
+            if self.game.is_check(WHITE) {
+                println!("black mates");
+            } else if self.game.is_check(BLACK) {
+                println!("white mates");
+            } else {
+                println!("draw");
+            }
+        } else {
+            self.game.make_move(m);
+            self.game.history.push(m);
+
+            println!("move {}", m.to_can());
+        }
 
         if self.show_board {
             println!("{}", self.game.to_string());
