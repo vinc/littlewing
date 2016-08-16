@@ -10,7 +10,7 @@ pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
     fn quiescence(&mut self, mut alpha: Score, beta: Score, ply: usize) -> Score;
     fn search(&mut self, mut alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
-    fn root(&mut self, max_depth: usize) -> Move;
+    fn root(&mut self, max_depth: usize) -> Option<Move>;
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move);
     fn get_pv(&mut self, depth: usize) -> String;
 }
@@ -160,7 +160,7 @@ impl Search for Game {
         alpha
     }
 
-    fn root(&mut self, max_depth: usize) -> Move {
+    fn root(&mut self, max_depth: usize) -> Option<Move> {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
         let ply = 0;
@@ -262,7 +262,11 @@ impl Search for Game {
         }
         debug_assert_eq!(old_fen, new_fen);
 
-        best_move
+        if best_move.is_null() {
+            None
+        } else {
+            Some(best_move)
+        }
     }
 
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move) {
@@ -400,7 +404,7 @@ mod tests {
         let best_move = Move::new(G2, H3, QUIET_MOVE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
-        let m = game.root(10);
+        let m = game.root(10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
 
 
@@ -408,8 +412,14 @@ mod tests {
         let best_move = Move::new(H6, H7, CAPTURE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
-        let m = game.root(10);
+        let m = game.root(10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
+
+
+        let fen = "1n6/2rp3p/5Bpk/2p1P3/p1P2P2/5K2/PPB3P1/R6R b - - 0 1";
+        let mut game = Game::from_fen(fen);
+        game.clock = Clock::new(1, 1 * 1000); // 1 seconds
+        assert_eq!(game.root(10), None);
     }
 
     #[test]

@@ -132,21 +132,22 @@ impl CLI {
     }
 
     pub fn cmd_play(&mut self) {
-        let m = self.game.root(self.max_depth);
+        match self.game.root(self.max_depth) {
+            None => {
+                if self.game.is_check(WHITE) {
+                    println!("black mates");
+                } else if self.game.is_check(BLACK) {
+                    println!("white mates");
+                } else {
+                    println!("draw");
+                }
+            },
+            Some(m) => {
+                self.game.make_move(m);
+                self.game.history.push(m);
 
-        if m.is_null() {
-            if self.game.is_check(WHITE) {
-                println!("black mates");
-            } else if self.game.is_check(BLACK) {
-                println!("white mates");
-            } else {
-                println!("draw");
+                println!("move {}", m.to_can());
             }
-        } else {
-            self.game.make_move(m);
-            self.game.history.push(m);
-
-            println!("move {}", m.to_can());
         }
 
         if self.show_board {
@@ -308,7 +309,7 @@ impl CLI {
             let move_str = fields.next().unwrap();
             let type_str = fields.next().unwrap();
 
-            let best_move = self.game.root(MAX_PLY);
+            let best_move = self.game.root(MAX_PLY).unwrap();
             let best_move_str = self.game.move_to_san(best_move);
             let found = match type_str {
                 "bm" => move_str == best_move_str,

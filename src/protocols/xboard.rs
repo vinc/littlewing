@@ -1,8 +1,9 @@
 use std::io;
 use regex::Regex;
 
-use clock::Clock;
 use common::*;
+use attack::Attack;
+use clock::Clock;
 use fen::FEN;
 use game::Game;
 use moves_generator::MovesGenerator;
@@ -145,10 +146,22 @@ impl XBoard {
     }
 
     pub fn think(&mut self) {
-        let m = self.game.root(self.max_depth);
-        self.game.make_move(m);
-        self.game.history.push(m);
+        match self.game.root(self.max_depth) {
+            None => {
+                if self.game.is_check(WHITE) {
+                    println!("0-1 {{black mates}}");
+                } else if self.game.is_check(BLACK) {
+                    println!("1-0 {{white mates}}");
+                } else {
+                    println!("1/2-1/2 {{draw}}");
+                }
+            },
+            Some(m) => {
+                self.game.make_move(m);
+                self.game.history.push(m);
 
-        println!("move {}", m.to_can());
+                println!("move {}", m.to_can());
+            }
+        }
     }
 }
