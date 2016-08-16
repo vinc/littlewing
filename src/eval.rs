@@ -56,7 +56,7 @@ mod tests {
 
     #[bench]
     fn bench_eval(b: &mut Bencher) {
-        let game: Game = FEN::from_fen(DEFAULT_FEN);
+        let game = Game::from_fen(DEFAULT_FEN);
         b.iter(|| {
             game.eval()
         })

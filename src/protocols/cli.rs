@@ -252,7 +252,7 @@ impl CLI {
     }
 
     pub fn cmd_perftsuite(&mut self, args: &[&str]) {
-        if args.len() != 2 {
+        if args.len() == 1 {
             self.print_error(format!("no filename given"));
             return;
         }

@@ -576,7 +576,7 @@ mod tests {
 
     #[bench]
     fn bench_make_undo_move(b: &mut Bencher) {
-        let mut game: Game = FEN::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN);
         let m = Move::new(E2, E3, QUIET_MOVE);
 
         b.iter(|| {

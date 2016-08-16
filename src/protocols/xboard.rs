@@ -1,3 +1,4 @@
+use std::mem;
 use std::io;
 use regex::Regex;
 
@@ -8,6 +9,7 @@ use fen::FEN;
 use game::Game;
 use moves_generator::MovesGenerator;
 use search::Search;
+use transpositions::{Transposition, Transpositions};
 use version;
 
 pub struct XBoard {
@@ -42,6 +44,7 @@ impl XBoard {
                 "time"     => self.cmd_time(&*args),
                 "ping"     => self.cmd_ping(&*args),
                 "setboard" => self.cmd_setboard(&*args),
+                "memory"   => self.cmd_memory(&*args),
                 "sd"       => self.cmd_depth(&*args),
                 "level"    => self.cmd_level(&*args),
                 "protover" => self.cmd_protover(&*args),
@@ -101,9 +104,10 @@ impl XBoard {
             panic!("no fen given");
         }
 
-        let s = args[1..].join(" ");
-        let fen = &*s;
-        self.game = Game::from_fen(fen);
+        let fen = args[1..].join(" ");
+
+        self.game.clear();
+        self.game.load_fen(&fen);
     }
 
     pub fn cmd_level(&mut self, args: &[&str]) {
@@ -123,10 +127,18 @@ impl XBoard {
         self.max_depth = args[1].parse::<usize>().unwrap() + 1;
     }
 
+    pub fn cmd_memory(&mut self, args: &[&str]) {
+        let s = args[1].parse::<usize>().unwrap(); // In megabytes
+        let n = (s << 20) / mem::size_of::<Transposition>();
+
+        self.game.tt = Transpositions::with_capacity(n);
+    }
+
+
     #[allow(unused_variables)]
     pub fn cmd_protover(&mut self, args: &[&str]) { // FIXME
         println!("feature myname=\"{}\"", version());
-        println!("feature sigint=0 ping=1 setboard=1 done=1");
+        println!("feature sigint=0 ping=1 setboard=1 memory=1 done=1");
     }
 
     // TODO: move the code doing the actual parsing to `Move::from()`

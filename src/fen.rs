@@ -142,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_from_fen() {
-        let game: Game = FEN::from_fen(DEFAULT_FEN);
+        let game = Game::from_fen(DEFAULT_FEN);
         assert_eq!(game.board[E2 as usize], WHITE_PAWN);
     }
 
@@ -154,7 +154,7 @@ mod tests {
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1"
         ];
         for &fen in fens.iter() {
-            let game: Game = FEN::from_fen(fen);
+            let game = Game::from_fen(fen);
             assert_eq!(&*(game.to_fen()), fen);
         }
     }
