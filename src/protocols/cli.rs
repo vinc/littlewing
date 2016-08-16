@@ -98,7 +98,7 @@ impl CLI {
 
         let s = args[1..].join(" ");
         let fen = &*s;
-        self.game = FEN::from_fen(fen);
+        self.game.load_fen(fen);
     }
 
     pub fn cmd_show(&mut self, args: &[&str]) {
@@ -263,7 +263,7 @@ impl CLI {
             let mut fields = l.split(';');
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
-            self.game = Game::from_fen(fen);
+            self.game.load_fen(fen);
             self.game.moves.skip_moves_ordering = true;
             for field in fields {
                 let mut it = field.trim().split(' ');
@@ -301,7 +301,7 @@ impl CLI {
             let mut fields = l.split(';');
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
-            self.game = FEN::from_fen(fen);
+            self.game.load_fen(fen);
             self.game.clock = Clock::new(1, time * 1000);
 
             // TODO: There can be more than one move

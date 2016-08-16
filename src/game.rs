@@ -48,6 +48,7 @@ impl Game {
         self.moves.clear_all();
         self.positions.clear();
         self.history.clear();
+        self.tt.clear();
     }
 }
 
