@@ -165,7 +165,17 @@ impl Search for Game {
         let side = self.positions.top().side;
         let ply = 0;
         self.nodes_count = 0;
+
+        // NOTE: `clear_all()` will zero everything internally, including
+        // ply counter, while `clear()` will just reset the counter for
+        // the current ply.
+        // By using `clear_all()` we make sure that we can always search
+        // very deep, even at the end of a very long game. But we loose
+        // the ability to undo moves outside of the search function unless
+        // we make a special case in `undo_move` for the root. In that special
+        // case we don't decrement the ply counter that is already at 0.
         self.moves.clear_all();
+
         self.tt.clear();
         self.clock.start(self.positions.len());
 

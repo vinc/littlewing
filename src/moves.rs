@@ -151,7 +151,12 @@ impl Moves {
     }
 
     pub fn dec(&mut self) {
-        self.ply -= 1;
+        // NOTE: the condition is only required if we use `moves.clear_all()`
+        // in `root()` instead of `moves.clear()` that is used in `search()`
+        // and `quiescence()`.
+        if self.ply > 0 {
+            self.ply -= 1;
+        }
     }
 
     pub fn clear(&mut self) {

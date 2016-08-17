@@ -77,8 +77,10 @@ impl XBoard {
     }
 
     pub fn cmd_undo(&mut self) {
-        let m = self.game.history.pop().unwrap();
-        self.game.undo_move(m);
+        if self.game.history.len() > 0 {
+            let m = self.game.history.pop().unwrap();
+            self.game.undo_move(m);
+        }
     }
 
     pub fn cmd_remove(&mut self) {

@@ -156,8 +156,10 @@ impl CLI {
     }
 
     pub fn cmd_undo(&mut self) {
-        let m = self.game.history.pop().unwrap();
-        self.game.undo_move(m);
+        if self.game.history.len() > 0 {
+            let m = self.game.history.pop().unwrap();
+            self.game.undo_move(m);
+        }
 
         if self.show_board {
             println!("{}", self.game.to_string());
@@ -354,5 +356,30 @@ impl CLI {
         } else {
             text
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_undo() {
+        let mut cli = CLI::new(vec![]);
+
+        // Undo 1 move
+        cli.cmd_play();
+        cli.cmd_undo();
+
+        // Undo 2 moves
+        cli.cmd_play();
+        cli.cmd_play();
+        cli.cmd_undo();
+        cli.cmd_undo();
+
+        // Undo 0 moves
+        cli.cmd_undo();
+
+        assert!(true);
     }
 }
