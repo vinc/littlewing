@@ -20,7 +20,7 @@ Then you can easily compile it:
     $ cargo build --release
     $ sudo cp target/release/littlewing /usr/local/bin
 
-Littlewing is compatible with the XBoard protocol, and it has its own
+Little Wing is compatible with the XBoard protocol, and it has its own
 text-based user interface:
 
     $ littlewing --color
@@ -112,7 +112,7 @@ Run the test suite from Cargo:
 
     $ cargo test
 
-Littlewing also have a `perft` command for counting the number of nodes at
+Little Wing also have a `perft` command for counting the number of nodes at
 each depth from the starting position.
 
     $ cargo run
