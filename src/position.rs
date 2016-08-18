@@ -4,6 +4,7 @@ use common::*;
 
 #[derive(Copy, Clone)]
 pub struct Position {
+    pub halfmoves_count: u8,
     pub hash: u64,
     pub side: Color,
     pub capture: Piece,
@@ -14,6 +15,7 @@ pub struct Position {
 impl Position {
     pub fn new() -> Position {
         Position {
+            halfmoves_count: 0,
             hash: 0, // FIXME
             side: WHITE,
             capture: EMPTY,
@@ -56,6 +58,29 @@ impl Positions {
     #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.ply
+    }
+
+    pub fn is_draw(&self) -> bool {
+        // Fifty-move rule
+        if self.top().halfmoves_count >= 99 {
+            return true // Fifty-move rule
+        }
+
+        // Threefold repetitions
+        let hash = self.top().hash;
+        let mut i = self.len() - 1;
+        while i >= 2 {
+            i -= 2;
+            if self[i].hash == hash {
+                return true
+            }
+            if self[i].halfmoves_count == 0 {
+                break;
+            }
+            // TODO: allow one repetition
+        }
+
+        false
     }
 }
 

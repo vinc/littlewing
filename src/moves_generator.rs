@@ -41,9 +41,9 @@ pub trait MovesGenerator {
 
 impl MovesGenerator for Game {
     fn make_move(&mut self, m: Move) {
-        let &position = self.positions.top();
-        let mut new_position = position;
-        let side = position.side;
+        let &old_position = self.positions.top();
+        let mut new_position = old_position;
+        let side = old_position.side;
 
         let piece = self.board[m.from() as usize];
         let capture = self.board[m.to() as usize]; // TODO: En passant
@@ -54,23 +54,39 @@ impl MovesGenerator for Game {
         debug_assert!(!self.bitboards[piece as usize].get(m.from()));
         self.board[m.from() as usize] = EMPTY;
         new_position.hash ^= self.zobrist.positions[piece as usize][m.from() as usize];
+        new_position.halfmoves_count += 1;
 
         // Update castling rights
         if piece.kind() == KING {
+            if new_position.castling_rights[side as usize][(KING >> 3) as usize] {
+                new_position.halfmoves_count = 0;
+            }
+            if new_position.castling_rights[side as usize][(QUEEN >> 3) as usize] {
+                new_position.halfmoves_count = 0;
+            }
             new_position.castling_rights[side as usize][(KING >> 3) as usize] = false;
             new_position.castling_rights[side as usize][(QUEEN >> 3) as usize] = false;
             new_position.hash ^= self.zobrist.castling_rights[side as usize][(KING >> 3) as usize];
             new_position.hash ^= self.zobrist.castling_rights[side as usize][(QUEEN >> 3) as usize];
         } else if piece.kind() == ROOK {
             if m.from() == H1 ^ 56 * side {
+                if new_position.castling_rights[side as usize][(KING >> 3) as usize] {
+                    new_position.halfmoves_count = 0;
+                }
                 new_position.castling_rights[side as usize][(KING >> 3) as usize] = false;
                 new_position.hash ^= self.zobrist.castling_rights[side as usize][(KING >> 3) as usize];
             }
             if m.from() == A1 ^ 56 * side {
+                if new_position.castling_rights[side as usize][(QUEEN >> 3) as usize] {
+                    new_position.halfmoves_count = 0;
+                }
                 new_position.castling_rights[side as usize][(QUEEN >> 3) as usize] = false;
                 new_position.hash ^= self.zobrist.castling_rights[side as usize][(QUEEN >> 3) as usize];
             }
+        } else if piece.kind() == PAWN {
+            new_position.halfmoves_count = 0;
         }
+
         if capture.kind() == ROOK {
             if m.to() == H1 ^ 56 * (side ^ 1) {
                 new_position.castling_rights[(side ^ 1) as usize][(KING >> 3) as usize] = false;
@@ -83,6 +99,7 @@ impl MovesGenerator for Game {
         }
 
         if m.is_castle() {
+            new_position.halfmoves_count = 0;
             let rook = side | ROOK;
 
             let (rook_from, rook_to) = if m.castle_kind() == KING {
@@ -102,6 +119,7 @@ impl MovesGenerator for Game {
         }
 
         if m.is_promotion() {
+            new_position.halfmoves_count = 0;
             let promoted_piece = side | m.promotion_kind();
             self.board[m.to() as usize] = promoted_piece;
             self.bitboards[promoted_piece as usize].toggle(m.to());
@@ -119,8 +137,8 @@ impl MovesGenerator for Game {
             OUT
         };
 
-        if position.en_passant != OUT {
-            new_position.hash ^= self.zobrist.en_passant[position.en_passant as usize]; // TODO ?
+        if old_position.en_passant != OUT {
+            new_position.hash ^= self.zobrist.en_passant[old_position.en_passant as usize]; // TODO ?
         }
         if new_position.en_passant != OUT {
             new_position.hash ^= self.zobrist.en_passant[new_position.en_passant as usize];
@@ -131,13 +149,16 @@ impl MovesGenerator for Game {
         self.bitboards[side as usize].toggle(m.to());
         debug_assert!(self.bitboards[side as usize].get(m.to()));
 
+        // if m.is_capture() {
         if capture != EMPTY {
+            new_position.halfmoves_count = 0;
             self.bitboards[capture as usize].toggle(m.to());
             self.bitboards[(side ^ 1) as usize].toggle(m.to());
             new_position.hash ^= self.zobrist.positions[capture as usize][m.to() as usize];
         }
 
         if m.kind() == EN_PASSANT {
+            new_position.halfmoves_count = 0;
             //let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
             let square = ((((m.to() as i8) ^ (56 * (side as i8))) + DOWN) ^ (56 * (side as i8))) as Square;
             self.board[square as usize] = EMPTY;
@@ -552,6 +573,23 @@ mod tests {
 
         let m = game.move_from_can("g1f3");
         assert_eq!(m, Move::new(G1, F3, QUIET_MOVE));
+    }
+
+    #[test]
+    fn test_make_move_update_halfmoves_count() {
+        let fen = "7r/k7/7p/r2p3P/p2PqB2/2R3P1/5K2/3Q3R w - - 25 45";
+        let mut game = Game::from_fen(fen);
+
+        assert_eq!(game.positions.top().halfmoves_count, 0);
+
+        game.make_move(Move::new(F2, G1, QUIET_MOVE));
+        assert_eq!(game.positions.top().halfmoves_count, 1);
+
+        game.make_move(Move::new(A7, B7, QUIET_MOVE));
+        assert_eq!(game.positions.top().halfmoves_count, 2);
+
+        game.make_move(Move::new(F4, H6, CAPTURE));
+        assert_eq!(game.positions.top().halfmoves_count, 0);
     }
 
     /*

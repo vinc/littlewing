@@ -99,6 +99,11 @@ impl Search for Game {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
 
+        // Detect draw by threefold repetitions and fifty-moves rule
+        if self.positions.is_draw() {
+            return 0;
+        }
+
         let is_in_check = self.is_check(side);
         let mut has_legal_moves = false;
 
@@ -265,7 +270,6 @@ impl Search for Game {
             let n = self.nodes_count;
             let t = self.clock.elapsed_time();
             let nps = (n as f64) / ((t as f64) / 1000.0);
-            println!("# FEN {}", new_fen);
             println!("# {} ms used in search", t);
             println!("# {} nodes visited ({:.2e} nps)", n, nps);
             self.tt.print_stats();
@@ -453,5 +457,27 @@ mod tests {
         game.undo_move(m);
         game.bitboards[(WHITE | PAWN) as usize].debug();
         assert!(!game.bitboards[(WHITE | PAWN) as usize].get(F8));
+    }
+
+    #[test]
+    fn test_repetitions() {
+        let fen = "7r/k7/7p/r2p3P/p2PqB2/2R3P1/5K2/3Q3R w - - 25 45";
+        let mut game = Game::from_fen(fen);
+
+        let m1 = Move::new(F2, G1, QUIET_MOVE);
+        let m2 = Move::new(A7, B7, QUIET_MOVE);
+        let m3 = Move::new(G1, F2, QUIET_MOVE);
+        let m4 = Move::new(B7, A7, QUIET_MOVE);
+        game.make_move(m1);
+        game.make_move(m2);
+        game.make_move(m3);
+        game.make_move(m4);
+        game.make_move(m1);
+        game.make_move(m2);
+        game.make_move(m3);
+        game.make_move(m4);
+        game.clock = Clock::new(1, 1000); // 1 second
+        let m = game.root(10).unwrap();
+        assert!(m != m1);
     }
 }
