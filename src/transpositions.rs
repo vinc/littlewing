@@ -12,6 +12,13 @@ pub struct Transposition {
 
     // NOTE: `depth` will never go above MAX_PLY, which is 128 so we can store
     // it as `u8`.
+    //
+    // TODO: we don't need to store the whole hash as the first part is the
+    // index of the entry: `entries[hash % size]`
+    //
+    // TODO: add age counter incremented at the begining of each root search
+    // to be used to replace old entries from previous search without having
+    // to clear the whole table.
 }
 
 impl Transposition {
@@ -68,8 +75,8 @@ impl Transpositions {
         self.stats_lookups += 1;
 
         let n = self.size as u64;
-        let k = hash % n; // TODO: hash & (n - 1)
-        let t = &self.entries[k as usize]; // TODO: use get_unchecked?
+        let k = (hash % n) as usize; // TODO: hash & (n - 1)
+        let t = &self.entries[k]; // TODO: use get_unchecked?
 
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
@@ -78,7 +85,7 @@ impl Transpositions {
             self.stats_collisions += 1;
             None
         } else {
-            assert_eq!(&t.hash, hash);
+            debug_assert_eq!(&t.hash, hash);
             Some(t)
         }
     }
@@ -88,9 +95,14 @@ impl Transpositions {
 
         let t = Transposition::new(hash, best_move, score, depth);
         let n = self.size as u64;
-        let k = hash % n;
+        let k = (hash % n) as usize;
 
-        self.entries[k as usize] = t;
+        // NOTE: replacement strategies:
+        // 1. Always replace
+        // 2. Depth prefered
+        if self.entries[k].depth() < depth { // Using "depth prefered"
+            self.entries[k] = t;
+        }
     }
 
     pub fn clear(&mut self) {
