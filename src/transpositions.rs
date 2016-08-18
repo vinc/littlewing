@@ -51,6 +51,7 @@ pub struct Transpositions {
     pub size: usize,
     pub stats_lookups: u64,
     pub stats_inserts: u64,
+    pub stats_hits : u64,
     pub stats_collisions: u64
 }
 
@@ -67,6 +68,7 @@ impl Transpositions {
             size: size,
             stats_lookups: 0,
             stats_inserts: 0,
+            stats_hits: 0,
             stats_collisions: 0
         }
     }
@@ -86,6 +88,7 @@ impl Transpositions {
             None
         } else {
             debug_assert_eq!(&t.hash, hash);
+            self.stats_hits += 1;
             Some(t)
         }
     }
@@ -111,13 +114,15 @@ impl Transpositions {
 
         self.stats_lookups = 0;
         self.stats_inserts = 0;
+        self.stats_hits = 0;
         self.stats_collisions = 0;
     }
 
     pub fn print_stats(&mut self) {
         println!("# tt size:       {}", self.entries.len());
-        println!("# tt lookups:    {}", self.stats_lookups);
         println!("# tt inserts:    {}", self.stats_inserts);
+        println!("# tt lookups:    {}", self.stats_lookups);
+        println!("# tt hits:       {}", self.stats_hits);
         println!("# tt collisions: {}", self.stats_collisions);
     }
 }

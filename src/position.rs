@@ -7,8 +7,8 @@ pub struct Position {
     pub halfmoves_count: u8,
     pub hash: u64,
     pub side: Color,
-    pub capture: Piece,
-    pub en_passant: Square,
+    pub capture: Piece, // TODO: use `Option<Piece>`?
+    pub en_passant: Square, // TODO: use `Option<Square>`?
     pub castling_rights: [[bool; 2]; 2]
 }
 
@@ -16,10 +16,10 @@ impl Position {
     pub fn new() -> Position {
         Position {
             halfmoves_count: 0,
-            hash: 0, // FIXME
+            hash: 0, // TODO: is it a problem for the starting position?
             side: WHITE,
-            capture: EMPTY,
-            en_passant: OUT,
+            capture: EMPTY, // TODO: use `None`?
+            en_passant: OUT, // TODO: use `None`?
             castling_rights: [[false; 2]; 2]
         }
     }
