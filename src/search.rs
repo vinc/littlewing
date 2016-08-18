@@ -104,14 +104,14 @@ impl Search for Game {
 
 
         let mut best_move = match self.tt.get(&hash) {
+            None    => Move::new_null(),
             Some(t) => {
-                if t.depth() > depth { // This node has already been searched
+                if t.depth() >= depth { // This node has already been searched
                     return t.score()
                 }
 
                 t.best_move()
-            },
-            None    => Move::new_null()
+            }
         };
 
         self.moves.clear();
