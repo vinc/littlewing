@@ -312,7 +312,16 @@ impl CLI {
             let type_str = fields.next().unwrap();
 
             let best_move = self.game.root(MAX_PLY).unwrap();
-            let best_move_str = self.game.move_to_san(best_move);
+            let mut best_move_str = self.game.move_to_san(best_move);
+
+            // Add `+` to move in case of check
+            let side = self.game.positions.top().side;
+            self.game.make_move(best_move);
+            if self.game.is_check(side ^ 1) {
+                best_move_str.push('+');
+            }
+            self.game.undo_move(best_move);
+
             let found = match type_str {
                 "bm" => move_str == best_move_str,
                 "am" => move_str != best_move_str,

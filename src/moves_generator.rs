@@ -289,7 +289,6 @@ impl MovesGenerator for Game {
 
     // NOTE: this function assumes that the move has not been played yet
     fn move_to_san(&mut self, m: Move) -> String {
-        let side = self.positions.top().side;
         let piece = self.board[m.from() as usize];
 
         let mut out = String::new();
@@ -328,12 +327,6 @@ impl MovesGenerator for Game {
             out.push('=');
             out.push(m.promotion_kind().to_char());
         }
-
-        self.make_move(m);
-        if self.is_check(side ^ 1) {
-            out.push('+');
-        }
-        self.undo_move(m);
 
         out
     }
@@ -383,7 +376,7 @@ impl MovesGenerator for Game {
     }
 
     fn move_from_can(&mut self, s: &str) -> Move {
-        assert!(s.len() == 4 || s.len() == 5);
+        debug_assert!(s.len() == 4 || s.len() == 5);
 
         let side = self.positions.top().side;
         let (a, b) = s.split_at(2);
@@ -590,6 +583,16 @@ mod tests {
 
         game.make_move(Move::new(F4, H6, CAPTURE));
         assert_eq!(game.positions.top().halfmoves_count, 0);
+    }
+
+    #[test]
+    fn test_move_to_san() {
+        let fen = "7k/3P1ppp/4PQ2/8/8/8/8/6RK w - - 0 1";
+        let mut game = Game::from_fen(fen);
+
+        // NOTE: this move should really end with `#`, but this is done
+        // in `search::get_pv()`.
+        assert_eq!(game.move_to_san(Move::new(F6, G7, CAPTURE)), "Qxg7");
     }
 
     /*

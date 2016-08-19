@@ -306,11 +306,12 @@ impl Search for Game {
         let mut res = vec![];
         let mut m = Move::new_null();
 
+        let side = self.positions.top().side;
         let hash = self.positions.top().hash;
         if let Some(t) = self.tt.get(&hash) {
             m = t.best_move();
 
-            if self.positions.top().side == WHITE {
+            if side == WHITE {
                 let ply = self.positions.len();
                 res.push(format!("{}.", 1 + (ply / 2)));
             }
@@ -319,10 +320,17 @@ impl Search for Game {
         }
 
         if !m.is_null() {
-            res.push(self.move_to_san(m));
+            let san = self.move_to_san(m);
             self.make_move(m);
-            res.push(self.get_pv(depth - 1));
+
+            let pv = &self.get_pv(depth - 1);
+            let ck = self.is_check(side ^ 1);
+            let sep = if ck { if pv == "#" { "" } else { "+ " } } else { " " };
+            res.push(format!("{}{}{}", san, sep, pv));
+
             self.undo_move(m);
+        } else if self.is_check(side) {
+            res.push("#".into());
         }
 
         res.join(" ")
