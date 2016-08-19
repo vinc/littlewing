@@ -64,8 +64,8 @@ pub fn attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
         KING => PIECE_MASKS[KING as usize][square as usize],
         BISHOP => bishop_attacks(square, occupied),
         ROOK => rook_attacks(square, occupied),
-        QUEEN => bishop_attacks(square, occupied) & rook_attacks(square, occupied),
-        _ => 0 // FIXME
+        QUEEN => bishop_attacks(square, occupied) | rook_attacks(square, occupied),
+        _ => panic!("wrong kind of piece") // FIXME
     }
 }
 
