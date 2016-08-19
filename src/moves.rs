@@ -90,14 +90,14 @@ impl fmt::Debug for Move {
 }
 
 #[derive(Copy, Clone, PartialEq)]
-pub struct MoveExt {
-    pub m: Move,
-    pub s: u8
+pub struct Scored<T, S> {
+    pub item: T,
+    pub score: S
 }
 
-impl MoveExt {
-    pub fn new(m: Move, s: u8) -> MoveExt {
-        MoveExt { m: m, s: s }
+impl<T, S> Scored<T, S> {
+    pub fn new(item: T, score: S) -> Self {
+        Scored { item: item, score: score }
     }
 }
 
@@ -115,7 +115,7 @@ pub struct Moves {
     // ply up to `MAX_PLY`, the theoretical maximum number of plies in a chess
     // game. And likewise it must be able to store the generated moves up to
     // the maximum of any chess position `MAX_MOVES`.
-    lists: [[MoveExt; MAX_MOVES]; MAX_PLY],
+    lists: [[Scored<Move, u8>; MAX_MOVES]; MAX_PLY],
 
     // Number of best moves at a given ply.
     best_moves_counts: [usize; MAX_PLY],
@@ -137,7 +137,7 @@ pub struct Moves {
 impl Moves {
     pub fn new() -> Moves {
         Moves {
-            lists: [[MoveExt::new(Move::new_null(), 0); MAX_MOVES]; MAX_PLY],
+            lists: [[Scored::new(Move::new_null(), 0); MAX_MOVES]; MAX_PLY],
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
             best_moves_counts: [0; MAX_PLY],
@@ -209,7 +209,7 @@ impl Moves {
             // Avoid adding again a best move
             let n = self.best_moves_counts[self.ply];
             for i in 0..n {
-                if self.lists[self.ply][i].m == m {
+                if self.lists[self.ply][i].item == m {
                     return;
                 }
             }
@@ -225,11 +225,13 @@ impl Moves {
                 // NOTE: we cannot use MVV/LVA or SEE to assign a score to
                 // captures here because we don't have access to the board
                 // from `Moves`.
+                // TODO: use MoveType as score to do tactical moves before
+                // all the other quiet moves?
                 QUIET_MOVE_SCORE
             }
         };
 
-        self.lists[self.ply][self.sizes[self.ply]] = MoveExt::new(m, score);
+        self.lists[self.ply][self.sizes[self.ply]] = Scored::new(m, score);
         self.sizes[self.ply] += 1;
     }
 
@@ -433,7 +435,7 @@ impl Iterator for Moves {
                 // Find the next best move by selection sort
                 let mut j = i;
                 for k in (i + 1)..n {
-                    if self.lists[self.ply][j].s < self.lists[self.ply][k].s {
+                    if self.lists[self.ply][j].score < self.lists[self.ply][k].score {
                         j = k
                     }
                 }
@@ -445,7 +447,7 @@ impl Iterator for Moves {
                 */
             }
 
-            Some(self.lists[self.ply][i].m)
+            Some(self.lists[self.ply][i].item)
         } else {
             None
         }
@@ -453,15 +455,15 @@ impl Iterator for Moves {
 }
 
 impl Index<usize> for Moves {
-    type Output = MoveExt;
+    type Output = Scored<Move, u8>;
 
-    fn index(&self, index: usize) -> &MoveExt {
+    fn index(&self, index: usize) -> &Scored<Move, u8> {
         &self.lists[self.ply][index]
     }
 }
 
 impl IndexMut<usize> for Moves {
-    fn index_mut(&mut self, index: usize) -> &mut MoveExt {
+    fn index_mut(&mut self, index: usize) -> &mut Scored<Move, u8> {
         &mut self.lists[self.ply][index]
     }
 }
@@ -513,8 +515,8 @@ mod tests {
         moves.next_stage(); // From Capture to QuietMove
         //moves.add_move(m3);
 
-        println!("m1 = {}, {}", moves[0].m, moves[0].s);
-        println!("m2 = {}, {}", moves[1].m, moves[1].s);
+        println!("m1 = {}, {}", moves[0].item, moves[0].score);
+        println!("m2 = {}, {}", moves[1].item, moves[1].score);
         //println!("m3 = {}, {}", moves[2].m, moves[2].s);
 
         assert_eq!(moves.next(), Some(m1));

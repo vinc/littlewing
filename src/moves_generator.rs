@@ -339,14 +339,14 @@ impl MovesGenerator for Game {
     }
 
     fn sort_moves(&mut self) {
-        let a = self.moves.len_best_moves();
+        let a = self.moves.len_best_moves(); // TODO: how slower to just use 0 ?
         let b = self.moves.len();
         for i in a..b {
-            if self.moves[i].m.is_capture() {
-                self.moves[i].s = self.mvv_lva(self.moves[i].m);
+            if self.moves[i].item.is_capture() {
+                self.moves[i].score = self.mvv_lva(self.moves[i].item);
             }
             for j in a..i {
-                if self.moves[j].s < self.moves[i].s {
+                if self.moves[j].score < self.moves[i].score {
                     self.moves.swap(i, j);
                 }
             }
