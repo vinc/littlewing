@@ -3,7 +3,7 @@ use attack::Attack;
 use attack::attacks;
 use bitboard::BitboardExt;
 use game::Game;
-use moves::Move;
+use moves::{Move, MovesStage};
 use piece::{PieceAttr, PieceChar};
 use square::SquareString;
 
@@ -245,6 +245,19 @@ impl MovesGenerator for Game {
         self.moves.add_rooks_moves(&self.bitboards, side);
         self.moves.add_queens_moves(&self.bitboards, side);
 
+        if self.moves.stage() == MovesStage::Capture {
+            // Avoid needless moves ordering in perft and perfsuite
+            if !self.moves.skip_ordering {
+                self.sort_moves();
+            }
+
+            return; // Skip castling
+        }
+
+        debug_assert_eq!(self.moves.stage(), MovesStage::QuietMove);
+
+        // Castling moves generation
+
         let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
 
         let mask = CASTLING_MASKS[side as usize][(KING >> 3) as usize];
@@ -352,16 +365,18 @@ impl MovesGenerator for Game {
     }
 
     fn next_move(&mut self) -> Option<Move> {
-        // FIXME: it's more costly in perft to do this here rather
-        // than before the while loop calling this method.
-        // Lazy moves generation
-        if self.moves.index() == self.moves.len_best_moves() {
-            self.generate_moves();
+        // FIXME: it's more costly in perft to generate
+        // moves from here rather than before the while
+        // loop calling this method.
 
-            // No move ordering in perft and perfsuite
-            if !self.moves.skip_moves_ordering {
-                self.sort_moves();
+        // Staged moves generation
+        while self.moves.index() == self.moves.len() {
+            if self.moves.stage() == MovesStage::QuietMove {
+                return None; // NOTE: Could also be `break`
             }
+
+            self.moves.next_stage();
+            self.generate_moves();
         }
 
         self.moves.next()
@@ -421,61 +436,44 @@ mod tests {
     use game::Game;
     use super::*;
 
+    fn perft(fen: &str) -> usize {
+        let mut game = Game::from_fen(fen);
+
+        game.moves.next_stage();
+        game.generate_moves(); // Captures
+
+        game.moves.next_stage();
+        game.generate_moves(); // Quiet moves
+
+        game.moves.len()
+    }
+
     #[test]
     fn test_generate_moves() {
-        let mut game = Game::new();
-
-        game.load_fen(DEFAULT_FEN);
-        game.moves.clear();
-        game.generate_moves();
-        println!("{}", game.to_string());
-        assert_eq!(game.moves.len(), 20);
+        let fen = DEFAULT_FEN;
+        assert_eq!(perft(fen), 20);
 
         // Pawn right capture
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 b - -";
-        game.load_fen(fen);
-        game.moves.clear();
-        game.generate_moves();
-        println!("{}", game.to_string());
-        assert_eq!(game.moves.len(), 9);
+        assert_eq!(perft(fen), 9);
 
         let fen = "8/8/4k3/4p3/3P4/3K4/8/8 w - -";
-        game.load_fen(fen);
-        game.moves.clear();
-        game.generate_moves();
-        println!("{}", game.to_string());
-        assert_eq!(game.moves.len(), 9);
+        assert_eq!(perft(fen), 9);
 
         // Pawn left capture
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 w - -";
-        game.load_fen(fen);
-        game.moves.clear();
-        game.generate_moves();
-        println!("{}", game.to_string());
-        assert_eq!(game.moves.len(), 3);
+        assert_eq!(perft(fen), 3);
 
         let fen = "8/8/2p5/2p1P3/1p1P4/3P4/8/8 b - -";
-        game.load_fen(fen);
-        game.moves.clear();
-        game.generate_moves();
-        println!("{}", game.to_string());
-        assert_eq!(game.moves.len(), 3);
+        assert_eq!(perft(fen), 3);
 
         // Bishop
         let fen = "8/8/8/8/3B4/8/8/8 w - -";
-        game.load_fen(fen);
-        game.moves.clear();
-        game.generate_moves();
-        println!("{}", game.to_string());
-        assert_eq!(game.moves.len(), 13);
+        assert_eq!(perft(fen), 13);
 
         // Rook
         let fen = "8/8/8/8/1r1R4/8/8/8 w - -";
-        game.load_fen(fen);
-        game.moves.clear();
-        game.generate_moves();
-        println!("{}", game.to_string());
-        assert_eq!(game.moves.len(), 13);
+        assert_eq!(perft(fen), 13);
     }
 
     #[test]
@@ -552,8 +550,10 @@ mod tests {
         assert_eq!(game.mvv_lva(Move::new(B3, C2, CAPTURE)),  3); // QxP
         assert_eq!(game.mvv_lva(Move::new(D2, C2, CAPTURE)),  2); // KxP
 
+        game.moves.next_stage();
         game.generate_moves();
-        game.sort_moves();
+        game.moves.next_stage();
+        game.generate_moves();
 
         assert_eq!(game.moves.next(), Some(Move::new(B2, C3, CAPTURE)));
         assert_eq!(game.moves.next(), Some(Move::new(B3, C3, CAPTURE)));
@@ -608,7 +608,8 @@ mod tests {
 
         b.iter(|| {
             game.moves.clear();
-            game.generate_moves();
+            game.generate_moves(CAPTURE);
+            game.generate_moves(QUIET_MOVE);
         })
     }
 

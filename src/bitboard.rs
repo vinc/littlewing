@@ -6,7 +6,8 @@ pub trait BitboardExt {
     fn set(&mut self, i: Square);
     fn reset(&mut self, i: Square);
     fn get(&self, i: Square) -> bool;
-    fn debug(&self); // TODO: impl fmt::Debug
+    fn debug(&self);
+    fn to_debug_string(&self) -> String;
 }
 
 impl BitboardExt for Bitboard {
@@ -31,15 +32,27 @@ impl BitboardExt for Bitboard {
     fn get(&self, i: Square) -> bool {
         *self & (1 << i) > 0
     }
+
+    //FIXME: remove this method
+    //#[deprecated(since="0.2.0", note="please use `to_debug_string` instead")]
     fn debug(&self) {
-        println!("DEBUG(bitboard): 0x{:016X}", *self);
+        println!("{}", self.to_debug_string());
+    }
+
+    fn to_debug_string(&self) -> String {
+        let mut out = String::new();
+
+        out.push_str(&format!("DEBUG(bitboard): 0x{:016X}", *self));
+
         for i in 0..8 {
             for j in 0..8 {
-                print!("{:b}", self.get(8 * i + j) as usize);
+                out.push_str(&format!("{:b}", self.get(8 * i + j) as usize));
             }
-            println!("");
+            out.push('\n');
         }
-        println!("");
+        out.push('\n');
+
+        out
     }
 }
 

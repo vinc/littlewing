@@ -207,7 +207,7 @@ impl CLI {
     }
 
     pub fn cmd_divide(&mut self, args: &[&str]) {
-        self.game.moves.skip_moves_ordering = true;
+        self.game.moves.skip_ordering = true;
         let mut moves_count = 0u64;
         let mut nodes_count = 0u64;
 
@@ -240,7 +240,7 @@ impl CLI {
     }
 
     pub fn cmd_perft(&mut self) {
-        self.game.moves.skip_moves_ordering = true;
+        self.game.moves.skip_ordering = true;
         let mut i = 0;
         loop {
             i += 1;
@@ -266,7 +266,7 @@ impl CLI {
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
             self.game.load_fen(fen);
-            self.game.moves.skip_moves_ordering = true;
+            self.game.moves.skip_ordering = true;
             for field in fields {
                 let mut it = field.trim().split(' ');
                 let d = it.next().unwrap()[1..].parse::<usize>().unwrap();

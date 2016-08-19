@@ -3,7 +3,7 @@ use attack::Attack;
 use eval::Eval;
 use fen::FEN;
 use game::Game;
-use moves::{Move, MovesState};
+use moves::Move;
 use moves_generator::MovesGenerator;
 
 pub trait Search {
@@ -121,7 +121,7 @@ impl Search for Game {
 
         self.moves.clear();
         if !best_move.is_null() {
-            self.moves.add_move(best_move, MovesState::BestMove);
+            self.moves.add_move(best_move);
         }
 
         while let Some(m) = self.next_move() {
@@ -207,7 +207,7 @@ impl Search for Game {
 
             self.moves.clear();
             if !best_move.is_null() {
-                self.moves.add_move(best_move, MovesState::BestMove);
+                self.moves.add_move(best_move);
             }
 
             // Mate pruning
