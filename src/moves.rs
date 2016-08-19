@@ -2,7 +2,7 @@ use std::fmt;
 use std::ops::{Index, IndexMut};
 
 use common::*;
-use attack::{bishop_attacks, rook_attacks};
+use attack::*;
 use piece::PieceChar;
 use square::SquareString;
 use bitboard::BitboardExt;
@@ -101,12 +101,12 @@ impl<T, S> Scored<T, S> {
     }
 }
 
-#[repr(usize)]
+#[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum MovesStage {
-    BestMove,
-    Capture,
-    QuietMove
+    QuietMove = QUIET_MOVE,
+    Capture   = CAPTURE,
+    BestMove  = BEST_MOVE,
 }
 
 pub struct Moves {
@@ -304,103 +304,109 @@ impl Moves {
         }
     }
 
-    pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+    // NOTE: this method is the generic version of the next methods
+    // but it's slower due to the `match` in `attacks` called in the loop.
+    #[allow(dead_code)]
+    pub fn add_moves_for(&mut self, p: Piece, bitboards: &[Bitboard], side: Color) {
+        let mut pieces = bitboards[(side | p) as usize];
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
-        let mut knights = bitboards[(side | KNIGHT) as usize];
+        let mt = self.stage() as MoveType;
+        let targets = match self.stage() {
+            MovesStage::QuietMove => !occupied,
+            MovesStage::Capture   => bitboards[(side ^ 1) as usize],
+            MovesStage::BestMove  => panic!("wrong generation stage")
+        };
+        while pieces > 0 {
+            let from = pieces.trailing_zeros() as Square;
+            let mask = attacks(p, from, occupied);
+            self.add_moves_from(targets & mask, from, mt);
+            pieces.reset(from);
+        }
+    }
 
+    pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
+        let mut knights = bitboards[(side | KNIGHT) as usize];
+        let mt = self.stage() as MoveType;
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let dests = match self.stage() {
+            MovesStage::QuietMove => !occupied,
+            MovesStage::Capture   => bitboards[(side ^ 1) as usize],
+            MovesStage::BestMove  => panic!("wrong generation stage")
+        };
         while knights > 0 {
             let from = knights.trailing_zeros() as Square;
             let mask = PIECE_MASKS[KNIGHT as usize][from as usize];
-            match self.stage() {
-                MovesStage::QuietMove => {
-                    let targets = mask & !occupied;
-                    self.add_moves_from(targets, from, QUIET_MOVE);
-                },
-                MovesStage::Capture => {
-                    let targets = mask & bitboards[(side ^ 1) as usize];
-                    self.add_moves_from(targets, from, CAPTURE);
-                },
-                MovesStage::BestMove => panic!("wrong generation stage")
-            }
+            let targets = dests & mask;
+            self.add_moves_from(targets, from, mt);
             knights.reset(from);
         }
     }
 
     pub fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut kings = bitboards[(side | KING) as usize];
-
+        let mt = self.stage() as MoveType;
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let dests = match self.stage() {
+            MovesStage::QuietMove => !occupied,
+            MovesStage::Capture   => bitboards[(side ^ 1) as usize],
+            MovesStage::BestMove  => panic!("wrong generation stage")
+        };
         while kings > 0 {
             let from = kings.trailing_zeros() as Square;
             let mask = PIECE_MASKS[KING as usize][from as usize];
-            match self.stage() {
-                MovesStage::QuietMove => {
-                    let targets = mask & !occupied;
-                    self.add_moves_from(targets, from, QUIET_MOVE);
-                },
-                MovesStage::Capture => {
-                    let targets = mask & bitboards[(side ^ 1) as usize];
-                    self.add_moves_from(targets, from, CAPTURE);
-                },
-                MovesStage::BestMove => panic!("wrong generation stage")
-            }
+            let targets = dests & mask;
+            self.add_moves_from(targets, from, mt);
             kings.reset(from);
         }
     }
 
     pub fn add_bishops_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut bishops = bitboards[(side | BISHOP) as usize];
+        let mt = self.stage() as MoveType;
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let dests = match self.stage() {
+            MovesStage::QuietMove => !occupied,
+            MovesStage::Capture   => bitboards[(side ^ 1) as usize],
+            MovesStage::BestMove  => panic!("wrong generation stage")
+        };
         while bishops > 0 {
             let from = bishops.trailing_zeros() as Square;
             let targets = bishop_attacks(from, occupied);
-            match self.stage() {
-                MovesStage::QuietMove => {
-                    self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-                },
-                MovesStage::Capture => {
-                    self.add_moves_from(targets & bitboards[(side ^ 1) as usize], from, CAPTURE);
-                },
-                MovesStage::BestMove => panic!("wrong generation stage")
-            }
+            self.add_moves_from(targets & dests, from, mt);
             bishops.reset(from);
         }
     }
 
     pub fn add_rooks_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut rooks = bitboards[(side | ROOK) as usize];
+        let mt = self.stage() as MoveType;
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let dests = match self.stage() {
+            MovesStage::QuietMove => !occupied,
+            MovesStage::Capture   => bitboards[(side ^ 1) as usize],
+            MovesStage::BestMove  => panic!("wrong generation stage")
+        };
         while rooks > 0 {
             let from = rooks.trailing_zeros() as Square;
             let targets = rook_attacks(from, occupied);
-            match self.stage() {
-                MovesStage::QuietMove => {
-                    self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-                },
-                MovesStage::Capture => {
-                    self.add_moves_from(targets & bitboards[(side ^ 1) as usize], from, CAPTURE);
-                },
-                MovesStage::BestMove => panic!("wrong generation stage")
-            }
+            self.add_moves_from(targets & dests, from, mt);
             rooks.reset(from);
         }
     }
 
     pub fn add_queens_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
         let mut queens = bitboards[(side | QUEEN) as usize];
+        let mt = self.stage() as MoveType;
+        let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let dests = match self.stage() {
+            MovesStage::QuietMove => !occupied,
+            MovesStage::Capture   => bitboards[(side ^ 1) as usize],
+            MovesStage::BestMove  => panic!("wrong generation stage")
+        };
         while queens > 0 {
             let from = queens.trailing_zeros() as Square;
             let targets = bishop_attacks(from, occupied) | rook_attacks(from, occupied);
-            match self.stage() {
-                MovesStage::QuietMove => {
-                    self.add_moves_from(targets & !occupied, from, QUIET_MOVE);
-                },
-                MovesStage::Capture => {
-                    self.add_moves_from(targets & bitboards[(side ^ 1) as usize], from, CAPTURE);
-                },
-                MovesStage::BestMove => panic!("wrong generation stage")
-            }
+            self.add_moves_from(targets & dests, from, mt);
             queens.reset(from);
         }
     }
