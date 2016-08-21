@@ -573,13 +573,13 @@ mod tests {
         let fen = "7r/k7/7p/r2p3P/p2PqB2/2R3P1/5K2/3Q3R w - - 25 45";
         let mut game = Game::from_fen(fen);
 
-        assert_eq!(game.positions.top().halfmoves_count, 0);
+        assert_eq!(game.positions.top().halfmoves_count, 25);
 
         game.make_move(Move::new(F2, G1, QUIET_MOVE));
-        assert_eq!(game.positions.top().halfmoves_count, 1);
+        assert_eq!(game.positions.top().halfmoves_count, 26);
 
         game.make_move(Move::new(A7, B7, QUIET_MOVE));
-        assert_eq!(game.positions.top().halfmoves_count, 2);
+        assert_eq!(game.positions.top().halfmoves_count, 27);
 
         game.make_move(Move::new(F4, H6, CAPTURE));
         assert_eq!(game.positions.top().halfmoves_count, 0);

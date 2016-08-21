@@ -4,6 +4,7 @@ use common::*;
 use bitboard::BitboardExt;
 use game::Game;
 use piece::PieceChar;
+use square::SquareString;
 use position::Position;
 
 pub trait FEN {
@@ -61,7 +62,21 @@ impl FEN for Game {
             }
         }
 
+        if let Some(ep) = fields.next() {
+            if ep != "-" {
+                position.en_passant = SquareString::from_coord(ep.into());
+            }
+        };
+
         self.positions.push(position);
+
+        if let Some(hm) = fields.next() {
+            self.positions.set_halfmoves(hm.parse::<u8>().unwrap());
+        };
+
+        if let Some(fm) = fields.next() {
+            self.positions.set_fullmoves(fm.parse::<u8>().unwrap());
+        };
     }
 
     fn to_fen(&self) -> String {
@@ -126,9 +141,21 @@ impl FEN for Game {
         if castles.is_empty() {
             castles.push('-');
         }
-        fen.push_str(&*castles);
+        fen.push_str(&castles);
 
-        fen.push_str(" - 0 1"); // TODO
+        fen.push(' ');
+        // TODO: implement `square.is_out()`
+        let ep = self.positions.top().en_passant;
+        if ep < OUT {
+            fen.push_str(&ep.to_coord());
+        } else {
+            fen.push('-');
+        }
+
+        fen.push(' ');
+        let hm = self.positions.halfmoves();
+        let fm = self.positions.fullmoves();
+        fen.push_str(&format!("{} {}", hm, fm));
 
         fen
     }
@@ -151,11 +178,13 @@ mod tests {
         let fens = [
             DEFAULT_FEN,
             "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-            "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1"
+            "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1",
+            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+            "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 4 23"
         ];
         for &fen in fens.iter() {
             let game = Game::from_fen(fen);
-            assert_eq!(&*(game.to_fen()), fen);
+            assert_eq!(&game.to_fen(), fen);
         }
     }
 }

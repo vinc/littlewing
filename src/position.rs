@@ -27,6 +27,7 @@ impl Position {
 
 pub struct Positions {
     stack: [Position; MAX_POSITIONS],
+    fullmoves_init: u8,
     ply: usize
 }
 
@@ -34,6 +35,7 @@ impl Positions {
     pub fn new() -> Positions {
         Positions {
             stack: [Position::new(); MAX_POSITIONS],
+            fullmoves_init: 0,
             ply: 0
         }
     }
@@ -58,6 +60,25 @@ impl Positions {
     #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.ply
+    }
+
+    pub fn halfmoves(&self) -> u8 {
+        self.top().halfmoves_count
+    }
+
+    pub fn fullmoves(&self) -> u8 {
+        let n = self.fullmoves_init + (self.ply / 2) as u8;
+        let blacks_started = self.top().side == BLACK && self.ply % 2 == 0;
+
+        if blacks_started { n - 1 } else { n }
+    }
+
+    pub fn set_halfmoves(&mut self, n: u8) {
+        self.stack[self.ply - 1].halfmoves_count = n;
+    }
+
+    pub fn set_fullmoves(&mut self, n: u8) {
+        self.fullmoves_init = n;
     }
 
     pub fn is_draw(&self) -> bool {

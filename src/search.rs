@@ -290,8 +290,8 @@ impl Search for Game {
         let mut pv = self.get_pv(depth);
 
         if self.positions.top().side == BLACK {
-            let ply = self.positions.len();
-            pv = format!("{}. ... {}", ply / 2, pv);
+            let fm = self.positions.fullmoves();
+            pv = format!("{}. ... {}", fm, pv);
         }
         self.make_move(m);
 
@@ -312,8 +312,8 @@ impl Search for Game {
             m = t.best_move();
 
             if side == WHITE {
-                let ply = self.positions.len();
-                res.push(format!("{}.", 1 + (ply / 2)));
+                let fm = self.positions.fullmoves();
+                res.push(format!("{}.", fm));
             }
 
             // TODO: put the rest of the code here (if the compiler allow it)
