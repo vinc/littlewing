@@ -117,6 +117,17 @@ impl Search for Game {
             best_move = t.best_move();
         }
 
+        // Internal Iterative Deepening (IID): if we didn't get a best move
+        // from the transpositions table, get it by searching the position
+        // at a reduced depth.
+        if best_move.is_null() && depth > 4 && is_pv {
+            self.search(-beta, -alpha, depth / 2, ply + 1);
+
+            if let Some(t) = self.tt.get(&hash) {
+                best_move = t.best_move();
+            }
+        }
+
         self.moves.clear();
         if !best_move.is_null() {
             self.moves.add_move(best_move);
