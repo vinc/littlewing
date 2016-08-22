@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Add principal variation search
+- Add internal iterative deepening
+- Add basic mobility evaluation
+
+
 ## [0.2.0] - 2016-08-22
 
 ### Added
