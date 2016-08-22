@@ -57,6 +57,7 @@ impl Attack for Game {
     }
 }
 
+// TODO: rename to `piece_attacks` ?
 pub fn attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
     match piece.kind() {
         PAWN => PAWN_ATTACKS[piece.color() as usize][square as usize],

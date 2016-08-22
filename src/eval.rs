@@ -1,4 +1,6 @@
 use common::*;
+use attack::attacks;
+use bitboard::BitboardExt;
 use game::Game;
 
 pub const PAWN_VALUE:   Score = 100;
@@ -8,21 +10,62 @@ pub const ROOK_VALUE:   Score = 500;
 pub const QUEEN_VALUE:  Score = 965; // Rook + Minor + Pawn + Bishop Pair
 pub const KING_VALUE:   Score = 10000;
 
+lazy_static! {
+    pub static ref PIECE_VALUES: [Score; 14] = {
+        let mut piece_values = [0; 14];
+
+        piece_values[PAWN   as usize] = PAWN_VALUE;
+        piece_values[KNIGHT as usize] = KNIGHT_VALUE;
+        piece_values[BISHOP as usize] = BISHOP_VALUE;
+        piece_values[ROOK   as usize] = ROOK_VALUE;
+        piece_values[QUEEN  as usize] = QUEEN_VALUE;
+        piece_values[KING   as usize] = KING_VALUE;
+
+        for i in 0..7 {
+            let j = i * 2;
+            piece_values[j + 1] = piece_values[j];
+        }
+
+        piece_values
+    };
+}
+
 pub trait Eval {
-    fn eval_pieces(&self, c: Color) -> Score;
+    fn eval_pieces(&self, piece: Piece) -> Score;
+    fn eval_side(&self, c: Color) -> Score;
     fn eval(&self) -> Score;
 }
 
 impl Eval for Game {
-    fn eval_pieces(&self, c: Color) -> Score {
+    fn eval_pieces(&self, piece: Piece) -> Score {
         let mut score = 0;
 
-        score += PAWN_VALUE * self.bitboards[(c | PAWN) as usize].count_ones() as Score;
-        score += KNIGHT_VALUE * self.bitboards[(c | KNIGHT) as usize].count_ones() as Score;
-        score += BISHOP_VALUE * self.bitboards[(c | BISHOP) as usize].count_ones() as Score;
-        score += ROOK_VALUE * self.bitboards[(c | ROOK) as usize].count_ones() as Score;
-        score += QUEEN_VALUE * self.bitboards[(c | QUEEN) as usize].count_ones() as Score;
-        score += KING_VALUE * self.bitboards[(c | KING) as usize].count_ones() as Score;
+        // Material score
+        let n = self.bitboards[piece as usize].count_ones() as Score;
+        score += n * PIECE_VALUES[piece as usize];
+
+        // Mobility score
+        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
+        let mut pieces = self.bitboards[piece as usize];
+        while pieces > 0 {
+            let from = pieces.trailing_zeros() as Square;
+            let targets = attacks(piece, from, occupied);
+            score += targets.count_ones() as Score;
+            pieces.reset(from);
+        }
+
+        score
+    }
+
+    fn eval_side(&self, c: Color) -> Score {
+        let mut score = 0;
+
+        score += self.eval_pieces(c | PAWN);
+        score += self.eval_pieces(c | KNIGHT);
+        score += self.eval_pieces(c | BISHOP);
+        score += self.eval_pieces(c | ROOK);
+        score += self.eval_pieces(c | QUEEN);
+        score += self.eval_pieces(c | KING);
 
         score
     }
@@ -31,8 +74,8 @@ impl Eval for Game {
         let mut score = 0;
         let side = self.positions.top().side;
 
-        score += self.eval_pieces(side);
-        score -= self.eval_pieces(side ^ 1);
+        score += self.eval_side(side);
+        score -= self.eval_side(side ^ 1);
 
         if score > KING_VALUE {
             return INF; // Win
