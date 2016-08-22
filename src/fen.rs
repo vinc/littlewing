@@ -5,7 +5,7 @@ use bitboard::BitboardExt;
 use game::Game;
 use piece::PieceChar;
 use square::SquareString;
-use position::Position;
+use positions::Position;
 
 pub trait FEN {
     fn from_fen(fen: &str) -> Self;

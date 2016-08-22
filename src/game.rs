@@ -4,7 +4,7 @@ use std::fmt;
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};
-use position::Positions;
+use positions::Positions;
 use transpositions::{Transposition, Transpositions};
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};

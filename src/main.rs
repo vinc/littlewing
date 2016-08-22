@@ -12,7 +12,7 @@ mod game;
 mod moves;
 mod moves_generator;
 mod piece;
-mod position;
+mod positions;
 mod protocols;
 mod search;
 mod square;
