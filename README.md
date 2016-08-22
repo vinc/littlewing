@@ -13,7 +13,7 @@ First you will need Rust:
 
     $ curl -sSf https://static.rust-lang.org/rustup.sh | sh
 
-Then you can easily compile it:
+Then you can compile and install it:
 
     $ git clone https://github.com/vinc/littlewing.git
     $ cd littlewing
@@ -23,7 +23,7 @@ Then you can easily compile it:
 Little Wing is compatible with the XBoard protocol, and it has its own
 text-based user interface:
 
-    $ littlewing --color
+    $ littlewing --color --debug
     Little Wing v0.1.0
 
     > time 1 10
@@ -65,24 +65,24 @@ text-based user interface:
     | R | N | B | Q | K | B | N | R |
     +---+---+---+---+---+---+---+---+
     > play
-    # FEN rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1
-    # allocating 9970 ms to move
+    # FEN rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+    # allocating 10000 ms to move
      ply   score   time     nodes  pv
        1       0      0         3  1. ... a6
-       2       0      0        56  1. ... a6 2. b3
-       3       0      0       205  1. ... a6 2. b3 a5
-       4       0      0      1811  1. ... a6 2. b3 a5 3. a3
-       5       0      7      7938  1. ... a6 2. b3 a5 3. a3 a4
-       6       0     23     59343  1. ... a6 2. b3 a5 3. a3 a4 4. bxa4
-       7       0    456    386664  1. ... a6 2. b3 a5 3. a3 a4 4. bxa4 Rxa4
-       8       0    997   1910229  1. ... a6 2. b3 a5 3. a3 a4 4. bxa4 Rxa4 5. d3
-    # FEN rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1
-    # 9971 ms used in search
-    # 1910229 nodes visited (1.92e5 nps)
-    # tt size:       4194304
-    # tt lookups:    168748
-    # tt inserts:    12734
-    # tt collisions: 88
+       2       0      0        56  1. ... a6 2. a3
+       3       0      0       205  1. ... a6 2. a3 a5
+       4       0      1      1821  1. ... a6 2. a3 a5 3. b3
+       5       0     10      7970  1. ... a6 2. a3 a5 3. b3 a4
+       6       0     31     59151  1. ... a6 2. a3 a5 3. b3 a4 4. bxa4
+       7       0    404    377742  1. ... a6 2. a3 a5 3. b3 a4 4. bxa4 Rxa4
+       8       0    930   2170288  1. ... a6 2. a3 a5 3. b3 a4 4. bxa4 Rxa4 5. d3
+    # 9951 ms used in search
+    # 2239407 nodes visited (2.25e5 nps)
+    # tt size:       524288
+    # tt inserts:    6371
+    # tt lookups:    213735
+    # tt hits:       14459
+    # tt collisions: 1001
     move a7a6
     +---+---+---+---+---+---+---+---+
     | r | n | b | q | k | b | n | r |
@@ -108,7 +108,8 @@ As you can see, it's still pretty weak at the moment.
 Test
 ----
 
-Run the test suite from Cargo:
+Unit testing in Rust is wonderful. You can run the test suite directly
+from Cargo:
 
     $ cargo test
 
@@ -130,7 +131,7 @@ And a `perftsuite` command for comparing the results of a perft calculation
 with the given EPD file.
 
     $ cargo run -- --color
-    Little Wing v0.0.1
+    Little Wing v0.1.0
 
     > perftsuite tests/perftsuite.epd
     rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 -> ......
@@ -150,7 +151,7 @@ with the given EPD file.
 And the usual others like `divide`, `setboard` or `testsuite`:
 
     $ cargo run -- --color
-    Little Wing v0.0.1
+    Little Wing v0.1.0
 
     > testsuite tests/wac.epd 1
     2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6 -> Qg6

@@ -3,17 +3,21 @@
 ## [Unreleased]
 
 ### Added
-- Add color to user interface via command line flag or internal command
 - Add basic quiescence search
 - Add basic transpositions table
-- Add XBoard `memory` command
 - Add MVV/LVA moves ordering by insertion sort
+- Add staged moves generation
+- Add fullmoves and halfmoves counting
+- Add draw detection
 - Add mate pruning
+- Add XBoard `memory` command
+- Add `color` and `debug` command line flag
+
 
 ### Changed
-- Save best move during iterative deepening
 - Improve user interface
 - Display game result in XBoard
+- Save best move during iterative deepening
 - Print principal variation from transpositions table
 
 ### Fixed
