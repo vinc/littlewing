@@ -19,7 +19,7 @@ Then you can compile and install it:
 
     $ git clone https://github.com/vinc/littlewing.git
     $ cd littlewing
-    $ cargo build --release
+    $ LITTLEWING_VERSION=$(git describe) cargo build --release
     $ sudo cp target/release/littlewing /usr/local/bin
 
 Little Wing is compatible with the XBoard protocol, and it has its own
