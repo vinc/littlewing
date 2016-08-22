@@ -31,6 +31,7 @@ impl CLI {
         for arg in &args {
             match arg.as_str() {
                 "-c" | "--color" => { game.is_colored = true; }
+                "-d" | "--debug" => { game.is_debug = true; }
                 _                => { }
             }
         }
@@ -109,6 +110,8 @@ impl CLI {
 
         match args[1] {
             "board" => { self.show_board = true; }
+            "color" => { self.game.is_colored = true; }
+            "debug" => { self.game.is_debug = true; }
             "think" => { self.game.is_verbose = true; }
             _       => { self.print_error(format!("unrecognized subcommand '{}'", args[1])); }
         }
@@ -126,6 +129,8 @@ impl CLI {
 
         match args[1] {
             "board" => { self.show_board = false; }
+            "color" => { self.game.is_colored = false; }
+            "debug" => { self.game.is_debug = false; }
             "think" => { self.game.is_verbose = false; }
             _       => { self.print_error(format!("unrecognized subcommand '{}'", args[1])); }
         }

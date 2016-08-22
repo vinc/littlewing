@@ -185,7 +185,7 @@ impl Search for Game {
         self.clock.start(self.positions.len());
 
         let old_fen = self.to_fen();
-        if self.is_verbose {
+        if self.is_debug {
             println!("# FEN {}", old_fen);
             println!("# allocating {} ms to move", self.clock.allocated_time());
         }
@@ -266,7 +266,7 @@ impl Search for Game {
         }
 
         let new_fen = self.to_fen();
-        if self.is_verbose {
+        if self.is_debug {
             let n = self.nodes_count;
             let t = self.clock.elapsed_time();
             let nps = (n as f64) / ((t as f64) / 1000.0);

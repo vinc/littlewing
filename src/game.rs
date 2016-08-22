@@ -10,7 +10,8 @@ use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
 pub struct Game {
-    pub is_verbose: bool,
+    pub is_debug: bool,  // Print debugging
+    pub is_verbose: bool, // Print thinking
     pub is_colored: bool,
     pub nodes_count: u64,
     pub clock: Clock,
@@ -28,6 +29,7 @@ impl Game {
         let tt_size = TT_SIZE / mem::size_of::<Transposition>();
 
         Game {
+            is_debug: false,
             is_verbose: false,
             is_colored: false,
             nodes_count: 0,
