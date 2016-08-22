@@ -71,11 +71,15 @@ impl FEN for Game {
         self.positions.push(position);
 
         if let Some(hm) = fields.next() {
-            self.positions.set_halfmoves(hm.parse::<u8>().unwrap());
+            if let Ok(n) = hm.parse::<u8>() {
+                self.positions.set_halfmoves(n);
+            }
         };
 
         if let Some(fm) = fields.next() {
-            self.positions.set_fullmoves(fm.parse::<u8>().unwrap());
+            if let Ok(n) = fm.parse::<u8>() {
+                self.positions.set_fullmoves(n);
+            }
         };
     }
 
