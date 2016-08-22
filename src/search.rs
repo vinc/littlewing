@@ -96,34 +96,34 @@ impl Search for Game {
             return self.quiescence(alpha, beta, ply + 1);
         }
 
-        let hash = self.positions.top().hash;
-        let side = self.positions.top().side;
-
         // Detect draw by threefold repetitions and fifty-moves rule
         if self.positions.is_draw() {
             return 0;
         }
 
+        let hash = self.positions.top().hash;
+        let side = self.positions.top().side;
+        let is_pv = alpha != beta - 1;
         let is_in_check = self.is_check(side);
-        let mut has_legal_moves = false;
 
+        let mut best_move = Move::new_null();
 
-        let mut best_move = match self.tt.get(&hash) {
-            None    => Move::new_null(),
-            Some(t) => {
-                if t.depth() >= depth { // This node has already been searched
-                    return t.score()
-                }
-
-                t.best_move()
+        // Try to get the best move from transpositions table
+        if let Some(t) = self.tt.get(&hash) {
+            if t.depth() >= depth { // This node has already been searched
+                return t.score()
             }
-        };
+
+            best_move = t.best_move();
+        }
 
         self.moves.clear();
         if !best_move.is_null() {
             self.moves.add_move(best_move);
         }
 
+        let mut has_legal_moves = false;
+        let mut is_first_move = true;
         while let Some(m) = self.next_move() {
             self.make_move(m);
 
@@ -135,7 +135,21 @@ impl Search for Game {
             self.nodes_count += 1;
             has_legal_moves = true;
 
-            let score = -self.search(-beta, -alpha, depth - 1, ply + 1);
+            let mut score;
+            if is_first_move {
+                // Search the first move with the full window
+                score = -self.search(-beta, -alpha, depth - 1, ply + 1);
+
+                is_first_move = false;
+            } else {
+                // Search the other moves with the reduced window
+                score = -self.search(-alpha - 1, -alpha, depth - 1, ply + 1);
+
+                if alpha < score && score < beta {
+                    // Re-search with the full window
+                    score = -self.search(-beta, -alpha, depth - 1, ply + 1);
+                }
+            }
 
             self.undo_move(m);
 
