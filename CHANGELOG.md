@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.0] - 2016-08-22
 
 ### Added
 - Add basic quiescence search
