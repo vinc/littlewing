@@ -317,7 +317,7 @@ impl Moves {
             MovesStage::BestMove  => panic!("wrong generation stage")
         };
         while let Some(from) = pieces.next() {
-            let mask = attacks(p, from, occupied);
+            let mask = piece_attacks(p, from, occupied);
             self.add_moves_from(targets & mask, from, mt);
         }
     }

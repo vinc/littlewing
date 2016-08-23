@@ -1,6 +1,6 @@
 use common::*;
 use attack::Attack;
-use attack::attacks;
+use attack::piece_attacks;
 use bitboard::BitboardExt;
 use game::Game;
 use moves::{Move, MovesStage};
@@ -309,8 +309,8 @@ impl MovesGenerator for Game {
         // Piece disambiguation or pawn capture
         if piece.kind() != PAWN || m.is_capture() {
             let occupied = self.bitboards[piece as usize];
-            let attackers = attacks(piece, m.to(), occupied) & occupied;
-            if attackers.count_ones() > 1 || piece.kind() == PAWN {
+            let attackers = piece_attacks(piece, m.to(), occupied) & occupied;
+            if attackers.count() > 1 || piece.kind() == PAWN {
                 let rank = m.from().to_coord().as_str().chars().nth(0).unwrap();
                 out.push(rank);
             }

@@ -1,6 +1,7 @@
 use common::*;
 
 pub trait BitboardExt {
+    fn count(&self) -> u32;
     fn shift(&self, x: Direction) -> Bitboard;
     fn toggle(&mut self, i: Square); // FIXME: Return instead of update?
     fn set(&mut self, i: Square);
@@ -11,12 +12,15 @@ pub trait BitboardExt {
 }
 
 impl BitboardExt for Bitboard {
+    fn count(&self) -> u32 {
+        self.count_ones()
+    }
+
     fn shift(&self, x: Direction) -> Bitboard {
-        let v = *self;
         if x > 0 {
-            v << x
+            *self << x
         } else {
-            v >> -x
+            *self >> -x
         }
     }
 

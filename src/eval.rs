@@ -1,5 +1,5 @@
 use common::*;
-use attack::attacks;
+use attack::piece_attacks;
 use bitboard::{BitboardExt, BitboardIterator};
 use game::Game;
 
@@ -41,15 +41,15 @@ impl Eval for Game {
         let mut score = 0;
 
         // Material score
-        let n = self.bitboards[piece as usize].count_ones() as Score;
+        let n = self.bitboards[piece as usize].count() as Score;
         score += n * PIECE_VALUES[piece as usize];
 
         // Mobility score
         let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
         let mut pieces = self.bitboards[piece as usize];
         while let Some(from) = pieces.next() {
-            let targets = attacks(piece, from, occupied);
-            score += targets.count_ones() as Score;
+            let targets = piece_attacks(piece, from, occupied);
+            score += targets.count() as Score;
         }
 
         score

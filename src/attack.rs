@@ -59,7 +59,7 @@ impl Attack for Game {
 }
 
 // TODO: rename to `piece_attacks` ?
-pub fn attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
+pub fn piece_attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
     match piece.kind() {
         PAWN => PAWN_ATTACKS[piece.color() as usize][square as usize],
         KNIGHT => PIECE_MASKS[KNIGHT as usize][square as usize],
