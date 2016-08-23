@@ -253,6 +253,7 @@ impl Search for Game {
                 }
             }
 
+            let mut has_legal_moves = false;
             while let Some(m) = self.next_move() {
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out
@@ -261,6 +262,7 @@ impl Search for Game {
                 self.make_move(m);
                 let score = -self.search(-beta, -alpha, depth - 1, ply + 1);
                 if !self.is_check(side) {
+                    has_legal_moves = true;
                     self.nodes_count += 1;
                     if score > alpha {
                         if self.is_verbose { // && self.nodes_count > 1000 {
@@ -287,6 +289,9 @@ impl Search for Game {
                 best_move = best_moves[depth];
 
                 self.tt.set(hash, best_move, alpha, depth);
+            }
+            if !has_legal_moves {
+                break;
             }
         }
 
