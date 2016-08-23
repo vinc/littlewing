@@ -5,7 +5,7 @@ use common::*;
 use attack::*;
 use piece::PieceChar;
 use square::SquareString;
-use bitboard::BitboardExt;
+use bitboard::{BitboardExt, BitboardIterator};
 
 const BEST_MOVE_SCORE:  u8 = 255;
 const QUIET_MOVE_SCORE: u8 = 0;
@@ -316,11 +316,9 @@ impl Moves {
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
             MovesStage::BestMove  => panic!("wrong generation stage")
         };
-        while pieces > 0 {
-            let from = pieces.trailing_zeros() as Square;
+        while let Some(from) = pieces.next() {
             let mask = attacks(p, from, occupied);
             self.add_moves_from(targets & mask, from, mt);
-            pieces.reset(from);
         }
     }
 
@@ -333,12 +331,10 @@ impl Moves {
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
             MovesStage::BestMove  => panic!("wrong generation stage")
         };
-        while knights > 0 {
-            let from = knights.trailing_zeros() as Square;
+        while let Some(from) = knights.next() {
             let mask = PIECE_MASKS[KNIGHT as usize][from as usize];
             let targets = dests & mask;
             self.add_moves_from(targets, from, mt);
-            knights.reset(from);
         }
     }
 
@@ -351,12 +347,10 @@ impl Moves {
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
             MovesStage::BestMove  => panic!("wrong generation stage")
         };
-        while kings > 0 {
-            let from = kings.trailing_zeros() as Square;
+        while let Some(from) = kings.next() {
             let mask = PIECE_MASKS[KING as usize][from as usize];
             let targets = dests & mask;
             self.add_moves_from(targets, from, mt);
-            kings.reset(from);
         }
     }
 
@@ -369,11 +363,9 @@ impl Moves {
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
             MovesStage::BestMove  => panic!("wrong generation stage")
         };
-        while bishops > 0 {
-            let from = bishops.trailing_zeros() as Square;
+        while let Some(from) = bishops.next() {
             let targets = bishop_attacks(from, occupied);
             self.add_moves_from(targets & dests, from, mt);
-            bishops.reset(from);
         }
     }
 
@@ -386,11 +378,9 @@ impl Moves {
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
             MovesStage::BestMove  => panic!("wrong generation stage")
         };
-        while rooks > 0 {
-            let from = rooks.trailing_zeros() as Square;
+        while let Some(from) = rooks.next() {
             let targets = rook_attacks(from, occupied);
             self.add_moves_from(targets & dests, from, mt);
-            rooks.reset(from);
         }
     }
 
@@ -403,11 +393,9 @@ impl Moves {
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
             MovesStage::BestMove  => panic!("wrong generation stage")
         };
-        while queens > 0 {
-            let from = queens.trailing_zeros() as Square;
+        while let Some(from) = queens.next() {
             let targets = bishop_attacks(from, occupied) | rook_attacks(from, occupied);
             self.add_moves_from(targets & dests, from, mt);
-            queens.reset(from);
         }
     }
 

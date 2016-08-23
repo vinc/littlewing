@@ -18,6 +18,7 @@ impl Attack for Game {
         let square = king.trailing_zeros() as Square;
         self.is_attacked(square, side)
     }
+
     fn is_attacked(&self, square: Square, side: Color) -> bool {
         let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
 

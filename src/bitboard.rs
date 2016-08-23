@@ -23,12 +23,15 @@ impl BitboardExt for Bitboard {
     fn toggle(&mut self, i: Square) {
         *self ^= 1 << i
     }
+
     fn set(&mut self, i: Square) {
         *self |= 1 << i
     }
+
     fn reset(&mut self, i: Square) {
         *self &= !(1 << i)
     }
+
     fn get(&self, i: Square) -> bool {
         *self & (1 << i) > 0
     }
@@ -65,11 +68,32 @@ pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: Direction) -> Bitb
     flood
 }
 
+
+pub trait BitboardIterator {
+    type Item;
+    fn next(&mut self) -> Option<Self::Item>;
+}
+
+impl BitboardIterator for Bitboard {
+    type Item = Square;
+
+    fn next(&mut self) -> Option<Square> {
+        if *self > 0 {
+            let sq = self.trailing_zeros() as Square;
+
+            self.reset(sq);
+
+            Some(sq)
+        } else {
+            None
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use common::*;
-    use super::BitboardExt;
-    use super::dumb7fill;
+    use super::*;
 
     #[test]
     fn test_dumb7fill() {
@@ -111,4 +135,43 @@ mod tests {
         attacks.debug();
         assert_eq!(targets, 0x0000004020100000);
     }
+
+    #[test]
+    fn test_iterator() {
+        let mut bb: Bitboard = 0;
+
+        bb.set(A2);
+        bb.set(B2);
+        bb.set(C2);
+        bb.set(D2);
+
+        assert_eq!(bb.next(), Some(A2));
+        assert_eq!(bb.next(), Some(B2));
+        assert_eq!(bb.next(), Some(C2));
+        assert_eq!(bb.next(), Some(D2));
+        assert_eq!(bb.next(), None);
+    }
+
+    /*
+    #[bench]
+    fn bench_iterator(b: &mut Bencher) {
+        let mut bb: Bitboard = 0; // TODO
+        b.iter(|| {
+            // Old way
+            while bb > 0 {
+                let sq = bb.trailing_zeros() as Square;
+                bb.reset(sq);
+                // TODO
+            }
+        })
+
+        let mut bb: Bitboard = 0; // TODO
+        b.iter(|| {
+            // New way
+            while let Some(sq) = bb.next() {
+                // TODO
+            }
+        })
+    }
+    */
 }

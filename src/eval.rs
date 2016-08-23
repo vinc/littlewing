@@ -1,6 +1,6 @@
 use common::*;
 use attack::attacks;
-use bitboard::BitboardExt;
+use bitboard::{BitboardExt, BitboardIterator};
 use game::Game;
 
 pub const PAWN_VALUE:   Score = 100;
@@ -47,11 +47,9 @@ impl Eval for Game {
         // Mobility score
         let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
         let mut pieces = self.bitboards[piece as usize];
-        while pieces > 0 {
-            let from = pieces.trailing_zeros() as Square;
+        while let Some(from) = pieces.next() {
             let targets = attacks(piece, from, occupied);
             score += targets.count_ones() as Score;
-            pieces.reset(from);
         }
 
         score
