@@ -184,8 +184,22 @@ impl Search for Game {
 
                 is_first_move = false;
             } else {
+                let is_giving_check = self.is_check(side ^ 1);
+                let mut r = 0; // Depth reduction
+
+                // Late Move Reduction (LMR)
+                let lmr_allowed =
+                    !is_in_check &&
+                    !is_giving_check &&
+                    !m.is_capture() &&
+                    !m.is_promotion();
+
+                if lmr_allowed && depth > 2 {
+                    r += 1; // Do the search at a reduced depth
+                }
+
                 // Search the other moves with the reduced window
-                score = -self.search(-alpha - 1, -alpha, depth - 1, ply + 1);
+                score = -self.search(-alpha - 1, -alpha, depth - r - 1, ply + 1);
 
                 if alpha < score && score < beta {
                     // Re-search with the full window
