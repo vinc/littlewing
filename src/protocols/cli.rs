@@ -303,18 +303,17 @@ impl CLI {
         let mut r = 0;
         let mut n = 0;
         for line in file.lines() {
-            n += 1;
-            let l = line.unwrap();
-            let mut fields = l.split(';');
-            let fen = fields.next().unwrap().trim();
-            print!("{} -> ", fen);
+            let line = line.unwrap();
+            let line = line.split(";").next().unwrap();
+
+            let i = line.find("m ").unwrap() - 1;
+            let (fen, rem) = line.split_at(i);
+            let (mt, moves) = rem.split_at(2);
+
+            print!("{}{}{} -> ", fen, mt, moves);
+
             self.game.load_fen(fen);
             self.game.clock = Clock::new(1, time * 1000);
-
-            // TODO: There can be more than one move
-            let mut fields = fen.split_whitespace().rev().take(2);
-            let move_str = fields.next().unwrap();
-            let type_str = fields.next().unwrap();
 
             let best_move = self.game.root(MAX_PLY).unwrap();
             let mut best_move_str = self.game.move_to_san(best_move);
@@ -327,10 +326,10 @@ impl CLI {
             }
             self.game.undo_move(best_move);
 
-            let found = match type_str {
-                "bm" => move_str == best_move_str,
-                "am" => move_str != best_move_str,
-                _    => false
+            let found = match mt {
+                "bm" => moves.contains(&best_move_str),
+                "am" => !moves.contains(&best_move_str),
+                _    => unreachable!()
             };
             if found {
                 r += 1;
@@ -338,6 +337,7 @@ impl CLI {
             } else {
                 println!("{}", self.colorize_red(best_move_str));
             }
+            n += 1;
         }
         println!("Result {}/{}", r, n);
     }
