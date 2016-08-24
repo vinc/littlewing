@@ -6,6 +6,7 @@
 
 - Add principal variation search
 - Add internal iterative deepening
+- Add basic null move pruning
 - Add basic mobility evaluation
 
 

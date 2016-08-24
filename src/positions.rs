@@ -9,6 +9,7 @@ pub struct Position {
     pub side: Color,
     pub capture: Piece, // TODO: use `Option<Piece>`?
     pub en_passant: Square, // TODO: use `Option<Square>`?
+    pub null_move_right: bool,
     pub castling_rights: [[bool; 2]; 2]
 }
 
@@ -20,9 +21,11 @@ impl Position {
             side: WHITE,
             capture: EMPTY, // TODO: use `None`?
             en_passant: OUT, // TODO: use `None`?
+            null_move_right: true,
             castling_rights: [[false; 2]; 2]
         }
     }
+
 }
 
 pub struct Positions {
@@ -53,6 +56,7 @@ impl Positions {
         self.ply = 0;
     }
 
+    // TODO: this should be mutable.
     pub fn top(&self) -> &Position {
         &self.stack[self.ply - 1]
     }
@@ -102,6 +106,17 @@ impl Positions {
         }
 
         false
+    }
+
+
+    // FIXME: this should be in `Position`
+    pub fn enable_null_move(&mut self) {
+        self.stack[self.ply - 1].null_move_right = true;
+    }
+
+    // FIXME: this should be in `Position`
+    pub fn disable_null_move(&mut self) {
+        self.stack[self.ply - 1].null_move_right = false;
     }
 }
 

@@ -52,6 +52,10 @@ impl Game {
         self.history.clear();
         self.tt.clear();
     }
+
+    pub fn bitboard(&self, piece: Piece) -> &Bitboard {
+        &self.bitboards[piece as usize]
+    }
 }
 
 impl fmt::Display for Game {

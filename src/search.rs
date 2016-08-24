@@ -1,5 +1,6 @@
 use common::*;
 use attack::Attack;
+use bitboard::BitboardExt;
 use eval::Eval;
 use fen::FEN;
 use game::Game;
@@ -103,6 +104,7 @@ impl Search for Game {
 
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
+        let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
         let is_in_check = self.is_check(side);
 
@@ -117,10 +119,38 @@ impl Search for Game {
             best_move = t.best_move();
         }
 
-        // Internal Iterative Deepening (IID): if we didn't get a best move
-        // from the transpositions table, get it by searching the position
-        // at a reduced depth.
-        if best_move.is_null() && depth > 4 && is_pv {
+        // Null Move Pruning (NMP)
+        let pieces_count = self.bitboard(side).count();
+        let pawns_count = self.bitboard(side | PAWN).count();
+        let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
+
+        let nmp_allowed =
+            !is_pv &&
+            !is_null_move &&
+            !is_in_check &&
+            !is_pawn_ending;
+
+        if nmp_allowed && depth > 2 {
+            let r = 2;
+            let m = Move::new_null();
+            self.make_move(m);
+            self.positions.disable_null_move();
+            let score = -self.search(-beta, -beta + 1, depth - r - 1, ply + 1);
+            self.positions.enable_null_move();
+            self.undo_move(m);
+
+            if score >= beta {
+                return score;
+            }
+        }
+
+        // Internal Iterative Deepening (IID)
+        //
+        // If we didn't get a best move from the transpositions table,
+        // get it by searching the position at a reduced depth.
+        let iid_allowed = is_pv && best_move.is_null();
+
+        if iid_allowed && depth > 4 {
             self.search(-beta, -alpha, depth / 2, ply + 1);
 
             if let Some(t) = self.tt.get(&hash) {
@@ -517,5 +547,25 @@ mod tests {
         game.clock = Clock::new(1, 1000); // 1 second
         let m = game.root(10).unwrap();
         assert!(m != m1);
+    }
+
+    #[test]
+    fn test_null_move_pruning() {
+        // Zugzwang #1
+        let fen = "1q1k4/2Rr4/8/2Q3K1/8/8/8/8 w - - 0 1";
+        let mut game = Game::from_fen(fen);
+        game.clock = Clock::new(1, 5000); // 1 second
+        let m = game.root(100).unwrap();
+        assert_eq!(m, Move::new(G5, H6, QUIET_MOVE));
+
+        // Zugzwang #2
+        /*
+        //FIXME: this position takes too long at the moment
+        let fen = "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 0 1";
+        let mut game = Game::from_fen(fen);
+        game.clock = Clock::new(1, 1000); // 1 second
+        let m = game.root(100).unwrap();
+        assert_eq!(m, Move::new(E1, F1, QUIET_MOVE));
+        */
     }
 }
