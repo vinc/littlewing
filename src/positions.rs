@@ -111,11 +111,13 @@ impl Positions {
 
     // FIXME: this should be in `Position`
     pub fn enable_null_move(&mut self) {
+        debug_assert!(!self.stack[self.ply - 1].null_move_right);
         self.stack[self.ply - 1].null_move_right = true;
     }
 
     // FIXME: this should be in `Position`
     pub fn disable_null_move(&mut self) {
+        debug_assert!(self.stack[self.ply - 1].null_move_right);
         self.stack[self.ply - 1].null_move_right = false;
     }
 }

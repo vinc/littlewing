@@ -106,7 +106,6 @@ impl Search for Game {
         let side = self.positions.top().side;
         let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
-        let is_in_check = self.is_check(side);
 
         let mut best_move = Move::new_null();
 
@@ -119,18 +118,20 @@ impl Search for Game {
             best_move = t.best_move();
         }
 
+        let is_in_check = self.is_check(side);
+
         // Null Move Pruning (NMP)
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
 
         let nmp_allowed =
-            !is_pv &&
-            !is_null_move &&
             !is_in_check &&
+            !is_null_move &&
+            !is_pv &&
             !is_pawn_ending;
 
-        if nmp_allowed && depth > 2 {
+        if nmp_allowed && depth > 3 {
             let r = 2;
             let m = Move::new_null();
             self.make_move(m);
