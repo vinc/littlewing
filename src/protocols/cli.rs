@@ -75,8 +75,8 @@ impl CLI {
         println!("play                      Search and play a move");
         println!("undo                      Undo the last move");
         println!("move <move>               Play <move> on the board");
-        println!("show board|think          Show board/think");
-        println!("hide board|think          Hide board/think");
+        println!("show <feature>            Show <feature>");
+        println!("hide <feature>            Hide <feature>");
         println!("time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
         println!("setboard <fen>            Set the board to <fen>");
         println!("perft                     Count the nodes at each depth");

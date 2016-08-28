@@ -133,6 +133,7 @@ impl Search for Game {
 
         if nmp_allowed && depth > 3 {
             let r = 2;
+            debug_assert!(depth - r - 1 > 0);
             let m = Move::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
@@ -189,12 +190,13 @@ impl Search for Game {
 
                 // Late Move Reduction (LMR)
                 let lmr_allowed =
+                    !is_pv &&
                     !is_in_check &&
                     !is_giving_check &&
                     !m.is_capture() &&
                     !m.is_promotion();
 
-                if lmr_allowed && depth > 2 {
+                if lmr_allowed && depth > 3 {
                     r += 1; // Do the search at a reduced depth
                 }
 
