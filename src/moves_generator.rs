@@ -30,6 +30,7 @@ lazy_static! {
 
 pub trait MovesGenerator {
     fn generate_moves(&mut self);
+    fn next_capture(&mut self) -> Option<Move>;
     fn next_move(&mut self) -> Option<Move>;
     fn make_move(&mut self, m: Move);
     fn undo_move(&mut self, m: Move);
@@ -363,6 +364,16 @@ impl MovesGenerator for Game {
                 return None; // NOTE: Could also be `break`
             }
 
+            self.moves.next_stage();
+            self.generate_moves();
+        }
+
+        self.moves.next()
+    }
+
+    // Specialized version of `next_move` for quiescence search.
+    fn next_capture(&mut self) -> Option<Move> {
+        if self.moves.stage() == MovesStage::BestMove {
             self.moves.next_stage();
             self.generate_moves();
         }

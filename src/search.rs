@@ -54,11 +54,7 @@ impl Search for Game {
         let side = self.positions.top().side;
 
         self.moves.clear();
-        while let Some(m) = self.next_move() {
-            if !m.is_capture() {
-                continue;
-            }
-
+        while let Some(m) = self.next_capture() {
             let old_fen = self.to_fen();
             self.make_move(m);
 
