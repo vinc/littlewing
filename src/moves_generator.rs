@@ -601,6 +601,35 @@ mod tests {
         assert_eq!(game.move_to_san(Move::new(F6, G7, CAPTURE)), "Qxg7");
     }
 
+    #[test]
+    fn test_next_move() {
+        let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
+        let mut game = Game::from_fen(fen);
+
+        game.moves.add_move(Move::new(C2, C3, QUIET_MOVE)); // Best move
+
+        assert_eq!(game.next_move(), Some(Move::new(C2, C3, QUIET_MOVE)));
+        assert_eq!(game.next_move(), Some(Move::new(C2, B3, CAPTURE)));
+        assert_eq!(game.next_move(), Some(Move::new(A1, B3, CAPTURE)));
+        assert_eq!(game.next_move(), Some(Move::new(C2, C4, DOUBLE_PAWN_PUSH)));
+        assert_eq!(game.next_move(), Some(Move::new(C8, B7, QUIET_MOVE))); // Illegal
+        assert_eq!(game.next_move(), Some(Move::new(C8, C7, QUIET_MOVE)));
+        assert_eq!(game.next_move(), Some(Move::new(C8, D7, QUIET_MOVE)));
+        assert_eq!(game.next_move(), Some(Move::new(C8, B8, QUIET_MOVE))); // Illegal
+        assert_eq!(game.next_move(), Some(Move::new(C8, D8, QUIET_MOVE)));
+        assert_eq!(game.next_move(), None);
+    }
+
+    #[test]
+    fn test_next_capture() {
+        let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
+        let mut game = Game::from_fen(fen);
+
+        assert_eq!(game.next_capture(), Some(Move::new(C2, B3, CAPTURE)));
+        assert_eq!(game.next_capture(), Some(Move::new(A1, B3, CAPTURE)));
+        assert_eq!(game.next_capture(), None);
+    }
+
     /*
     #[bench]
     fn bench_perft(b: &mut Bencher) {
