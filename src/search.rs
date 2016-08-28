@@ -55,13 +55,10 @@ impl Search for Game {
 
         self.moves.clear();
         while let Some(m) = self.next_capture() {
-            let old_fen = self.to_fen();
             self.make_move(m);
 
             if self.is_check(side) {
                 self.undo_move(m);
-                let new_fen = self.to_fen();
-                debug_assert_eq!(old_fen, new_fen);
                 continue;
             }
             self.nodes_count += 1;
@@ -69,8 +66,6 @@ impl Search for Game {
             let score = -self.quiescence(-beta, -alpha, ply + 1);
 
             self.undo_move(m);
-            let new_fen = self.to_fen();
-            debug_assert_eq!(old_fen, new_fen);
 
             if score >= beta {
                 return beta
