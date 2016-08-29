@@ -103,7 +103,7 @@ impl Transpositions {
         // NOTE: replacement strategies:
         // 1. Always replace
         // 2. Depth prefered
-        if self.entries[k].depth() < depth { // Using "depth prefered"
+        if self.entries[k].depth() <= depth { // Using "depth prefered"
             self.entries[k] = t;
         }
     }

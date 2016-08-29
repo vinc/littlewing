@@ -307,10 +307,9 @@ impl Search for Game {
                             // We skip the first thousand nodes to gain time
                             // TODO: do we need this?
 
+                            self.tt.set(hash, m, score, depth);
+
                             // Get the PV line from the TT.
-                            if depth == 1 {
-                                self.tt.set(hash, m, score, depth);
-                            }
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
