@@ -10,6 +10,9 @@ pub struct Position {
     pub capture: Piece, // TODO: use `Option<Piece>`?
     pub en_passant: Square, // TODO: use `Option<Square>`?
     pub null_move_right: bool,
+
+    // castling_rights[WHITE][KING]
+    // castling_rights[BLACK][QUEEN]
     pub castling_rights: [[bool; 2]; 2]
 }
 
@@ -26,6 +29,18 @@ impl Position {
         }
     }
 
+    pub fn can_castle_on(&self, side: Color, wing: Piece) -> bool {
+        // KING  == 0b0100
+        // QUEEN == 0b1100
+        self.castling_rights[side as usize][(wing >> 3) as usize]
+    }
+
+    /*
+    pub fn can_castle(&self, side: Color) -> bool {
+        self.castling_rights[side as usize][0] &&
+        self.castling_rights[side as usize][1]
+    }
+    */
 }
 
 pub struct Positions {
@@ -107,7 +122,6 @@ impl Positions {
 
         false
     }
-
 
     // FIXME: this should be in `Position`
     pub fn enable_null_move(&mut self) {

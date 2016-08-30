@@ -137,13 +137,13 @@ impl XBoard {
     }
 
 
-    #[allow(unused_variables)]
-    pub fn cmd_protover(&mut self, args: &[&str]) { // FIXME
+    #[allow(unused_variables)] // TODO: remove that
+    pub fn cmd_protover(&mut self, args: &[&str]) {
         println!("feature myname=\"{}\"", version());
         println!("feature sigint=0 ping=1 setboard=1 memory=1 done=1");
+        // TODO: check that the features got accepted
     }
 
-    // TODO: move the code doing the actual parsing to `Move::from()`
     pub fn parse_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
         if !re.is_match(args[0]) {

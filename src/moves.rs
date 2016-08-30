@@ -257,12 +257,6 @@ impl Moves {
     }
 
     pub fn add_pawns_moves(&mut self, bitboards: &[Bitboard], side: Color, ep: Square) {
-        const XDIRS: [Direction; 2] = [LEFT, RIGHT];
-        const YDIRS: [Direction; 2] = [UP, DOWN];
-        const FILES: [Bitboard; 2] = [FILE_A, FILE_H];
-        const SEC_RANKS: [Bitboard; 2] = [RANK_3, RANK_6];
-        const END_RANKS: [Bitboard; 2] = [RANK_8, RANK_1];
-
         let ydir = YDIRS[side as usize];
         let end_rank = END_RANKS[side as usize];
 

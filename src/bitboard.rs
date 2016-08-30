@@ -49,7 +49,7 @@ impl BitboardExt for Bitboard {
     fn to_debug_string(&self) -> String {
         let mut out = String::new();
 
-        out.push_str(&format!("DEBUG(bitboard): 0x{:016X}", *self));
+        out.push_str(&format!("DEBUG(bitboard): 0x{:016X}\n", *self));
 
         for i in 0..8 {
             for j in 0..8 {

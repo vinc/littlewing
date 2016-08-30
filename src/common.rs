@@ -14,7 +14,7 @@ pub const WHITE:  Color = 0b0000; // 0
 pub const BLACK:  Color = 0b0001; // 1
 
 //pub const LEAPER: Piece = 0b0000;
-//pub const SLIDER: Piece = 0b1000;
+pub const SLIDER: Piece = 0b1000;
 
 pub const EMPTY:  Piece = 0b0000; // 0
 pub const PAWN:   Piece = 0b0010; // 2
@@ -168,6 +168,12 @@ pub const MAX_MOVES: usize = 256;
 pub const MAX_POSITIONS: usize = 512;
 
 pub const TT_SIZE: usize = 8 << 20; // 8 Mb
+
+pub const XDIRS: [Direction; 2] = [LEFT, RIGHT];
+pub const YDIRS: [Direction; 2] = [UP, DOWN];
+pub const FILES: [Bitboard; 2] = [FILE_A, FILE_H];
+pub const SEC_RANKS: [Bitboard; 2] = [RANK_3, RANK_6];
+pub const END_RANKS: [Bitboard; 2] = [RANK_8, RANK_1];
 
 lazy_static! {
     pub static ref PIECE_MASKS: [[Bitboard; 64]; 14] = { // TODO: s/12/5/
