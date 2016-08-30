@@ -136,6 +136,7 @@ pub const ROOK_PROMOTION_CAPTURE:   MoveType = 0b1110; // 14
 pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 0b1111; // 15
 
 pub const BEST_MOVE:                MoveType = 0b0001_0000; // 16
+pub const KILLER_MOVE:              MoveType = 0b0001_0001; // 17
 
 pub const PROMOTION_MASK:           MoveType = 0b1000;
 pub const PROMOTION_KIND_MASK:      MoveType = 0b1100;

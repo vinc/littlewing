@@ -7,8 +7,9 @@ use piece::PieceChar;
 use square::SquareString;
 use bitboard::{BitboardExt, BitboardIterator};
 
-const BEST_MOVE_SCORE:  u8 = 255;
-const QUIET_MOVE_SCORE: u8 = 0;
+const BEST_MOVE_SCORE:   u8 = 255;
+const KILLER_MOVE_SCORE: u8 = 254;
+const QUIET_MOVE_SCORE:  u8 = 0;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Move(u16);
@@ -104,12 +105,15 @@ impl<T, S> Scored<T, S> {
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum MovesStage {
-    QuietMove = QUIET_MOVE,
-    Capture   = CAPTURE,
-    BestMove  = BEST_MOVE,
+    BestMove   = BEST_MOVE,
+    Capture    = CAPTURE,
+    KillerMove = KILLER_MOVE,
+    QuietMove  = QUIET_MOVE
 }
 
 pub struct Moves {
+    killers: [[Move; 2]; MAX_PLY],
+
     // We store the generated moves for each ply in a two dimensional array
     // used by the recursive search function. It must be able to store any
     // ply up to `MAX_PLY`, the theoretical maximum number of plies in a chess
@@ -137,6 +141,7 @@ pub struct Moves {
 impl Moves {
     pub fn new() -> Moves {
         Moves {
+            killers: [[Move::new_null(); 2]; MAX_PLY],
             lists: [[Scored::new(Move::new_null(), 0); MAX_MOVES]; MAX_PLY],
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
@@ -168,6 +173,7 @@ impl Moves {
     }
 
     pub fn clear_all(&mut self) {
+        self.killers = [[Move::new_null(); 2]; MAX_PLY];
         self.sizes = [0; MAX_PLY];
         self.indexes = [0; MAX_PLY];
         self.best_moves_counts = [0; MAX_PLY];
@@ -193,9 +199,10 @@ impl Moves {
 
     pub fn next_stage(&mut self) {
         self.stages[self.ply] = match self.stages[self.ply] {
-            MovesStage::BestMove  => MovesStage::Capture,
-            MovesStage::Capture   => MovesStage::QuietMove,
-            MovesStage::QuietMove => panic!("wrong stage transition")
+            MovesStage::BestMove   => MovesStage::Capture,
+            MovesStage::Capture    => MovesStage::KillerMove,
+            MovesStage::KillerMove => MovesStage::QuietMove,
+            MovesStage::QuietMove  => panic!("wrong stage transition")
         }
     }
 
@@ -207,28 +214,35 @@ impl Moves {
     pub fn add_move(&mut self, m: Move) {
         if !self.skip_ordering {
             // Avoid adding again a best move
+            // TODO: just compare first move if more than one moves
             let n = self.best_moves_counts[self.ply];
             for i in 0..n {
                 if self.lists[self.ply][i].item == m {
                     return;
                 }
             }
+
+            // Avoid adding again a killer move
+            if self.stage() == MovesStage::QuietMove {
+                for i in 0..2 {
+                    if self.killers[self.ply][i] == m {
+                        return;
+                    }
+                }
+            }
         }
 
-        let score = match self.stage() {
-            MovesStage::BestMove => {
-                self.best_moves_counts[self.ply] += 1;
+        if self.stage() == MovesStage::BestMove {
+            self.best_moves_counts[self.ply] += 1;
+        }
 
-                BEST_MOVE_SCORE
-            },
-            MovesStage::Capture | MovesStage::QuietMove => {
-                // NOTE: we cannot use MVV/LVA or SEE to assign a score to
-                // captures here because we don't have access to the board
-                // from `Moves`.
-                // TODO: use MoveType as score to do tactical moves before
-                // all the other quiet moves?
-                QUIET_MOVE_SCORE
-            }
+        // NOTE: we cannot use MVV/LVA or SEE to assign a score to captures
+        // here because we don't have access to the board from `Moves`.
+        let score = match self.stage() {
+            MovesStage::BestMove   => BEST_MOVE_SCORE,
+            MovesStage::Capture    => QUIET_MOVE_SCORE,
+            MovesStage::KillerMove => KILLER_MOVE_SCORE,
+            MovesStage::QuietMove  => QUIET_MOVE_SCORE
         };
 
         self.lists[self.ply][self.sizes[self.ply]] = Scored::new(m, score);
@@ -294,7 +308,7 @@ impl Moves {
                     self.add_moves(attacks & end_rank, dir, QUEEN_PROMOTION_CAPTURE);
                 }
             },
-            MovesStage::BestMove => panic!("wrong generation stage")
+            _ => panic!("wrong generation stage")
         }
     }
 
@@ -308,7 +322,7 @@ impl Moves {
         let targets = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
-            MovesStage::BestMove  => panic!("wrong generation stage")
+            _                     => panic!("wrong generation stage")
         };
         while let Some(from) = pieces.next() {
             let mask = piece_attacks(p, from, occupied);
@@ -323,7 +337,7 @@ impl Moves {
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
-            MovesStage::BestMove  => panic!("wrong generation stage")
+            _                     => panic!("wrong generation stage")
         };
         while let Some(from) = knights.next() {
             let mask = PIECE_MASKS[KNIGHT as usize][from as usize];
@@ -339,7 +353,7 @@ impl Moves {
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
-            MovesStage::BestMove  => panic!("wrong generation stage")
+            _                     => panic!("wrong generation stage")
         };
         while let Some(from) = kings.next() {
             let mask = PIECE_MASKS[KING as usize][from as usize];
@@ -355,7 +369,7 @@ impl Moves {
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
-            MovesStage::BestMove  => panic!("wrong generation stage")
+            _                     => panic!("wrong generation stage")
         };
         while let Some(from) = bishops.next() {
             let targets = bishop_attacks(from, occupied);
@@ -370,7 +384,7 @@ impl Moves {
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
-            MovesStage::BestMove  => panic!("wrong generation stage")
+            _                     => panic!("wrong generation stage")
         };
         while let Some(from) = rooks.next() {
             let targets = rook_attacks(from, occupied);
@@ -385,7 +399,7 @@ impl Moves {
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
-            MovesStage::BestMove  => panic!("wrong generation stage")
+            _                     => panic!("wrong generation stage")
         };
         while let Some(from) = queens.next() {
             let targets = bishop_attacks(from, occupied) | rook_attacks(from, occupied);
@@ -405,6 +419,17 @@ impl Moves {
 
     pub fn swap(&mut self, i: usize, j: usize) {
         self.lists[self.ply].swap(i, j);
+    }
+
+    pub fn get_killer_move(&mut self, i: usize) -> Move {
+        self.killers[self.ply][i]
+    }
+
+    pub fn add_killer_move(&mut self, killer_move: Move) {
+        if killer_move != self.killers[self.ply][0] {
+            self.killers[self.ply][1] = self.killers[self.ply][0];
+            self.killers[self.ply][0] = killer_move;
+        }
     }
 }
 

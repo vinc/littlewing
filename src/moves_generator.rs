@@ -301,6 +301,18 @@ impl MovesGenerator for Game {
 
     fn generate_moves(&mut self) {
         // TODO: make sure that `moves.clear()` has been called at this ply
+
+        if self.moves.stage() == MovesStage::KillerMove {
+            for i in 0..2 {
+                let m = self.moves.get_killer_move(i);
+
+                if self.is_legal_move(m) {
+                    self.moves.add_move(m);
+                }
+            }
+            return;
+        }
+
         let &position = self.positions.top();
         let side = position.side;
         let ep = position.en_passant;
@@ -512,6 +524,8 @@ mod tests {
         game.moves.next_stage();
         game.generate_moves(); // Captures
 
+        game.moves.next_stage(); // Killer Moves
+
         game.moves.next_stage();
         game.generate_moves(); // Quiet moves
 
@@ -620,9 +634,10 @@ mod tests {
         assert_eq!(game.mvv_lva(Move::new(B3, C2, CAPTURE)),  3); // QxP
         assert_eq!(game.mvv_lva(Move::new(D2, C2, CAPTURE)),  2); // KxP
 
-        game.moves.next_stage();
+        game.moves.next_stage(); // Captures
         game.generate_moves();
-        game.moves.next_stage();
+        game.moves.next_stage(); // Killer moves
+        game.moves.next_stage(); // Quiet moves
         game.generate_moves();
 
         assert_eq!(game.moves.next(), Some(Move::new(B2, C3, CAPTURE)));

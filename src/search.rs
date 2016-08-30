@@ -203,6 +203,10 @@ impl Search for Game {
             self.undo_move(m);
 
             if score >= beta {
+                if !m.is_capture() {
+                    self.moves.add_killer_move(m);
+                }
+
                 return beta;
             }
 

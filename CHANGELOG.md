@@ -7,6 +7,7 @@
 - Add principal variation search
 - Add internal iterative deepening
 - Add late move reduction
+- Add killer heuristic
 - Add basic null move pruning
 - Add basic mobility evaluation
 
