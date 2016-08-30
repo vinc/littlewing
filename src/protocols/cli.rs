@@ -88,6 +88,7 @@ impl CLI {
 
     pub fn cmd_xboard(&self) {
         let mut xboard = XBoard::new();
+        xboard.game.is_debug = self.game.is_debug;
         xboard.run();
     }
 

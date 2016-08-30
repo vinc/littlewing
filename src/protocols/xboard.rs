@@ -13,7 +13,7 @@ use transpositions::{Transposition, Transpositions};
 use version;
 
 pub struct XBoard {
-    game: Game,
+    pub game: Game,
     max_depth: usize,
     force: bool
 }
