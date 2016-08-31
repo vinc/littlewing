@@ -163,10 +163,23 @@ impl MovesGenerator for Game {
         let piece = self.board[m.from() as usize];
         let capture = self.board[m.to() as usize]; // TODO: En passant
 
+        new_position.halfmoves_count += 1;
+
+        if m.is_null() {
+            // TODO: remove duplicate code
+            new_position.side ^= 1;
+            new_position.hash ^= self.zobrist.side;
+            new_position.en_passant = OUT;
+
+            self.positions.push(new_position);
+            self.moves.inc();
+
+            return;
+        }
+
         self.bitboards[piece as usize].toggle(m.from());
         self.board[m.from() as usize] = EMPTY;
         new_position.hash ^= self.zobrist.positions[piece as usize][m.from() as usize];
-        new_position.halfmoves_count += 1;
 
         // Update castling rights
         if piece.kind() == KING {
@@ -292,6 +305,10 @@ impl MovesGenerator for Game {
 
         self.positions.pop();
         self.moves.dec();
+
+        if m.is_null() {
+            return;
+        }
 
         let &position = self.positions.top();
         let side = position.side;
