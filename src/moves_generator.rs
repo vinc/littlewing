@@ -149,6 +149,12 @@ impl MovesGenerator for Game {
                 return false
             }
 
+            if (RANK_1 | RANK_8).get(s) {
+                if !m.is_promotion() {
+                    return false
+                }
+            }
+
             !occupied.get(m.to())
         } else {
             (attacks & !occupied).get(m.to())
