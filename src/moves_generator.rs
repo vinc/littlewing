@@ -101,7 +101,7 @@ impl MovesGenerator for Game {
             return false
         }
 
-        if m.is_promotion() {
+        if m.is_promotion() || m.kind() == DOUBLE_PAWN_PUSH {
             if p.kind() != PAWN {
                 return false
             }
