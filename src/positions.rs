@@ -29,18 +29,11 @@ impl Position {
         }
     }
 
-    pub fn can_castle_on(&self, side: Color, wing: Piece) -> bool {
+    pub fn has_castling_right_on(&self, side: Color, wing: Piece) -> bool {
         // KING  == 0b0100
         // QUEEN == 0b1100
         self.castling_rights[side as usize][(wing >> 3) as usize]
     }
-
-    /*
-    pub fn can_castle(&self, side: Color) -> bool {
-        self.castling_rights[side as usize][0] &&
-        self.castling_rights[side as usize][1]
-    }
-    */
 }
 
 pub struct Positions {
