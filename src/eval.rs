@@ -1,7 +1,11 @@
+use std::cmp;
+
 use common::*;
+use attack::Attack;
 use attack::piece_attacks;
 use bitboard::{BitboardExt, BitboardIterator};
 use game::Game;
+use moves::Move;
 
 pub const PAWN_VALUE:   Score = 100;
 pub const KNIGHT_VALUE: Score = 325;
@@ -34,6 +38,8 @@ pub trait Eval {
     fn eval_pieces(&self, piece: Piece) -> Score;
     fn eval_side(&self, c: Color) -> Score;
     fn eval(&self) -> Score;
+    fn see(&self, capture: Move) -> Score;
+    fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square;
 }
 
 impl Eval for Game {
@@ -82,6 +88,74 @@ impl Eval for Game {
         }
 
         score
+    }
+
+    // Static Exchange Evaluation
+    fn see(&self, capture: Move) -> Score {
+        let mut occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
+        let mut sq = capture.from();
+        let mut side = self.positions.top().side;
+        let mut gains = [0; 32];
+        let mut d = 0;
+
+        let piece = self.board[capture.to() as usize];
+        let value = PIECE_VALUES[piece as usize];
+        gains[d] = value;
+
+        while sq != OUT {
+            d += 1;
+            side ^= 1;
+            occupied.reset(sq); // Remove piece
+
+            let piece = self.board[sq as usize];
+            let value = PIECE_VALUES[piece as usize];
+            gains[d] = value - gains[d - 1];
+
+            // Get square of least valuable piece remaining
+            let attacks = self.attacks_to(capture.to(), occupied);
+            sq = self.lvp(side, attacks, occupied);
+        }
+
+        while { d -= 1; d > 0 } {
+            gains[d - 1] = -cmp::max(-gains[d - 1], gains[d]);
+        }
+
+        gains[0]
+    }
+
+    // Get square of least valuable piece
+    fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square {
+        for p in PIECES.iter() {
+            let piece = side | p;
+            // NOTE: we need `occupied` only to be able to hide some pieces
+            // from the bitboard.
+            let subset = attacks & occupied & self.bitboards[piece as usize];
+            if subset > 0 {
+                return subset.trailing_zeros() as Square
+            }
+        }
+
+        OUT
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use common::*;
+    use super::*;
+    use fen::FEN;
+    use game::Game;
+    use moves::Move;
+
+    #[test]
+    fn test_see() {
+        let fen = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - -";
+        let game = Game::from_fen(fen);
+        assert_eq!(game.see(Move::new(E1, E5, CAPTURE)), 100);
+
+        let fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
+        let game = Game::from_fen(fen);
+        assert_eq!(game.see(Move::new(D3, E5, CAPTURE)), -225);
     }
 }
 

@@ -24,6 +24,8 @@ pub const BISHOP: Piece = 0b1000; // 8
 pub const ROOK:   Piece = 0b1010; // 10
 pub const QUEEN:  Piece = 0b1100; // 12
 
+pub const PIECES: [Piece; 6] = [PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING];
+
 pub const WHITE_PAWN:   Piece = WHITE | PAWN;
 pub const WHITE_KNIGHT: Piece = WHITE | KNIGHT;
 pub const WHITE_BISHOP: Piece = WHITE | BISHOP;

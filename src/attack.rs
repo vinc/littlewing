@@ -7,6 +7,7 @@ use piece::PieceAttr;
 pub trait Attack {
     fn is_check(&self, side: Color) -> bool;
     fn is_attacked(&self, square: Square, side: Color) -> bool;
+    fn attacks_to(&self, square: Square, occupied: Bitboard) -> Bitboard;
 }
 
 impl Attack for Game {
@@ -55,6 +56,23 @@ impl Attack for Game {
         }
 
         false
+    }
+
+    fn attacks_to(&self, square: Square, occupied: Bitboard) -> Bitboard {
+        let bbs = &self.bitboards;
+
+        let knights  = bbs[(WHITE | KNIGHT) as usize] | bbs[(BLACK | KNIGHT) as usize];
+        let kings    = bbs[(WHITE | KING)   as usize] | bbs[(BLACK | KING)   as usize];
+        let bishops  = bbs[(WHITE | BISHOP) as usize] | bbs[(BLACK | BISHOP) as usize];
+        let rooks    = bbs[(WHITE | ROOK)   as usize] | bbs[(BLACK | ROOK)   as usize];
+        let queens   = bbs[(WHITE | QUEEN)  as usize] | bbs[(BLACK | QUEEN)  as usize];
+
+        (piece_attacks(WHITE | PAWN, square, occupied) & bbs[(WHITE | PAWN) as usize]) |
+        (piece_attacks(BLACK | PAWN, square, occupied) & bbs[(BLACK | PAWN) as usize]) |
+        (piece_attacks(KNIGHT, square, occupied) & knights) |
+        (piece_attacks(KING,   square, occupied) & kings) |
+        (piece_attacks(BISHOP, square, occupied) & (bishops | queens)) |
+        (piece_attacks(ROOK,   square, occupied) & (rooks | queens))
     }
 }
 

@@ -10,6 +10,7 @@
 - Add killer heuristic
 - Add basic null move pruning
 - Add basic mobility evaluation
+- Add static exchange evaluation
 
 
 ## [0.2.0] - 2016-08-22
