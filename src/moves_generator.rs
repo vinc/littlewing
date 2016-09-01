@@ -3,9 +3,10 @@ use attack::Attack;
 use attack::piece_attacks;
 use bitboard::BitboardExt;
 use game::Game;
-use moves::{Move, MovesStage};
+use moves::*;
 use piece::{PieceAttr, PieceChar};
 use square::SquareString;
+use eval::Eval;
 
 lazy_static! {
     // PxP =  7, PxN = 15, PxB = 23, PxR = 31, PxQ = 39, PxK = 47
@@ -461,6 +462,9 @@ impl MovesGenerator for Game {
         for i in a..b {
             if self.moves[i].item.is_capture() {
                 self.moves[i].score = self.mvv_lva(self.moves[i].item);
+                if self.see(self.moves[i].item) > 0 {
+                    self.moves[i].score += GOOD_CAPTURE_SCORE;
+                }
             }
             for j in a..i {
                 if self.moves[j].score < self.moves[i].score {

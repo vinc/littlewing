@@ -13,6 +13,7 @@
 - Add static exchange evaluation
 
 ### Changed
+- Use static exchange evaluation in moves ordering
 - Skip bad captures in quiescence search
 
 

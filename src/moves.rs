@@ -7,9 +7,10 @@ use piece::PieceChar;
 use square::SquareString;
 use bitboard::{BitboardExt, BitboardIterator};
 
-const BEST_MOVE_SCORE:   u8 = 255;
-const KILLER_MOVE_SCORE: u8 = 254;
-const QUIET_MOVE_SCORE:  u8 = 0;
+pub const BEST_MOVE_SCORE:    u8 = 255;
+pub const KILLER_MOVE_SCORE:  u8 = 254;
+pub const GOOD_CAPTURE_SCORE: u8 = 64;
+pub const QUIET_MOVE_SCORE:   u8 = 0;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Move(u16);
