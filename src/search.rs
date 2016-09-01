@@ -55,6 +55,10 @@ impl Search for Game {
 
         self.moves.clear();
         while let Some(m) = self.next_capture() {
+            if self.see(m) < 0 {
+                continue
+            }
+
             self.make_move(m);
 
             if self.is_check(side) {

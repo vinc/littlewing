@@ -12,6 +12,9 @@
 - Add basic mobility evaluation
 - Add static exchange evaluation
 
+### Changed
+- Skip bad captures in quiescence search
+
 
 ## [0.2.0] - 2016-08-22
 
