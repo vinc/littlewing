@@ -510,6 +510,15 @@ impl MovesGenerator for Game {
             self.generate_moves();
         }
 
+        // Skip bad captures
+        let i = self.moves.index();
+        let n = self.moves.len();
+        if i < n {
+            if self.moves[i].score < GOOD_CAPTURE_SCORE {
+                return None;
+            }
+        }
+
         self.moves.next()
     }
 
@@ -566,6 +575,7 @@ mod tests {
     use fen::FEN;
     use game::Game;
     use super::*;
+    use eval::Eval;
 
     fn perft(fen: &str) -> usize {
         let mut game = Game::from_fen(fen);

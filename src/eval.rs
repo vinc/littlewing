@@ -156,6 +156,24 @@ mod tests {
         let fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
         let game = Game::from_fen(fen);
         assert_eq!(game.see(Move::new(D3, E5, CAPTURE)), -225);
+
+        let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
+        let game = Game::from_fen(fen);
+        assert_eq!(game.see(Move::new(E4, D5, CAPTURE)), 0);
+
+        let fen = "rnbqkb1r/ppp1pppp/5n2/3p4/4P3/2N5/PPPP1PPP/R1BQKBNR w KQkq - 2 3";
+        let game = Game::from_fen(fen);
+        assert_eq!(game.see(Move::new(E4, D5, CAPTURE)), 0);
+
+        let fen = "rnbqkb1r/pp2pppp/2p2n2/1B1p4/4P3/2N5/PPPP1PPP/R1BQK1NR w KQkq - 0 4";
+        let game = Game::from_fen(fen);
+        assert_eq!(game.see(Move::new(E4, D5, CAPTURE)), 0);
+        assert_eq!(game.see(Move::new(C3, D5, CAPTURE)), -225);
+        assert_eq!(game.see(Move::new(B5, C6, CAPTURE)), -225);
+
+        let fen = "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2";
+        let game = Game::from_fen(fen);
+        assert_eq!(game.see(Move::new(D4, E5, CAPTURE)), 100);
     }
 }
 
