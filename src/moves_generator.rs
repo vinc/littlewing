@@ -462,7 +462,7 @@ impl MovesGenerator for Game {
         for i in a..b {
             if self.moves[i].item.is_capture() {
                 self.moves[i].score = self.mvv_lva(self.moves[i].item);
-                if self.see(self.moves[i].item) > 0 {
+                if self.see(self.moves[i].item) >= 0 {
                     self.moves[i].score += GOOD_CAPTURE_SCORE;
                 }
             }
