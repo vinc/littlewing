@@ -179,6 +179,25 @@ impl Search for Game {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
 
+                // Futility Pruning (FP)
+                let fp_allowed =
+                    !is_pv &&
+                    !is_in_check &&
+                    !is_giving_check &&
+                    !m.is_capture() &&
+                    !m.is_promotion();
+
+                if fp_allowed && depth == 1 {
+                    let margin = 100;
+                    let score = self.eval_material(side)
+                              - self.eval_material(side ^ 1);
+
+                    if score + margin < alpha {
+                        self.undo_move(m);
+                        continue;
+                    }
+                }
+
                 // Late Move Reduction (LMR)
                 let lmr_allowed =
                     !is_pv &&
