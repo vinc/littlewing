@@ -35,41 +35,38 @@ lazy_static! {
 }
 
 pub trait Eval {
-    fn eval_pieces(&self, piece: Piece) -> Score;
-    fn eval_side(&self, c: Color) -> Score;
     fn eval(&self) -> Score;
+    fn eval_material(&self, c: Color) -> Score;
+    fn eval_mobility(&self, c: Color) -> Score;
     fn see(&self, capture: Move) -> Score;
     fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square;
 }
 
 impl Eval for Game {
-    fn eval_pieces(&self, piece: Piece) -> Score {
+    fn eval_material(&self, c: Color) -> Score {
         let mut score = 0;
 
-        // Material score
-        let n = self.bitboards[piece as usize].count() as Score;
-        score += n * PIECE_VALUES[piece as usize];
-
-        // Mobility score
-        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
-        let mut pieces = self.bitboards[piece as usize];
-        while let Some(from) = pieces.next() {
-            let targets = piece_attacks(piece, from, occupied);
-            score += targets.count() as Score;
+        for p in PIECES.iter() {
+            let piece = c | p;
+            let n = self.bitboards[piece as usize].count() as Score;
+            score += n * PIECE_VALUES[piece as usize];
         }
 
         score
     }
 
-    fn eval_side(&self, c: Color) -> Score {
+    fn eval_mobility(&self, c: Color) -> Score {
         let mut score = 0;
 
-        score += self.eval_pieces(c | PAWN);
-        score += self.eval_pieces(c | KNIGHT);
-        score += self.eval_pieces(c | BISHOP);
-        score += self.eval_pieces(c | ROOK);
-        score += self.eval_pieces(c | QUEEN);
-        score += self.eval_pieces(c | KING);
+        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
+        for p in PIECES.iter() {
+            let piece = c | p;
+            let mut pieces = self.bitboards[piece as usize];
+            while let Some(from) = pieces.next() {
+                let targets = piece_attacks(piece, from, occupied);
+                score += targets.count() as Score;
+            }
+        }
 
         score
     }
@@ -78,14 +75,17 @@ impl Eval for Game {
         let mut score = 0;
         let side = self.positions.top().side;
 
-        score += self.eval_side(side);
-        score -= self.eval_side(side ^ 1);
+        score += self.eval_material(side);
+        score -= self.eval_material(side ^ 1);
 
         if score > KING_VALUE {
             return INF; // Win
         } else if score < -KING_VALUE {
             return -INF; // Loss
         }
+
+        score += self.eval_mobility(side);
+        score -= self.eval_mobility(side ^ 1);
 
         score
     }
