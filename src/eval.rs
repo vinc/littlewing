@@ -7,14 +7,16 @@ use bitboard::{BitboardExt, BitboardIterator};
 use game::Game;
 use moves::Move;
 
-pub const PAWN_VALUE:        Score = 100;
-pub const KNIGHT_VALUE:      Score = 350;
-pub const BISHOP_VALUE:      Score = 350;
-pub const ROOK_VALUE:        Score = 500;
-pub const QUEEN_VALUE:       Score = 1000; // R + B + P + bonus bishop pair
-pub const KING_VALUE:        Score = 10000;
+pub const PAWN_VALUE:         Score = 100;
+pub const KNIGHT_VALUE:       Score = 350;
+pub const BISHOP_VALUE:       Score = 350;
+pub const ROOK_VALUE:         Score = 500;
+pub const QUEEN_VALUE:        Score = 1000; // R + B + P + bonus bishop pair
+pub const KING_VALUE:         Score = 10000;
 
-pub const BONUS_BISHOP_PAIR: Score = 50;
+pub const BONUS_BISHOP_PAIR:  Score = 50;
+pub const BONUS_KNIGHT_PAWNS: Score = 5;
+pub const BONUS_ROOK_PAWNS:   Score = 10;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
@@ -47,14 +49,27 @@ pub trait Eval {
 impl Eval for Game {
     fn eval_material(&self, c: Color) -> Score {
         let mut score = 0;
+        let mut pawns_count = 0;
 
         for &p in PIECES.iter() {
             let piece = c | p;
             let n = self.bitboards[piece as usize].count() as Score;
             score += n * PIECE_VALUES[piece as usize];
 
-            if p == BISHOP && n == 2 {
-                score += BONUS_BISHOP_PAIR;
+            match p {
+                PAWN => {
+                    pawns_count = n;
+                },
+                KNIGHT => {
+                    score += n * pawns_count * BONUS_KNIGHT_PAWNS;
+                },
+                BISHOP if n == 2 => {
+                    score += BONUS_BISHOP_PAIR;
+                },
+                ROOK => {
+                    score += n * (8 - pawns_count) * BONUS_ROOK_PAWNS;
+                },
+                _ => { }
             }
         }
 
