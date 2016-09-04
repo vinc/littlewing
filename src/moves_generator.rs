@@ -5,7 +5,7 @@ use bitboard::BitboardExt;
 use game::Game;
 use moves::*;
 use piece::{PieceAttr, PieceChar};
-use square::SquareString;
+use square::SquareExt;
 use eval::Eval;
 
 lazy_static! {
@@ -60,12 +60,12 @@ impl MovesGenerator for Game {
         let mask = CASTLING_MASKS[side as usize][(KING >> 3) as usize];
 
         !occupied & mask == mask &&
-        self.board[(E1 ^ 56 * side) as usize] == side | KING &&
-        self.board[(H1 ^ 56 * side) as usize] == side | ROOK &&
+        self.board[E1.flip(side) as usize] == side | KING &&
+        self.board[H1.flip(side) as usize] == side | ROOK &&
         position.has_castling_right_on(side, KING) &&
-        !self.is_attacked(E1 ^ 56 * side, side) &&
-        !self.is_attacked(F1 ^ 56 * side, side) &&
-        !self.is_attacked(G1 ^ 56 * side, side) // TODO: Duplicate with is_check() ?
+        !self.is_attacked(E1.flip(side), side) &&
+        !self.is_attacked(F1.flip(side), side) &&
+        !self.is_attacked(G1.flip(side), side) // TODO: Duplicate with is_check() ?
     }
 
     fn can_queen_castle(&mut self, side: Color) -> bool {
@@ -74,12 +74,12 @@ impl MovesGenerator for Game {
         let mask = CASTLING_MASKS[side as usize][(QUEEN >> 3) as usize];
 
         !occupied & mask == mask &&
-        self.board[(E1 ^ 56 * side) as usize] == side | KING &&
-        self.board[(A1 ^ 56 * side) as usize] == side | ROOK &&
+        self.board[E1.flip(side) as usize] == side | KING &&
+        self.board[A1.flip(side) as usize] == side | ROOK &&
         position.has_castling_right_on(side, QUEEN) &&
-        !self.is_attacked(E1 ^ 56 * side, side) &&
-        !self.is_attacked(D1 ^ 56 * side, side) &&
-        !self.is_attacked(C1 ^ 56 * side, side)
+        !self.is_attacked(E1.flip(side), side) &&
+        !self.is_attacked(D1.flip(side), side) &&
+        !self.is_attacked(C1.flip(side), side)
     }
 
     // Pseudal legal move checker.
@@ -201,14 +201,14 @@ impl MovesGenerator for Game {
             new_position.hash ^= self.zobrist.castling_rights[side as usize][(KING >> 3) as usize];
             new_position.hash ^= self.zobrist.castling_rights[side as usize][(QUEEN >> 3) as usize];
         } else if piece.kind() == ROOK {
-            if m.from() == H1 ^ 56 * side {
+            if m.from() == H1.flip(side) {
                 if new_position.castling_rights[side as usize][(KING >> 3) as usize] {
                     new_position.halfmoves_count = 0;
                 }
                 new_position.castling_rights[side as usize][(KING >> 3) as usize] = false;
                 new_position.hash ^= self.zobrist.castling_rights[side as usize][(KING >> 3) as usize];
             }
-            if m.from() == A1 ^ 56 * side {
+            if m.from() == A1.flip(side) {
                 if new_position.castling_rights[side as usize][(QUEEN >> 3) as usize] {
                     new_position.halfmoves_count = 0;
                 }
@@ -220,11 +220,11 @@ impl MovesGenerator for Game {
         }
 
         if capture.kind() == ROOK {
-            if m.to() == H1 ^ 56 * (side ^ 1) {
+            if m.to() == H1.flip(side ^ 1) {
                 new_position.castling_rights[(side ^ 1) as usize][(KING >> 3) as usize] = false;
                 new_position.hash ^= self.zobrist.castling_rights[(side ^ 1) as usize][(KING >> 3) as usize];
             }
-            if m.to() == A1 ^ 56 * (side ^ 1) {
+            if m.to() == A1.flip(side ^ 1) {
                 new_position.castling_rights[(side ^ 1) as usize][(QUEEN >> 3) as usize] = false;
                 new_position.hash ^= self.zobrist.castling_rights[(side ^ 1) as usize][(QUEEN >> 3) as usize];
             }
@@ -235,9 +235,9 @@ impl MovesGenerator for Game {
             let rook = side | ROOK;
 
             let (rook_from, rook_to) = if m.castle_kind() == KING {
-                (H1 ^ 56 * side, F1 ^ 56 * side)
+                (H1.flip(side), F1.flip(side))
             } else {
-                (A1 ^ 56 * side, D1 ^ 56 * side)
+                (A1.flip(side), D1.flip(side))
             };
 
             self.board[rook_from as usize] = EMPTY;
@@ -263,8 +263,7 @@ impl MovesGenerator for Game {
         }
 
         new_position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
-            //((m.from() ^ (56 * side)) + UP) ^ (56 * side)
-            ((((m.from() as i8) ^ (56 * (side as i8))) + UP) ^ (56 * (side as i8))) as Square
+            ((((m.from().flip(side)) as Direction) + UP) as Square).flip(side)
         } else {
             OUT
         };
@@ -289,8 +288,7 @@ impl MovesGenerator for Game {
 
         if m.kind() == EN_PASSANT {
             new_position.halfmoves_count = 0;
-            //let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
-            let square = ((((m.to() as i8) ^ (56 * (side as i8))) + DOWN) ^ (56 * (side as i8))) as Square;
+            let square = (((m.to().flip(side) as Direction) + DOWN) as Square).flip(side);
             self.board[square as usize] = EMPTY;
             self.bitboards[(side ^ 1 | PAWN) as usize].toggle(square);
             self.bitboards[(side ^ 1) as usize].toggle(square);
@@ -324,9 +322,9 @@ impl MovesGenerator for Game {
             let rook = side | ROOK;
 
             let (rook_from, rook_to) = if m.castle_kind() == KING {
-                (H1 ^ 56 * side, F1 ^ 56 * side)
+                (H1.flip(side), F1.flip(side))
             } else {
-                (A1 ^ 56 * side, D1 ^ 56 * side)
+                (A1.flip(side), D1.flip(side))
             };
 
             self.board[rook_from as usize] = rook;
@@ -347,8 +345,7 @@ impl MovesGenerator for Game {
         }
 
         if m.kind() == EN_PASSANT {
-            //let square = ((m.to() ^ (56 * side)) + DOWN) ^ (56 * side);
-            let square = ((((m.to() as i8) ^ (56 * (side as i8))) + DOWN) ^ (56 * (side as i8))) as Square;
+            let square = (((m.to().flip(side) as Direction) + DOWN) as Square).flip(side);
             self.board[square as usize] = side ^ 1 | PAWN;
             self.bitboards[(side ^ 1 | PAWN) as usize].toggle(square);
             self.bitboards[(side ^ 1) as usize].toggle(square);
@@ -527,8 +524,8 @@ impl MovesGenerator for Game {
 
         let side = self.positions.top().side;
         let (a, b) = s.split_at(2);
-        let from = SquareString::from_coord(String::from(a));
-        let to = SquareString::from_coord(String::from(b));
+        let from = Square::from_coord(String::from(a));
+        let to = Square::from_coord(String::from(b));
         let piece = self.board[from as usize];
         let capture = self.board[to as usize];
 
@@ -545,12 +542,12 @@ impl MovesGenerator for Game {
             } else {
                 promotion | CAPTURE
             }
-        } else if piece.kind() == KING && from == E1 ^ 56 * side && to == G1 ^ 56 * side {
+        } else if piece.kind() == KING && from == E1.flip(side) && to == G1.flip(side) {
             KING_CASTLE
-        } else if piece.kind() == KING && from == E1 ^ 56 * side && to == C1 ^ 56 * side {
+        } else if piece.kind() == KING && from == E1.flip(side) && to == C1.flip(side) {
             QUEEN_CASTLE
         } else if capture == EMPTY {
-            let d = (to ^ 56 * side) as Direction - (from ^ 56 * side) as Direction;
+            let d = (to.flip(side) as Direction) - (from.flip(side) as Direction);
             if piece.kind() == PAWN && (d == 2 * UP) {
                 DOUBLE_PAWN_PUSH
             } else if piece.kind() == PAWN && to == self.positions.top().en_passant {

@@ -4,7 +4,7 @@ use common::*;
 use bitboard::BitboardExt;
 use game::Game;
 use piece::PieceChar;
-use square::SquareString;
+use square::SquareExt;
 use positions::Position;
 
 pub trait FEN {
@@ -64,7 +64,7 @@ impl FEN for Game {
 
         if let Some(ep) = fields.next() {
             if ep != "-" {
-                position.en_passant = SquareString::from_coord(ep.into());
+                position.en_passant = SquareExt::from_coord(ep.into());
             }
         };
 

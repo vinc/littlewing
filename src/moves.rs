@@ -4,7 +4,7 @@ use std::ops::{Index, IndexMut};
 use common::*;
 use attack::*;
 use piece::PieceChar;
-use square::SquareString;
+use square::SquareExt;
 use bitboard::{BitboardExt, BitboardIterator};
 
 pub const BEST_MOVE_SCORE:    u8 = 255;
@@ -409,12 +409,12 @@ impl Moves {
     }
 
     pub fn add_king_castle(&mut self, side: Color) {
-        let m = Move::new(E1 ^ 56 * side, G1 ^ 56 * side, KING_CASTLE);
+        let m = Move::new(E1.flip(side), G1.flip(side), KING_CASTLE);
         self.add_move(m);
     }
 
     pub fn add_queen_castle(&mut self, side: Color) {
-        let m = Move::new(E1 ^ 56 * side, C1 ^ 56 * side, QUEEN_CASTLE);
+        let m = Move::new(E1.flip(side), C1.flip(side), QUEEN_CASTLE);
         self.add_move(m);
     }
 
