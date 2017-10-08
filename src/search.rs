@@ -9,8 +9,8 @@ use moves_generator::MovesGenerator;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
-    fn quiescence(&mut self, mut alpha: Score, beta: Score, ply: usize) -> Score;
-    fn search(&mut self, mut alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
+    fn quiescence(&mut self, alpha: Score, beta: Score, ply: usize) -> Score;
+    fn search(&mut self, alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
     fn root(&mut self, max_depth: usize) -> Option<Move>;
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move);
     fn get_pv(&mut self, depth: usize) -> String;

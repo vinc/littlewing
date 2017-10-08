@@ -132,7 +132,6 @@ mod tests {
     use std::mem;
 
     use super::*;
-    use common::*;
     use moves::Move;
 
     #[test]
