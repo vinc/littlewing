@@ -11,11 +11,11 @@ Tested on GNU/Linux 32 and 64 bits, should run anywhere.
 Usage
 -----
 
-First you will need Rust:
+First you need to install Rust:
 
-    $ curl -sSf https://static.rust-lang.org/rustup.sh | sh
+    $ curl https://sh.rustup.rs -sSf | sh
 
-Then you can compile and install it:
+Then you can compile and install the engine:
 
     $ git clone https://github.com/vinc/littlewing.git
     $ cd littlewing
@@ -175,4 +175,4 @@ it from `littlewing` if you installed it to make it run faster.
 License
 -------
 
-Copyright (C) 2014-2016 Vincent Ollivier. Released under GNU GPL License v3.
+Copyright (C) 2014-2017 Vincent Ollivier. Released under GNU GPL License v3.
