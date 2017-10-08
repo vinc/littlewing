@@ -1,11 +1,17 @@
 [package]
-
 name = "littlewing"
+description = "A minimalist bitboard chess engine"
 version = "0.2.0"
 authors = ["Vincent Ollivier <v@vinc.cc>"]
+repository = "https://github.com/vinc/littlewing"
+homepage = "https://vinc.cc/projects/littlewing.html"
+license = "GPL-3.0"
 
 [dependencies]
-lazy_static = "*"
-rand = "*"
-regex = "*"
-time = "*"
+lazy_static = "0.2"
+rand = "0.3"
+regex = "0.2"
+time = "0.1"
+
+[badges]
+travis-ci = { repository = "vinc/littlewing" }
