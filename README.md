@@ -26,7 +26,7 @@ Little Wing is compatible with the XBoard protocol, and it has its own
 text-based user interface:
 
     $ littlewing --color --debug
-    Little Wing v0.2.0
+    Little Wing v0.3.0
 
     > time 1 10
     > show think
@@ -119,7 +119,7 @@ Little Wing also have a `perft` command for counting the number of nodes at
 each depth from the starting position.
 
     $ cargo run
-    Little Wing v0.2.0
+    Little Wing v0.3.0
 
     > perft
     perft(1) -> 20 (0.00 s, 5.83e4 nps)
@@ -133,7 +133,7 @@ And a `perftsuite` command for comparing the results of a perft calculation
 with the given EPD file.
 
     $ cargo run -- --color
-    Little Wing v0.2.0
+    Little Wing v0.3.0
 
     > perftsuite tests/perftsuite.epd
     rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 -> ......
@@ -153,7 +153,7 @@ with the given EPD file.
 And the usual others like `divide`, `setboard` or `testsuite`:
 
     $ cargo run -- --color
-    Little Wing v0.2.0
+    Little Wing v0.3.0
 
     > testsuite tests/wac.epd 1
     2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6 -> Qg6

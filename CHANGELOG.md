@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.3.0] - 2017-10-11
 
 ### Added
 - Add principal variation search
