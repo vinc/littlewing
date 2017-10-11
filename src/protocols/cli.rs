@@ -8,6 +8,7 @@ use std::io::Write;
 use std::path::Path;
 
 use regex::Regex;
+use rustyline::Editor;
 
 use common::*;
 use attack::Attack;
@@ -42,29 +43,37 @@ impl CLI {
             show_board: false
         }
     }
+
     pub fn run(&mut self) {
+        let mut rl = Editor::<()>::new();
+
         loop {
-            print!("> ");
-            io::stdout().flush().unwrap();
-            let mut line = String::new();
-            let _ = io::stdin().read_line(&mut line);
-            let args: Vec<&str> = line.trim().split(' ').collect();
-            match args[0] {
-                "quit"       => { break },
-                "help"       => { self.cmd_usage() },
-                "play"       => { self.cmd_play() },
-                "undo"       => { self.cmd_undo() },
-                "move"       => { self.cmd_move(&*args) },
-                "time"       => { self.cmd_time(&*args) },
-                "show"       => { self.cmd_show(&*args) },
-                "hide"       => { self.cmd_hide(&*args) },
-                "setboard"   => { self.cmd_setboard(&*args) },
-                "perft"      => { self.cmd_perft() },
-                "perftsuite" => { self.cmd_perftsuite(&*args) },
-                "testsuite"  => { self.cmd_testsuite(&*args) },
-                "divide"     => { self.cmd_divide(&*args) },
-                "xboard"     => { self.cmd_xboard(); break },
-                _            => { self.cmd_error(&*args); self.cmd_usage() }
+            let readline = rl.readline("> ");
+
+            match readline {
+                Ok(line) => {
+                    rl.add_history_entry(&line);
+
+                    let args: Vec<&str> = line.trim().split(' ').collect();
+                    match args[0] {
+                        "quit"       => { break },
+                        "help"       => { self.cmd_usage() },
+                        "play"       => { self.cmd_play() },
+                        "undo"       => { self.cmd_undo() },
+                        "move"       => { self.cmd_move(&*args) },
+                        "time"       => { self.cmd_time(&*args) },
+                        "show"       => { self.cmd_show(&*args) },
+                        "hide"       => { self.cmd_hide(&*args) },
+                        "setboard"   => { self.cmd_setboard(&*args) },
+                        "perft"      => { self.cmd_perft() },
+                        "perftsuite" => { self.cmd_perftsuite(&*args) },
+                        "testsuite"  => { self.cmd_testsuite(&*args) },
+                        "divide"     => { self.cmd_divide(&*args) },
+                        "xboard"     => { self.cmd_xboard(); break },
+                        _            => { self.cmd_error(&*args); self.cmd_usage() }
+                    }
+                },
+                Err(_) => { break }
             }
         }
     }
