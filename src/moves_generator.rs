@@ -769,6 +769,29 @@ mod tests {
         assert_eq!(game.next_capture(), Some(Move::new(C2, B3, CAPTURE)));
         assert_eq!(game.next_capture(), Some(Move::new(A1, B3, CAPTURE)));
         assert_eq!(game.next_capture(), None);
+
+        let fen = "k1K5/8/2p1N3/1p6/2rp1n2/1P2P3/3Q4/8 w - - 0 1";
+        let mut game = Game::from_fen(fen);
+
+        let b3c4 = Move::new(B3, C4, CAPTURE);
+        let e3f4 = Move::new(E3, F4, CAPTURE);
+        let e6f4 = Move::new(E6, F4, CAPTURE);
+        let e3d4 = Move::new(E3, D4, CAPTURE);
+        let e6d4 = Move::new(E6, D4, CAPTURE);
+        let d2d4 = Move::new(D2, D4, CAPTURE);
+        println!("{}: {}", b3c4, game.see(b3c4));
+        println!("{}: {}", e3f4, game.see(e3f4));
+        println!("{}: {}", e6f4, game.see(e6f4));
+        println!("{}: {}", e3d4, game.see(e3d4));
+        println!("{}: {}", e6d4, game.see(e6d4));
+        println!("{}: {}", d2d4, game.see(d2d4));
+        assert_eq!(game.next_capture(), Some(b3c4));
+        assert_eq!(game.next_capture(), Some(e3f4));
+        assert_eq!(game.next_capture(), Some(e6f4));
+        assert_eq!(game.next_capture(), Some(e3d4));
+        assert_eq!(game.next_capture(), Some(e6d4));
+        //assert_eq!(game.next_capture(), Some(d2d4)); // Skip bad capture
+        assert_eq!(game.next_capture(), None);
     }
 
     #[test]

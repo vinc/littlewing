@@ -170,31 +170,60 @@ mod tests {
 
     #[test]
     fn test_see() {
+        let mut game = Game::new();
+
         let fen = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - -";
-        let game = Game::from_fen(fen);
+        game.load_fen(fen);
         assert_eq!(game.see(Move::new(E1, E5, CAPTURE)), PAWN_VALUE);
 
         let fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
-        let game = Game::from_fen(fen);
+        game.load_fen(fen);
         assert_eq!(game.see(Move::new(D3, E5, CAPTURE)), PAWN_VALUE - KNIGHT_VALUE);
 
         let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
-        let game = Game::from_fen(fen);
+        game.load_fen(fen);
         assert_eq!(game.see(Move::new(E4, D5, CAPTURE)), 0);
 
         let fen = "rnbqkb1r/ppp1pppp/5n2/3p4/4P3/2N5/PPPP1PPP/R1BQKBNR w KQkq - 2 3";
-        let game = Game::from_fen(fen);
+        game.load_fen(fen);
         assert_eq!(game.see(Move::new(E4, D5, CAPTURE)), 0);
 
         let fen = "rnbqkb1r/pp2pppp/2p2n2/1B1p4/4P3/2N5/PPPP1PPP/R1BQK1NR w KQkq - 0 4";
-        let game = Game::from_fen(fen);
+        game.load_fen(fen);
         assert_eq!(game.see(Move::new(E4, D5, CAPTURE)), 0);
         assert_eq!(game.see(Move::new(C3, D5, CAPTURE)), PAWN_VALUE - KNIGHT_VALUE);
         assert_eq!(game.see(Move::new(B5, C6, CAPTURE)), PAWN_VALUE - BISHOP_VALUE);
 
         let fen = "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2";
-        let game = Game::from_fen(fen);
+        game.load_fen(fen);
         assert_eq!(game.see(Move::new(D4, E5, CAPTURE)), PAWN_VALUE);
+
+        let fen = "1K1k4/8/5n2/3p4/8/1BN2B2/6b1/7b w - -";
+        game.load_fen(fen);
+        assert_eq!(game.see(Move::new(B3, D5, CAPTURE)), PAWN_VALUE);
+
+        let fen = "3r2k1/pppb2pp/5q2/5p2/3R1P2/2B5/PPP3PP/5RK1 w - - 0 1";
+        game.load_fen(fen);
+        assert_eq!(game.see(Move::new(D4, D7, CAPTURE)), BISHOP_VALUE - ROOK_VALUE);
+
+        let fen = "k1K5/8/4N3/1p6/2rp1n2/1P2P3/3Q4/8 w - - 0 1";
+        game.load_fen(fen);
+        assert_eq!(game.see(Move::new(E3, F4, CAPTURE)), KNIGHT_VALUE);
+        assert_eq!(game.see(Move::new(E6, F4, CAPTURE)), KNIGHT_VALUE);
+        assert_eq!(game.see(Move::new(B3, C4, CAPTURE)), ROOK_VALUE - PAWN_VALUE);
+        assert_eq!(game.see(Move::new(D2, D4, CAPTURE)), PAWN_VALUE + ROOK_VALUE - QUEEN_VALUE);
+
+        let fen = "7k/p7/1p6/8/8/1Q6/8/7K w - - 0 1";
+        game.load_fen(fen);
+        assert_eq!(game.see(Move::new(B3, B6, CAPTURE)), PAWN_VALUE - QUEEN_VALUE);
+
+        let fen = "7k/2p5/1p6/8/8/1Q6/8/7K w - - 0 1";
+        game.load_fen(fen);
+        assert_eq!(game.see(Move::new(B3, B6, CAPTURE)), PAWN_VALUE - QUEEN_VALUE);
+
+        let fen = "7k/3n4/1p6/8/8/1Q6/8/7K w - - 0 1";
+        game.load_fen(fen);
+        assert_eq!(game.see(Move::new(B3, B6, CAPTURE)), PAWN_VALUE - QUEEN_VALUE);
     }
 }
 

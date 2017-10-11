@@ -67,8 +67,8 @@ impl Attack for Game {
         let rooks    = bbs[(WHITE | ROOK)   as usize] | bbs[(BLACK | ROOK)   as usize];
         let queens   = bbs[(WHITE | QUEEN)  as usize] | bbs[(BLACK | QUEEN)  as usize];
 
-        (piece_attacks(WHITE | PAWN, square, occupied) & bbs[(WHITE | PAWN) as usize]) |
-        (piece_attacks(BLACK | PAWN, square, occupied) & bbs[(BLACK | PAWN) as usize]) |
+        (piece_attacks(BLACK | PAWN, square, occupied) & bbs[(WHITE | PAWN) as usize]) |
+        (piece_attacks(WHITE | PAWN, square, occupied) & bbs[(BLACK | PAWN) as usize]) |
         (piece_attacks(KNIGHT, square, occupied) & knights) |
         (piece_attacks(KING,   square, occupied) & kings) |
         (piece_attacks(BISHOP, square, occupied) & (bishops | queens)) |
