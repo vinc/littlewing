@@ -1,6 +1,9 @@
 Little Wing
 ===========
 
+[![Travis](https://img.shields.io/travis/vinc/littlewing.svg)]()
+[![Crates.io](https://img.shields.io/crates/v/littlewing.svg)]()
+
 A bitboard chess engine written in Rust.
 
 A work in progress since December 2014.
