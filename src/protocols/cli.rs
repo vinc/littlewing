@@ -20,7 +20,7 @@ use protocols::xboard::XBoard;
 use search::Search;
 
 pub struct CLI {
-    game: Game,
+    pub game: Game,
     max_depth: usize,
     show_board: bool
 }
@@ -33,14 +33,6 @@ impl CLI {
             max_depth: MAX_PLY - 10,
             show_board: false
         }
-    }
-
-    pub fn enable_color(&mut self) {
-        self.game.is_colored = true;
-    }
-
-    pub fn enable_debug(&mut self) {
-        self.game.is_debug = true;
     }
 
     pub fn run(&mut self) {
