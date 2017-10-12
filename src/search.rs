@@ -328,9 +328,8 @@ impl Search for Game {
                     has_legal_moves = true;
                     self.nodes_count += 1;
                     if score > alpha {
-                        if self.is_verbose { // && self.nodes_count > 1000 {
-                            // We skip the first thousand nodes to gain time
-                            // TODO: do we need this?
+                        if self.is_verbose && !self.clock.poll(self.nodes_count) {
+                            // TODO: skip the first thousand nodes to gain time?
 
                             self.tt.set(hash, m, score, depth);
 
