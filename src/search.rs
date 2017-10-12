@@ -206,7 +206,7 @@ impl Search for Game {
                     !m.is_capture() &&
                     !m.is_promotion();
 
-                if lmr_allowed && depth > 3 {
+                if lmr_allowed && depth > 2 {
                     r += 1; // Do the search at a reduced depth
                 }
 
