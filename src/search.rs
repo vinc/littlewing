@@ -1,3 +1,5 @@
+use std::cmp;
+
 use common::*;
 use attack::Attack;
 use bitboard::BitboardExt;
@@ -122,9 +124,8 @@ impl Search for Game {
             !is_pv &&
             !is_pawn_ending;
 
-        if nmp_allowed && depth > 3 {
-            let r = 2;
-            debug_assert!(depth - r - 1 > 0);
+        if nmp_allowed {
+            let r = cmp::min(depth - 1, 2);
             let m = Move::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
