@@ -7,6 +7,23 @@ A work in progress since December 2014.
 
 Tested on GNU/Linux 32 and 64 bits, should run anywhere.
 
+- [x] XBoard protocol
+- [x] Bitboard moves generation with De Bruijn sequence
+- [x] Quiescence search
+- [x] Principal variation search
+- [x] MVV/LVA moves ordering by insertion sort
+- [x] Staged moves generation
+- [x] Static exchange evaluation
+- [x] Transpositions table
+- [x] Null move pruning
+- [x] Internal iterative deepening
+- [x] Futility pruning
+- [x] Late move reduction
+- [x] Killer heuristic
+- [x] Mobility evaluation
+- [x] Zobrist hashing
+- [x] FEN support
+
 
 Usage
 -----
