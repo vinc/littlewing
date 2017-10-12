@@ -3,14 +3,23 @@ use std::mem;
 use common::*;
 use moves::Move;
 
+#[repr(u8)]
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum Bound {
+    Exact,
+    Lower,
+    Upper
+}
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Transposition {
     hash: u64,       // 64 bits => 8 bytes
     best_move: Move, // 16 bits => 2 bytes
     score: Score,    // 16 bits => 2 bytes
-    depth: u8        //  8 bits => 1 bytes
+    depth: u8,       //  8 bits => 1 bytes
+    bound: Bound,    //  8 bits => 1 bytes
 
-    // Total: 13 bytes, which will use 16 bytes including alignment padding.
+    // Total: 14 bytes, which will use 16 bytes including alignment padding.
 
     // NOTE: `depth` will never go above MAX_PLY, which is 128 so we can store
     // it as `u8`.
@@ -24,17 +33,18 @@ pub struct Transposition {
 }
 
 impl Transposition {
-    pub fn new(hash: u64, depth: usize, score: Score, best_move: Move) -> Transposition {
+    pub fn new(hash: u64, depth: usize, score: Score, best_move: Move, bound: Bound) -> Transposition {
         Transposition {
             hash: hash,
             depth: depth as u8,
             score: score,
             best_move: best_move,
+            bound: bound
         }
     }
 
     pub fn new_null() -> Transposition {
-        Transposition::new(0, 0, 0, Move::new_null())
+        Transposition::new(0, 0, 0, Move::new_null(), Bound::Exact)
     }
 
     pub fn depth(&self) -> usize {
@@ -47,6 +57,10 @@ impl Transposition {
 
     pub fn best_move(&self) -> Move {
         self.best_move
+    }
+
+    pub fn bound(&self) -> Bound {
+        self.bound
     }
 }
 
@@ -103,10 +117,10 @@ impl Transpositions {
         }
     }
 
-    pub fn set(&mut self, hash: u64, depth: usize, score: Score, best_move: Move) {
+    pub fn set(&mut self, hash: u64, depth: usize, score: Score, best_move: Move, bound: Bound) {
         self.stats_inserts += 1;
 
-        let t = Transposition::new(hash, depth, score, best_move);
+        let t = Transposition::new(hash, depth, score, best_move, bound);
         let n = self.size as u64;
         let k = (hash % n) as usize;
 
@@ -174,13 +188,14 @@ mod tests {
         let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
         let s = 100;
         let d = 8;
-        let t = Transposition::new(h, d, s, m);
+        let b = Bound::Exact;
+        let t = Transposition::new(h, d, s, m, b);
 
         assert_eq!(t.best_move(), m);
         assert_eq!(t.score(), s);
         assert_eq!(t.depth(), d);
 
-        tt.set(h, d, s, m);
+        tt.set(h, d, s, m, b);
 
         assert_eq!(tt.get(&h).unwrap().best_move(), m);
 

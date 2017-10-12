@@ -8,6 +8,7 @@ use fen::FEN;
 use game::Game;
 use moves::Move;
 use moves_generator::MovesGenerator;
+use transpositions::Bound;
 
 pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
@@ -80,7 +81,7 @@ impl Search for Game {
         alpha
     }
 
-    fn search(&mut self, mut alpha: Score, beta: Score, depth: usize, ply: usize) -> Score {
+    fn search(&mut self, mut alpha: Score, mut beta: Score, depth: usize, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
             return 0;
         }
@@ -99,13 +100,31 @@ impl Search for Game {
         let side = self.positions.top().side;
         let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
+        let old_alpha = alpha;
 
         let mut best_move = Move::new_null();
 
         // Try to get the best move from transpositions table
         if let Some(t) = self.tt.get(&hash) {
             if t.depth() >= depth { // This node has already been searched
-                return t.score()
+                match t.bound() {
+                    Bound::Exact => {
+                        return t.score()
+                    },
+                    Bound::Lower => {
+                        if t.score() > alpha {
+                            alpha = t.score();
+                        }
+                    },
+                    Bound::Upper => {
+                        if t.score() < beta {
+                            beta = t.score();
+                        }
+                    }
+                }
+                if alpha >= beta {
+                    return t.score()
+                }
             }
 
             best_move = t.best_move();
@@ -227,6 +246,7 @@ impl Search for Game {
                     self.moves.add_killer_move(m);
                 }
 
+                self.tt.set(hash, depth, score, m, Bound::Lower);
                 return beta;
             }
 
@@ -246,7 +266,12 @@ impl Search for Game {
         }
 
         if !best_move.is_null() {
-            self.tt.set(hash, depth, alpha, best_move);
+            let bound = if alpha <= old_alpha {
+                Bound::Upper
+            } else {
+                Bound::Lower
+            };
+            self.tt.set(hash, depth, alpha, best_move, bound);
         }
 
         alpha
@@ -331,7 +356,7 @@ impl Search for Game {
                         if self.is_verbose && !self.clock.poll(self.nodes_count) {
                             // TODO: skip the first thousand nodes to gain time?
 
-                            self.tt.set(hash, depth, score, m);
+                            self.tt.set(hash, depth, score, m, Bound::Exact);
 
                             // Get the PV line from the TT.
                             self.print_thinking(depth, score, m);
@@ -351,7 +376,7 @@ impl Search for Game {
                 best_score = best_scores[depth];
 
                 // TODO: use best_score instead of alpha?
-                self.tt.set(hash, depth, alpha, best_move);
+                self.tt.set(hash, depth, alpha, best_move, Bound::Exact);
             }
             if !has_legal_moves {
                 break;
