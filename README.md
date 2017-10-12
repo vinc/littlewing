@@ -15,21 +15,23 @@ First you need to install Rust:
 
     $ curl https://sh.rustup.rs -sSf | sh
 
-Then you can compile and install the engine:
+Then you can install the latest stable version of the engine with cargo:
+
+    $ cargo install littlewing
+
+Or the development version by fetching the git repository:
 
     $ git clone https://github.com/vinc/littlewing.git
     $ cd littlewing
     $ LITTLEWING_VERSION=$(git describe) cargo build --release
     $ sudo cp target/release/littlewing /usr/local/bin
 
-Little Wing is compatible with the XBoard protocol, and it has its own
-text-based user interface:
+Little Wing is compatible with the XBoard protocol, and has its own text-based
+user interface:
 
     $ littlewing --color --debug
     Little Wing v0.3.0
 
-    > time 1 10
-    > show think
     > show board
     +---+---+---+---+---+---+---+---+
     | r | n | b | q | k | b | n | r |
@@ -66,34 +68,47 @@ text-based user interface:
     +---+---+---+---+---+---+---+---+
     | R | N | B | Q | K | B | N | R |
     +---+---+---+---+---+---+---+---+
+    > show think
+    > time 1 10
     > play
     # FEN rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
     # allocating 10000 ms to move
      ply   score   time     nodes  pv
-       1       0      0         3  1. ... a6
-       2       0      0        56  1. ... a6 2. a3
-       3       0      0       205  1. ... a6 2. a3 a5
-       4       0      1      1821  1. ... a6 2. a3 a5 3. b3
-       5       0     10      7970  1. ... a6 2. a3 a5 3. b3 a4
-       6       0     31     59151  1. ... a6 2. a3 a5 3. b3 a4 4. bxa4
-       7       0    404    377742  1. ... a6 2. a3 a5 3. b3 a4 4. bxa4 Rxa4
-       8       0    930   2170288  1. ... a6 2. a3 a5 3. b3 a4 4. bxa4 Rxa4 5. d3
+       1      -6      0         1  1. ... a6
+       1      -5      0         3  1. ... c6
+       1      -2      0         4  1. ... d6
+       1       0      0         5  1. ... e6
+       2     -10      0        51  1. ... e6 2. Qf3
+       3      -1      0       484  1. ... e6 2. Qh5 Qf6
+       3       0      0       944  1. ... e5 2. Qf3 Qf6
+       4      -4      0      2259  1. ... e5 2. Qf3 Qf6 3. Nc3
+       5       0      1     10414  1. ... e5 2. Qf3 Qf6 3. Nc3 Nc6
+       6      -4      9     60123  1. ... e5 2. Qf3 Qf6 3. Nc3 Nc6 4. Bc4
+       6      -3     14     94638  1. ... c6 2. Qh5 Nf6 3. Qe5 d6 4. Qd4
+       7      -5     51    318377  1. ... c6 2. d4 Qa5+ 3. Qd2 Qxd2+ 4. Bxd2 Nf6
+       7      -1     90    562244  1. ... d6 2. Qf3 Nf6 3. Bc4 Nc6 4. Qb3 e6
+       8      -5    168   1129349  1. ... d6 2. Nc3 Nf6 3. d4 Nc6 4. Nf3 Be6 5. Bf4
+       8      -2    249   1658850  1. ... e6 2. Nc3 Nc6 3. d4 Qf6
+       8       0    292   1954015  1. ... d5 2. Qf3 dxe4 3. Qxe4 Nf6 4. Qa4+ Nc6 5. Nc3
+       9       3    393   2721094  1. ... d5 2. d3 Nc6 3. Nc3 Nf6
+      10       3    762   5572125  1. ... d5 2. exd5 Qxd5 3. Qf3 Nf6 4. Nc3 Qd4
+      11       0    995   7245726  1. ... d5 2. exd5 Qxd5 3. Nc3 Qe6+ 4. Qe2 Nc6 5. Nf3 Nf6 6. Qe3 Qg4
     # 9951 ms used in search
-    # 2239407 nodes visited (2.25e5 nps)
+    # 7245726 nodes visited (7.28e5 nps)
     # tt size:       524288
-    # tt inserts:    6371
-    # tt lookups:    213735
-    # tt hits:       14459
-    # tt collisions: 1001
-    move a7a6
+    # tt inserts:    1431
+    # tt lookups:    1042442
+    # tt hits:       1487
+    # tt collisions: 1249
+    move d7d5
     +---+---+---+---+---+---+---+---+
     | r | n | b | q | k | b | n | r |
     +---+---+---+---+---+---+---+---+
-    |   | p | p | p | p | p | p | p |
-    +---+---+---+---+---+---+---+---+
-    | p |   |   |   |   |   |   |   |
+    | p | p | p |   | p | p | p | p |
     +---+---+---+---+---+---+---+---+
     |   |   |   |   |   |   |   |   |
+    +---+---+---+---+---+---+---+---+
+    |   |   |   | p |   |   |   |   |
     +---+---+---+---+---+---+---+---+
     |   |   |   |   | P |   |   |   |
     +---+---+---+---+---+---+---+---+
@@ -103,9 +118,22 @@ text-based user interface:
     +---+---+---+---+---+---+---+---+
     | R | N | B | Q | K | B | N | R |
     +---+---+---+---+---+---+---+---+
-
-As you can see, it's still pretty weak at the moment.
-
+    > help
+    quit                      Exit this program
+    help                      Display this screen
+    play                      Search and play a move
+    undo                      Undo the last move
+    move <move>               Play <move> on the board
+    show <feature>            Show <feature>
+    hide <feature>            Hide <feature>
+    time <moves> <time>       Set clock to <moves> in <time> (in seconds)
+    setboard <fen>            Set the board to <fen>
+    perft                     Count the nodes at each depth
+    perftsuite <epd>          Compare perft results to each position of <epd>
+    testsuite <epd> [<time>]  Search each position of <epd> [for <time>]
+    divide <depth>            Count the nodes at <depth> for each moves
+    xboard                    Start XBoard mode
+    > quit
 
 Test
 ----
