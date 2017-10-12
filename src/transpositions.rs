@@ -24,27 +24,29 @@ pub struct Transposition {
 }
 
 impl Transposition {
-    pub fn new(hash: u64, best_move: Move, score: Score, depth: usize) -> Transposition {
+    pub fn new(hash: u64, depth: usize, score: Score, best_move: Move) -> Transposition {
         Transposition {
             hash: hash,
-            best_move: best_move,
+            depth: depth as u8,
             score: score,
-            depth: depth as u8
+            best_move: best_move,
         }
     }
 
     pub fn new_null() -> Transposition {
-        Transposition::new(0, Move::new_null(), 0, 0)
+        Transposition::new(0, 0, 0, Move::new_null())
     }
 
     pub fn depth(&self) -> usize {
         self.depth as usize
     }
-    pub fn best_move(&self) -> Move {
-        self.best_move
-    }
+
     pub fn score(&self) -> Score {
         self.score
+    }
+
+    pub fn best_move(&self) -> Move {
+        self.best_move
     }
 }
 
@@ -101,10 +103,10 @@ impl Transpositions {
         }
     }
 
-    pub fn set(&mut self, hash: u64, best_move: Move, score: Score, depth: usize) {
+    pub fn set(&mut self, hash: u64, depth: usize, score: Score, best_move: Move) {
         self.stats_inserts += 1;
 
-        let t = Transposition::new(hash, best_move, score, depth);
+        let t = Transposition::new(hash, depth, score, best_move);
         let n = self.size as u64;
         let k = (hash % n) as usize;
 
@@ -172,13 +174,13 @@ mod tests {
         let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
         let s = 100;
         let d = 8;
-        let t = Transposition::new(h, m, s, d);
+        let t = Transposition::new(h, d, s, m);
 
         assert_eq!(t.best_move(), m);
         assert_eq!(t.score(), s);
         assert_eq!(t.depth(), d);
 
-        tt.set(h, m, s, d);
+        tt.set(h, d, s, m);
 
         assert_eq!(tt.get(&h).unwrap().best_move(), m);
 

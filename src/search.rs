@@ -246,7 +246,7 @@ impl Search for Game {
         }
 
         if !best_move.is_null() {
-            self.tt.set(hash, best_move, alpha, depth);
+            self.tt.set(hash, depth, alpha, best_move);
         }
 
         alpha
@@ -331,7 +331,7 @@ impl Search for Game {
                         if self.is_verbose && !self.clock.poll(self.nodes_count) {
                             // TODO: skip the first thousand nodes to gain time?
 
-                            self.tt.set(hash, m, score, depth);
+                            self.tt.set(hash, depth, score, m);
 
                             // Get the PV line from the TT.
                             self.print_thinking(depth, score, m);
@@ -351,7 +351,7 @@ impl Search for Game {
                 best_score = best_scores[depth];
 
                 // TODO: use best_score instead of alpha?
-                self.tt.set(hash, best_move, alpha, depth);
+                self.tt.set(hash, depth, alpha, best_move);
             }
             if !has_legal_moves {
                 break;
