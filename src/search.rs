@@ -143,7 +143,7 @@ impl Search for Game {
         // get it by searching the position at a reduced depth.
         let iid_allowed = is_pv && best_move.is_null();
 
-        if iid_allowed && depth > 4 {
+        if iid_allowed && depth > 3 {
             self.search(-beta, -alpha, depth / 2, ply + 1);
 
             if let Some(t) = self.tt.get(&hash) {
