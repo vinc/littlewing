@@ -4,6 +4,7 @@
 
 ### Added
 - Add readline to user interface
+- Add getopt to parse program options
 - Allow NMP, IID, and LMR at shallower depth
 - Set NMP R to 3
 

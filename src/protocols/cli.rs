@@ -25,23 +25,22 @@ pub struct CLI {
     show_board: bool
 }
 
+
 impl CLI {
-    pub fn new(args: Vec<String>) -> CLI {
-        let mut game = Game::from_fen(DEFAULT_FEN);
-
-        for arg in &args {
-            match arg.as_str() {
-                "-c" | "--color" => { game.is_colored = true; }
-                "-d" | "--debug" => { game.is_debug = true; }
-                _                => { }
-            }
-        }
-
+    pub fn new() -> CLI {
         CLI {
-            game: game,
+            game: Game::from_fen(DEFAULT_FEN),
             max_depth: MAX_PLY - 10,
             show_board: false
         }
+    }
+
+    pub fn enable_color(&mut self) {
+        self.game.is_colored = true;
+    }
+
+    pub fn enable_debug(&mut self) {
+        self.game.is_debug = true;
     }
 
     pub fn run(&mut self) {
@@ -64,6 +63,7 @@ impl CLI {
                         "time"       => { self.cmd_time(&*args) },
                         "show"       => { self.cmd_show(&*args) },
                         "hide"       => { self.cmd_hide(&*args) },
+                        "load"       => { self.cmd_setboard(&*args) },
                         "setboard"   => { self.cmd_setboard(&*args) },
                         "perft"      => { self.cmd_perft() },
                         "perftsuite" => { self.cmd_perftsuite(&*args) },
@@ -390,7 +390,7 @@ mod tests {
 
     #[test]
     fn test_undo() {
-        let mut cli = CLI::new(vec![]);
+        let mut cli = CLI::new();
 
         // Undo 1 move
         cli.cmd_play();

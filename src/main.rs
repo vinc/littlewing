@@ -2,6 +2,7 @@
 extern crate lazy_static;
 extern crate regex;
 extern crate rustyline;
+extern crate getopts;
 
 mod attack;
 mod bitboard;
@@ -22,7 +23,14 @@ mod zobrist;
 
 use std::env;
 
+use getopts::Options;
+
 use protocols::cli::CLI;
+
+fn print_usage(opts: Options) {
+    let brief = format!("Usage: littlewing [options]");
+    print!("{}", opts.usage(&brief));
+}
 
 fn version() -> String {
     let ver = String::from("v") + env!("CARGO_PKG_VERSION");
@@ -31,9 +39,36 @@ fn version() -> String {
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let mut opts = Options::new();
+    opts.optflag("c", "color", "enable color output");
+    opts.optflag("d", "debug", "enable debug output");
+    opts.optflag("h", "help", "print this message");
+    opts.optflag("v", "version", "print version");
+
+    let matches = match opts.parse(&args) {
+        Ok(m) => { m }
+        Err(f) => { panic!(f.to_string()) }
+    };
+
+    if matches.opt_present("h") {
+        print_usage(opts);
+        return;
+    }
+
     println!("{}", version());
+    if matches.opt_present("v") {
+        return;
+    }
     println!("");
 
-    let mut cli = CLI::new(env::args().collect());
+    let mut cli = CLI::new();
+    if matches.opt_present("c") {
+        cli.enable_color();
+    }
+    if matches.opt_present("d") {
+        cli.enable_debug();
+    }
     cli.run();
 }
