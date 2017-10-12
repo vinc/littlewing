@@ -5,8 +5,6 @@ A bitboard chess engine written in Rust.
 
 A work in progress since December 2014.
 
-Tested on GNU/Linux 32 and 64 bits, should run anywhere.
-
 - [x] XBoard protocol
 - [x] Bitboard moves generation with De Bruijn sequence
 - [x] Quiescence search
@@ -23,6 +21,8 @@ Tested on GNU/Linux 32 and 64 bits, should run anywhere.
 - [x] Mobility evaluation
 - [x] Zobrist hashing
 - [x] FEN support
+
+Tested on GNU/Linux 32 and 64 bits, should run anywhere.
 
 
 Usage
