@@ -283,6 +283,7 @@ impl Search for Game {
 
         // Current best move
         let mut best_move = Move::new_null();
+        let mut best_score = 0;
 
         // Keep track of previous values at shallower depths
         let mut best_moves = [Move::new_null(); MAX_PLY];
@@ -348,7 +349,9 @@ impl Search for Game {
             // some time left after the search at this depth.
             if !best_moves[depth].is_null() && !self.clock.poll(self.nodes_count) {
                 best_move = best_moves[depth];
+                best_score = best_scores[depth];
 
+                // TODO: use best_score instead of alpha?
                 self.tt.set(hash, best_move, alpha, depth);
             }
             if !has_legal_moves {
@@ -361,8 +364,9 @@ impl Search for Game {
             let n = self.nodes_count;
             let t = self.clock.elapsed_time();
             let nps = (n as f64) / ((t as f64) / 1000.0);
-            println!("# {} ms used in search", t);
-            println!("# {} nodes visited ({:.2e} nps)", n, nps);
+            println!("# {:15} {}", "score:", best_score);
+            println!("# {:15} {} ms", "time:", t);
+            println!("# {:15} {} ({:.2e} nps)", "nodes:", n, nps);
             self.tt.print_stats();
         }
         debug_assert_eq!(old_fen, new_fen);

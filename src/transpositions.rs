@@ -119,11 +119,11 @@ impl Transpositions {
     }
 
     pub fn print_stats(&mut self) {
-        println!("# tt size:       {}", self.entries.len());
-        println!("# tt inserts:    {}", self.stats_inserts);
-        println!("# tt lookups:    {}", self.stats_lookups);
-        println!("# tt hits:       {}", self.stats_hits);
-        println!("# tt collisions: {}", self.stats_collisions);
+        println!("# {:15} {}", "tt size:", self.entries.len());
+        println!("# {:15} {}", "tt inserts:", self.stats_inserts);
+        println!("# {:15} {}", "tt lookups:", self.stats_lookups);
+        println!("# {:15} {}", "tt hits:", self.stats_hits);
+        println!("# {:15} {}", "tt collisions:", self.stats_collisions);
     }
 }
 
