@@ -125,7 +125,7 @@ impl Search for Game {
             !is_pawn_ending;
 
         if nmp_allowed {
-            let r = cmp::min(depth - 1, 2);
+            let r = cmp::min(depth - 1, 3);
             let m = Move::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
