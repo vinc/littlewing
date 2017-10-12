@@ -4,6 +4,8 @@
 
 ### Added
 - Add readline to user interface
+- Allow NMP, IID, and LMR at shallower depth
+- Set NMP R to 3
 
 
 ## [0.3.0] - 2017-10-11
