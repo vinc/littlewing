@@ -1,3 +1,5 @@
+use std::mem;
+
 use common::*;
 use moves::Move;
 
@@ -73,6 +75,12 @@ impl Transpositions {
         }
     }
 
+    pub fn with_memory(memory: usize) -> Transpositions {
+        let capacity = memory / mem::size_of::<Transposition>();
+
+        Transpositions::with_capacity(capacity)
+    }
+
     pub fn get(&mut self, hash: &u64) -> Option<&Transposition> {
         self.stats_lookups += 1;
 
@@ -146,14 +154,19 @@ mod tests {
 
     #[test]
     fn test_transpositions_size() {
-        // Size should be a power of two for efficient lookups
+        assert_eq!(Transpositions::with_memory(512).size, 32); // 32 == 512 / 16
         assert_eq!(Transpositions::with_capacity(32).size, 32);
+
+        // Size should be a power of two for efficient lookups
         assert_eq!(Transpositions::with_capacity(24).size, 32);
+
+        // Large table of 1 M entries using 16 MB of memory
+        assert_eq!(Transpositions::with_memory(16 << 20).size, 1048576);
     }
 
     #[test]
     fn test_transpositions() {
-        let mut tt = Transpositions::with_capacity(1 << 20); // 1 Mb
+        let mut tt = Transpositions::with_capacity(1 << 20); // 1 M entries
         
         let h = 42;
         let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
