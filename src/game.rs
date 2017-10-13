@@ -1,13 +1,15 @@
 use std::fmt;
+use std::sync::Arc;
 
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};
 use positions::Positions;
-use transpositions::Transpositions;
+use transpositions::{Transpositions, SharedTranspositions};
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
+#[derive(Clone)]
 pub struct Game {
     pub is_debug: bool,  // Print debugging
     pub is_verbose: bool, // Print thinking
@@ -20,7 +22,7 @@ pub struct Game {
     pub positions: Positions,
     pub zobrist: Zobrist,
     pub history: Vec<Move>,
-    pub tt: Transpositions
+    pub tt: Arc<SharedTranspositions>
 }
 
 impl Game {
@@ -37,8 +39,16 @@ impl Game {
             positions: Positions::new(),
             zobrist: Zobrist::new(),
             history: Vec::new(),
-            tt: Transpositions::with_memory(TT_SIZE)
+            tt: Arc::new(SharedTranspositions::with_memory(TT_SIZE))
         }
+    }
+
+    pub fn tt(&self) -> &mut Transpositions {
+        self.tt.get()
+    }
+
+    pub fn tt_resize(&mut self, memory: usize) {
+        self.tt = Arc::new(SharedTranspositions::with_memory(memory));
     }
 
     pub fn clear(&mut self) {
@@ -47,7 +57,7 @@ impl Game {
         self.moves.clear_all();
         self.positions.clear();
         self.history.clear();
-        self.tt.clear();
+        self.tt().clear();
     }
 
     pub fn bitboard(&self, piece: Piece) -> &Bitboard {

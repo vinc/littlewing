@@ -1,4 +1,5 @@
 use std::cmp;
+use std::thread;
 
 use common::*;
 use attack::Attack;
@@ -15,6 +16,7 @@ pub trait Search {
     fn quiescence(&mut self, alpha: Score, beta: Score, ply: usize) -> Score;
     fn search(&mut self, alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
     fn root(&mut self, max_depth: usize) -> Option<Move>;
+    fn parallel(&mut self, concurrency: usize, max_depth: usize) -> Option<Move>;
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move);
     fn get_pv(&mut self, depth: usize) -> String;
 }
@@ -105,7 +107,7 @@ impl Search for Game {
         let mut best_move = Move::new_null();
 
         // Try to get the best move from transpositions table
-        if let Some(t) = self.tt.get(&hash) {
+        if let Some(t) = self.tt().get(&hash) {
             if t.depth() >= depth { // This node has already been searched
                 match t.bound() {
                     Bound::Exact => {
@@ -166,7 +168,7 @@ impl Search for Game {
         if iid_allowed && depth > 3 {
             self.search(-beta, -alpha, depth / 2, ply + 1);
 
-            if let Some(t) = self.tt.get(&hash) {
+            if let Some(t) = self.tt().get(&hash) {
                 best_move = t.best_move();
             }
         }
@@ -246,7 +248,7 @@ impl Search for Game {
                     self.moves.add_killer_move(m);
                 }
 
-                self.tt.set(hash, depth, score, m, Bound::Lower);
+                self.tt().set(hash, depth, score, m, Bound::Lower);
                 return beta;
             }
 
@@ -271,7 +273,7 @@ impl Search for Game {
             } else {
                 Bound::Lower
             };
-            self.tt.set(hash, depth, alpha, best_move, bound);
+            self.tt().set(hash, depth, alpha, best_move, bound);
         }
 
         alpha
@@ -293,7 +295,6 @@ impl Search for Game {
         // case we don't decrement the ply counter that is already at 0.
         self.moves.clear_all();
 
-        self.tt.clear();
         self.clock.start(self.positions.len());
 
         let old_fen = self.to_fen();
@@ -356,7 +357,7 @@ impl Search for Game {
                         if self.is_verbose && !self.clock.poll(self.nodes_count) {
                             // TODO: skip the first thousand nodes to gain time?
 
-                            self.tt.set(hash, depth, score, m, Bound::Exact);
+                            self.tt().set(hash, depth, score, m, Bound::Exact);
 
                             // Get the PV line from the TT.
                             self.print_thinking(depth, score, m);
@@ -376,7 +377,7 @@ impl Search for Game {
                 best_score = best_scores[depth];
 
                 // TODO: use best_score instead of alpha?
-                self.tt.set(hash, depth, alpha, best_move, Bound::Exact);
+                self.tt().set(hash, depth, alpha, best_move, Bound::Exact);
             }
             if !has_legal_moves {
                 break;
@@ -391,7 +392,7 @@ impl Search for Game {
             println!("# {:15} {}", "score:", best_score);
             println!("# {:15} {} ms", "time:", t);
             println!("# {:15} {} ({:.2e} nps)", "nodes:", n, nps);
-            self.tt.print_stats();
+            self.tt().print_stats();
         }
         debug_assert_eq!(old_fen, new_fen);
 
@@ -400,6 +401,34 @@ impl Search for Game {
         } else {
             Some(best_move)
         }
+    }
+
+    fn parallel(&mut self, concurrency: usize, max_depth: usize) -> Option<Move> {
+        if self.is_debug {
+            println!("# using {} threads", concurrency);
+        }
+
+        self.tt().clear();
+
+        let mut children = vec![];
+        for i in 0..concurrency {
+            let mut clone = self.clone();
+            //clone.tt = self.tt.clone();
+            if i > 0 {
+                clone.is_verbose = false;
+                clone.is_debug = false;
+            }
+            children.push(thread::spawn(move || {
+                clone.root(max_depth)
+            }));
+        }
+
+        let mut results = vec![];
+        for child in children {
+            results.push(child.join().unwrap());
+        }
+
+        results[0]
     }
 
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move) {
@@ -427,7 +456,7 @@ impl Search for Game {
 
         let side = self.positions.top().side;
         let hash = self.positions.top().hash;
-        if let Some(t) = self.tt.get(&hash) {
+        if let Some(t) = self.tt().get(&hash) {
             m = t.best_move();
 
             if side == WHITE {

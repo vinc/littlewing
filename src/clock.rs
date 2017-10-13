@@ -1,5 +1,6 @@
 extern crate time;
 
+#[derive(Clone)]
 pub struct Clock {
     moves_level: u16,
     //time_level: u64, // TODO: check that we really don't need it

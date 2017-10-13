@@ -19,18 +19,20 @@ use moves_generator::MovesGenerator;
 use protocols::xboard::XBoard;
 use search::Search;
 
+#[derive(Clone)]
 pub struct CLI {
     pub game: Game,
     max_depth: usize,
+    concurrency: usize,
     show_board: bool
 }
-
 
 impl CLI {
     pub fn new() -> CLI {
         CLI {
             game: Game::from_fen(DEFAULT_FEN),
             max_depth: MAX_PLY - 10,
+            concurrency: 1,
             show_board: false
         }
     }
@@ -57,6 +59,7 @@ impl CLI {
                         "hide"       => { self.cmd_hide(&*args) },
                         "load"       => { self.cmd_setboard(&*args) },
                         "setboard"   => { self.cmd_setboard(&*args) },
+                        "threads"    => { self.cmd_threads(&*args) },
                         "perft"      => { self.cmd_perft() },
                         "perftsuite" => { self.cmd_perftsuite(&*args) },
                         "testsuite"  => { self.cmd_testsuite(&*args) },
@@ -80,6 +83,7 @@ impl CLI {
         println!("hide <feature>            Hide <feature>");
         println!("time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
         println!("setboard <fen>            Set the board to <fen>");
+        println!("threads <number>          Set the <number> of threads");
         println!("perft                     Count the nodes at each depth");
         println!("perftsuite <epd>          Compare perft results to each position of <epd>");
         println!("testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
@@ -140,7 +144,7 @@ impl CLI {
     }
 
     pub fn cmd_play(&mut self) {
-        match self.game.root(self.max_depth) {
+        match self.game.parallel(self.concurrency, self.max_depth) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("black mates");
@@ -247,6 +251,11 @@ impl CLI {
         println!("Nodes: {}", nodes_count);
     }
 
+    pub fn cmd_threads(&mut self, args: &[&str]) {
+        let n = args[1].parse::<usize>().unwrap();
+        self.concurrency = n;
+    }
+
     pub fn cmd_perft(&mut self) {
         self.game.moves.skip_ordering = true;
         let mut i = 0;
@@ -318,7 +327,7 @@ impl CLI {
             self.game.load_fen(fen);
             self.game.clock = Clock::new(1, time * 1000);
 
-            let best_move = self.game.root(MAX_PLY).unwrap();
+            let best_move = self.game.parallel(self.concurrency, self.max_depth).unwrap();
             let mut best_move_str = self.game.move_to_san(best_move);
 
             // Add `+` to move in case of check

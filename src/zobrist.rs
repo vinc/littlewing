@@ -3,6 +3,7 @@ extern crate rand;
 use self::rand::Rng;
 use self::rand::weak_rng;
 
+#[derive(Clone)]
 pub struct Zobrist {
     pub positions: [[u64; 64]; 14],
     pub en_passant: [u64; 64],

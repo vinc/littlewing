@@ -1,4 +1,5 @@
 use std::mem;
+use std::cell::UnsafeCell;
 
 use common::*;
 use moves::Move;
@@ -64,6 +65,7 @@ impl Transposition {
     }
 }
 
+#[derive(Clone)]
 pub struct Transpositions {
     pub entries: Box<[Transposition]>,
     pub size: usize,
@@ -148,6 +150,28 @@ impl Transpositions {
         println!("# {:15} {}", "tt lookups:", self.stats_lookups);
         println!("# {:15} {}", "tt hits:", self.stats_hits);
         println!("# {:15} {}", "tt collisions:", self.stats_collisions);
+    }
+}
+
+pub struct SharedTranspositions {
+    inner: UnsafeCell<Transpositions>,
+}
+
+unsafe impl Sync for SharedTranspositions {}
+
+impl SharedTranspositions {
+    fn new(tt: Transpositions) -> SharedTranspositions {
+        SharedTranspositions {
+            inner: UnsafeCell::new(tt)
+        }
+    }
+
+    pub fn with_memory(memory: usize) -> SharedTranspositions {
+        SharedTranspositions::new(Transpositions::with_memory(memory))
+    }
+
+    pub fn get(&self) -> &mut Transpositions {
+        unsafe { &mut *self.inner.get() }
     }
 }
 

@@ -26,7 +26,6 @@ use std::env;
 use getopts::Options;
 
 use protocols::cli::CLI;
-use transpositions::Transpositions;
 
 fn print_usage(opts: Options) {
     let brief = format!("Usage: littlewing [options]");
@@ -75,7 +74,7 @@ fn main() {
     if matches.opt_present("t") {
         if let Some(size) = matches.opt_str("t") {
             let memory = size.parse::<usize>().unwrap() << 20;
-            cli.game.tt = Transpositions::with_memory(memory);
+            cli.game.tt_resize(memory);
         }
     }
     cli.run();

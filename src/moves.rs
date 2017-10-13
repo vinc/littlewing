@@ -112,6 +112,7 @@ pub enum MovesStage {
     QuietMove  = QUIET_MOVE
 }
 
+#[derive(Clone)]
 pub struct Moves {
     killers: [[Move; 2]; MAX_PLY],
 
