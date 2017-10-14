@@ -137,7 +137,7 @@ impl XBoard {
 
     pub fn cmd_memory(&mut self, args: &[&str]) {
         let memory = args[1].parse::<usize>().unwrap(); // In MB
-        self.game.tt_resize(memory);
+        self.game.tt_resize(memory << 20);
     }
 
     pub fn cmd_cores(&mut self, args: &[&str]) {
