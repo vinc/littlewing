@@ -283,7 +283,7 @@ impl Search for Game {
     fn root(&mut self, depths: Range<usize>) -> Option<Move> {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
-        let ply = depths.start;
+        let ply = 0;
         self.nodes_count = 0;
 
         // NOTE: `clear_all()` will zero everything internally, including
@@ -302,7 +302,7 @@ impl Search for Game {
         if self.is_debug {
             println!("# FEN {}", old_fen);
             println!("# allocating {} ms to move", self.clock.allocated_time());
-            println!("# starting search at ply {}", ply);
+            println!("# starting search at depth {}", depths.start);
         }
 
         if self.is_verbose {
