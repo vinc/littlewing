@@ -1,11 +1,12 @@
 use std::fmt;
+use std::mem;
 use std::sync::Arc;
 
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};
 use positions::Positions;
-use transpositions::{Transpositions, SharedTranspositions};
+use transpositions::{Transposition, Transpositions, SharedTranspositions};
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
@@ -53,6 +54,10 @@ impl Game {
         self.tt = Arc::new(SharedTranspositions::with_memory(memory));
     }
 
+    pub fn tt_size(&self) -> usize {
+        self.tt().size * mem::size_of::<Transposition>()
+    }
+
     pub fn clear(&mut self) {
         self.bitboards = [0; 14];
         self.board = [EMPTY; 64];
@@ -96,5 +101,19 @@ impl fmt::Display for Game {
         }
 
         write!(f, "{}", lines.join("\n"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tt_resize() {
+        let mut game = Game::new();
+
+        let size = 4 << 20; // 4 MB
+        game.tt_resize(size);
+        assert_eq!(game.tt_size(), size);
     }
 }

@@ -93,6 +93,8 @@ impl CLI {
         let mut xboard = XBoard::new();
         xboard.game.is_debug = self.game.is_debug;
         xboard.game.is_colored = self.game.is_colored;
+        xboard.game.concurrency = self.game.concurrency;
+        xboard.game.tt_resize(self.game.tt_size());
         xboard.run();
     }
 
