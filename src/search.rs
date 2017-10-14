@@ -407,6 +407,8 @@ impl Search for Game {
     }
 
     fn parallel(&mut self, depths: Range<usize>) -> Option<Move> {
+        self.tt().clear();
+
         let n = self.concurrency;
 
         if self.is_debug {
@@ -416,8 +418,6 @@ impl Search for Game {
         if n == 0 {
             return self.root(depths)
         }
-
-        self.tt().clear();
 
         let mut children = vec![];
 
