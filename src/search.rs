@@ -428,16 +428,12 @@ impl Search for Game {
                 clone.is_debug = false;
             }
 
-            let builder = thread::Builder::new().
-                name(format!("search_{}", i)).
-                stack_size(4 << 20);
-
             let min_depth = depths.start;
             let max_depth = depths.end;
 
-            children.push(builder.spawn(move || {
+            children.push(thread::spawn(move || {
                 clone.root(min_depth..max_depth)
-            }).unwrap());
+            }));
         }
 
         let mut res = vec![];

@@ -241,18 +241,15 @@ mod tests {
         for i in 0..n {
             let clone = shared_tt.clone();
             let c = barrier.clone();
-            let builder = thread::Builder::new().
-                name(format!("search_{}", i)).
-                stack_size(4 << 20);
 
-            children.push(builder.spawn(move || {
+            children.push(thread::spawn(move || {
                 let tt = clone.get();
                 if i == 0 {
                     tt.set(h, d, s, m, b); // First thread set a value in TT
                 }
                 c.wait(); // Synchronize all threads
                 tt.get(&h).unwrap().best_move() // All threads should get it
-            }).unwrap());
+            }));
         }
 
         for child in children {
