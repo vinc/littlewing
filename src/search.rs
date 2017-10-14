@@ -409,9 +409,12 @@ impl Search for Game {
     fn parallel(&mut self, depths: Range<usize>) -> Option<Move> {
         let n = self.concurrency;
 
-        debug_assert!(n > 0);
         if self.is_debug {
             println!("# using {} threads", n);
+        }
+
+        if n == 0 {
+            return self.root(depths)
         }
 
         self.tt().clear();

@@ -33,7 +33,7 @@ impl Game {
             is_debug: false,
             is_verbose: false,
             is_colored: false,
-            concurrency: 1,
+            concurrency: 0,
             nodes_count: 0,
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
