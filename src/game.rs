@@ -24,7 +24,7 @@ pub struct Game {
     pub positions: Positions,
     pub zobrist: Zobrist,
     pub history: Vec<Move>,
-    pub tt: Arc<SharedTranspositions>
+    tt: Arc<SharedTranspositions>
 }
 
 impl Game {
