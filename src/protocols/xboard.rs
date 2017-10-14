@@ -167,7 +167,8 @@ impl XBoard {
     }
 
     pub fn think(&mut self) {
-        match self.game.parallel(self.max_depth) {
+        let n = self.max_depth;
+        match self.game.parallel(1..n) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("0-1 {{black mates}}");

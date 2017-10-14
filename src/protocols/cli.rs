@@ -144,7 +144,8 @@ impl CLI {
     }
 
     pub fn cmd_play(&mut self) {
-        match self.game.parallel(self.max_depth) {
+        let n = self.max_depth;
+        match self.game.parallel(1..n) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("black mates");
@@ -311,8 +312,8 @@ impl CLI {
         };
         let path = Path::new(args[1]);
         let file = BufReader::new(File::open(&path).unwrap());
-        let mut r = 0;
-        let mut n = 0;
+        let mut found_count = 0;
+        let mut total_count = 0;
         for line in file.lines() {
             let line = line.unwrap();
             let line = line.split(";").next().unwrap();
@@ -326,7 +327,8 @@ impl CLI {
             self.game.load_fen(fen);
             self.game.clock = Clock::new(1, time * 1000);
 
-            let best_move = self.game.parallel(self.max_depth).unwrap();
+            let n = self.max_depth;
+            let best_move = self.game.parallel(1..n).unwrap();
             let mut best_move_str = self.game.move_to_san(best_move);
 
             // Add `+` to move in case of check
@@ -343,14 +345,14 @@ impl CLI {
                 _    => unreachable!()
             };
             if found {
-                r += 1;
+                found_count += 1;
                 println!("{}", self.colorize_green(best_move_str));
             } else {
                 println!("{}", self.colorize_red(best_move_str));
             }
-            n += 1;
+            total_count += 1;
         }
-        println!("Result {}/{}", r, n);
+        println!("Result {}/{}", found_count, total_count);
     }
 
     pub fn cmd_error(&mut self, args: &[&str]) {
