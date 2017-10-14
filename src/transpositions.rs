@@ -160,14 +160,10 @@ pub struct SharedTranspositions {
 unsafe impl Sync for SharedTranspositions {}
 
 impl SharedTranspositions {
-    fn new(tt: Transpositions) -> SharedTranspositions {
-        SharedTranspositions {
-            inner: UnsafeCell::new(tt)
-        }
-    }
-
     pub fn with_memory(memory: usize) -> SharedTranspositions {
-        SharedTranspositions::new(Transpositions::with_memory(memory))
+        SharedTranspositions {
+            inner: UnsafeCell::new(Transpositions::with_memory(memory))
+        }
     }
 
     pub fn get(&self) -> &mut Transpositions {
