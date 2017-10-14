@@ -413,22 +413,24 @@ impl Search for Game {
         let mut children = vec![];
         for i in 0..concurrency {
             let mut clone = self.clone();
-            //clone.tt = self.tt.clone();
             if i > 0 {
                 clone.is_verbose = false;
                 clone.is_debug = false;
             }
-            children.push(thread::spawn(move || {
+            let builder = thread::Builder::new().
+                name(format!("search_{}", i)).
+                stack_size(4 << 20);
+            children.push(builder.spawn(move || {
                 clone.root(max_depth)
-            }));
+            }).unwrap());
         }
 
-        let mut results = vec![];
+        let mut res = vec![];
         for child in children {
-            results.push(child.join().unwrap());
+            res.push(child.join().unwrap());
         }
 
-        results[0]
+        res[0] // best move found by the first thread
     }
 
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move) {
