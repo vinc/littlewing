@@ -23,7 +23,6 @@ use search::Search;
 pub struct CLI {
     pub game: Game,
     max_depth: usize,
-    concurrency: usize,
     show_board: bool
 }
 
@@ -32,7 +31,6 @@ impl CLI {
         CLI {
             game: Game::from_fen(DEFAULT_FEN),
             max_depth: MAX_PLY - 10,
-            concurrency: 1,
             show_board: false
         }
     }
@@ -144,7 +142,7 @@ impl CLI {
     }
 
     pub fn cmd_play(&mut self) {
-        match self.game.parallel(self.concurrency, self.max_depth) {
+        match self.game.parallel(self.max_depth) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("black mates");
@@ -252,8 +250,7 @@ impl CLI {
     }
 
     pub fn cmd_threads(&mut self, args: &[&str]) {
-        let n = args[1].parse::<usize>().unwrap();
-        self.concurrency = n;
+        self.game.concurrency = args[1].parse::<usize>().unwrap();
     }
 
     pub fn cmd_perft(&mut self) {
@@ -327,7 +324,7 @@ impl CLI {
             self.game.load_fen(fen);
             self.game.clock = Clock::new(1, time * 1000);
 
-            let best_move = self.game.parallel(self.concurrency, self.max_depth).unwrap();
+            let best_move = self.game.parallel(self.max_depth).unwrap();
             let mut best_move_str = self.game.move_to_san(best_move);
 
             // Add `+` to move in case of check

@@ -13,7 +13,6 @@ use version;
 pub struct XBoard {
     pub game: Game,
     max_depth: usize,
-    concurrency: usize,
     force: bool
 }
 
@@ -22,7 +21,6 @@ impl XBoard {
         XBoard {
             game: Game::from_fen(DEFAULT_FEN),
             max_depth: MAX_PLY - 10,
-            concurrency: 1,
             force: false
         }
     }
@@ -143,8 +141,7 @@ impl XBoard {
     }
 
     pub fn cmd_cores(&mut self, args: &[&str]) {
-        let cores = args[1].parse::<usize>().unwrap();
-        self.concurrency = cores;
+        self.game.concurrency = args[1].parse::<usize>().unwrap();
     }
 
     #[allow(unused_variables)] // TODO: remove that
@@ -170,7 +167,7 @@ impl XBoard {
     }
 
     pub fn think(&mut self) {
-        match self.game.parallel(self.concurrency, self.max_depth) {
+        match self.game.parallel(self.max_depth) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("0-1 {{black mates}}");

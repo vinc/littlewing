@@ -16,7 +16,7 @@ pub trait Search {
     fn quiescence(&mut self, alpha: Score, beta: Score, ply: usize) -> Score;
     fn search(&mut self, alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
     fn root(&mut self, max_depth: usize) -> Option<Move>;
-    fn parallel(&mut self, concurrency: usize, max_depth: usize) -> Option<Move>;
+    fn parallel(&mut self, max_depth: usize) -> Option<Move>;
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move);
     fn get_pv(&mut self, depth: usize) -> String;
 }
@@ -403,15 +403,19 @@ impl Search for Game {
         }
     }
 
-    fn parallel(&mut self, concurrency: usize, max_depth: usize) -> Option<Move> {
+    fn parallel(&mut self, max_depth: usize) -> Option<Move> {
+        let n = self.concurrency;
+
+        debug_assert!(n > 0);
         if self.is_debug {
-            println!("# using {} threads", concurrency);
+            println!("# using {} threads", n);
         }
 
         self.tt().clear();
 
         let mut children = vec![];
-        for i in 0..concurrency {
+
+        for i in 0..n {
             let mut clone = self.clone();
             if i > 0 {
                 clone.is_verbose = false;
