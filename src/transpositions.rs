@@ -178,6 +178,8 @@ impl SharedTranspositions {
 #[cfg(test)]
 mod tests {
     use std::mem;
+    use std::sync::{Arc, Barrier};
+    use std::thread;
 
     use super::*;
     use moves::Move;
@@ -225,5 +227,40 @@ mod tests {
 
         let h = 1337;
         assert_eq!(tt.get(&h), None);
+    }
+
+    #[test]
+    fn test_shared_transpositions() {
+        // Transposition content
+        let h = 42;
+        let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
+        let s = 100;
+        let d = 8;
+        let b = Bound::Exact;
+
+        let n = 4;
+        let mut children = Vec::with_capacity(n);
+        let shared_tt = Arc::new(SharedTranspositions::with_memory(1 << 20));
+        let barrier = Arc::new(Barrier::new(n));
+        for i in 0..n {
+            let clone = shared_tt.clone();
+            let c = barrier.clone();
+            let builder = thread::Builder::new().
+                name(format!("search_{}", i)).
+                stack_size(4 << 20);
+
+            children.push(builder.spawn(move || {
+                let tt = clone.get();
+                if i == 0 {
+                    tt.set(h, d, s, m, b); // First thread set a value in TT
+                }
+                c.wait(); // Synchronize all threads
+                tt.get(&h).unwrap().best_move() // All threads should get it
+            }).unwrap());
+        }
+
+        for child in children {
+            assert_eq!(child.join().unwrap(), m);
+        }
     }
 }
