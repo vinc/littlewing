@@ -93,7 +93,7 @@ impl CLI {
         let mut xboard = XBoard::new();
         xboard.game.is_debug = self.game.is_debug;
         xboard.game.is_colored = self.game.is_colored;
-        xboard.game.concurrency = self.game.concurrency;
+        xboard.game.threads_count = self.game.threads_count;
         xboard.game.tt_resize(self.game.tt_size());
         xboard.run();
     }
@@ -253,7 +253,7 @@ impl CLI {
     }
 
     pub fn cmd_threads(&mut self, args: &[&str]) {
-        self.game.concurrency = args[1].parse::<usize>().unwrap();
+        self.game.threads_count = args[1].parse::<usize>().unwrap();
     }
 
     pub fn cmd_perft(&mut self) {

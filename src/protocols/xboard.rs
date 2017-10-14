@@ -141,7 +141,7 @@ impl XBoard {
     }
 
     pub fn cmd_cores(&mut self, args: &[&str]) {
-        self.game.concurrency = args[1].parse::<usize>().unwrap();
+        self.game.threads_count = args[1].parse::<usize>().unwrap();
     }
 
     #[allow(unused_variables)] // TODO: remove that

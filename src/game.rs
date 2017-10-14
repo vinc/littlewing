@@ -15,7 +15,7 @@ pub struct Game {
     pub is_debug: bool,  // Print debugging
     pub is_verbose: bool, // Print thinking
     pub is_colored: bool,
-    pub concurrency: usize,
+    pub threads_count: usize,
     pub nodes_count: u64,
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
@@ -33,7 +33,7 @@ impl Game {
             is_debug: false,
             is_verbose: false,
             is_colored: false,
-            concurrency: 0,
+            threads_count: 0,
             nodes_count: 0,
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
