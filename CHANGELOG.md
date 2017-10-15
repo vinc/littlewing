@@ -3,12 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- Add parallel search in threads with shared transposition table
+- Save upper and lower bounds in transposition table
 - Add readline to user interface
 - Add getopt to parse program options
+
+### Changed
 - Allow NMP, IID, and LMR at shallower depth
 - Set NMP R to 3
-- Save upper and lower bounds in transposition table
-
 
 ## [0.3.0] - 2017-10-11
 
