@@ -1,4 +1,6 @@
 use std::cmp;
+use std::thread;
+use std::ops::Range;
 
 use common::*;
 use attack::Attack;
@@ -14,7 +16,8 @@ pub trait Search {
     fn perft(&mut self, depth: usize) -> u64;
     fn quiescence(&mut self, alpha: Score, beta: Score, ply: usize) -> Score;
     fn search(&mut self, alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
-    fn root(&mut self, max_depth: usize) -> Option<Move>;
+    fn root(&mut self, depths: Range<usize>) -> Option<Move>;
+    fn parallel(&mut self, depths: Range<usize>) -> Option<Move>;
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move);
     fn get_pv(&mut self, depth: usize) -> String;
 }
@@ -277,7 +280,7 @@ impl Search for Game {
         alpha
     }
 
-    fn root(&mut self, max_depth: usize) -> Option<Move> {
+    fn root(&mut self, depths: Range<usize>) -> Option<Move> {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
         let ply = 0;
@@ -293,13 +296,13 @@ impl Search for Game {
         // case we don't decrement the ply counter that is already at 0.
         self.moves.clear_all();
 
-        self.tt.clear();
         self.clock.start(self.positions.len());
 
         let old_fen = self.to_fen();
         if self.is_debug {
             println!("# FEN {}", old_fen);
             println!("# allocating {} ms to move", self.clock.allocated_time());
+            println!("# starting search at depth {}", depths.start);
         }
 
         if self.is_verbose {
@@ -314,7 +317,8 @@ impl Search for Game {
         let mut best_moves = [Move::new_null(); MAX_PLY];
         let mut best_scores = [0; MAX_PLY];
 
-        for depth in 1..max_depth {
+        debug_assert!(depths.start > 0);
+        for depth in depths {
             let mut alpha = -INF;
             let beta = INF;
 
@@ -400,6 +404,44 @@ impl Search for Game {
         } else {
             Some(best_move)
         }
+    }
+
+    fn parallel(&mut self, depths: Range<usize>) -> Option<Move> {
+        self.tt.clear();
+
+        let n = self.threads_count;
+
+        if self.is_debug {
+            println!("# using {} threads", n);
+        }
+
+        if n == 0 {
+            return self.root(depths)
+        }
+
+        let mut children = vec![];
+
+        for i in 0..n {
+            let mut clone = self.clone();
+            if i > 0 {
+                clone.is_verbose = false;
+                clone.is_debug = false;
+            }
+
+            let min_depth = depths.start; // TODO: = 1 + i;
+            let max_depth = depths.end;
+
+            children.push(thread::spawn(move || {
+                clone.root(min_depth..max_depth)
+            }));
+        }
+
+        let mut res = vec![];
+        for child in children {
+            res.push(child.join().unwrap());
+        }
+
+        res[0] // best move found by the first thread
     }
 
     fn print_thinking(&mut self, depth: usize, score: Score, m: Move) {
@@ -545,7 +587,7 @@ mod tests {
         let best_move = Move::new(G2, H3, QUIET_MOVE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
-        let m = game.root(10).unwrap();
+        let m = game.root(1..10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
 
 
@@ -553,14 +595,14 @@ mod tests {
         let best_move = Move::new(H6, H7, CAPTURE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
-        let m = game.root(10).unwrap();
+        let m = game.root(1..10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
 
 
         let fen = "1n6/2rp3p/5Bpk/2p1P3/p1P2P2/5K2/PPB3P1/R6R b - - 0 1";
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 1 * 1000); // 1 seconds
-        assert_eq!(game.root(10), None);
+        assert_eq!(game.root(1..10), None);
     }
 
     #[test]
@@ -604,7 +646,7 @@ mod tests {
         game.make_move(m3);
         game.make_move(m4);
         game.clock = Clock::new(1, 1000); // 1 second
-        let m = game.root(10).unwrap();
+        let m = game.root(1..10).unwrap();
         assert!(m != m1);
     }
 
@@ -614,7 +656,7 @@ mod tests {
         let fen = "1q1k4/2Rr4/8/2Q3K1/8/8/8/8 w - - 0 1";
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5000); // 1 second
-        let m = game.root(100).unwrap();
+        let m = game.root(1..100).unwrap();
         assert_eq!(m, Move::new(G5, H6, QUIET_MOVE));
 
         // Zugzwang #2
@@ -623,7 +665,7 @@ mod tests {
         let fen = "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 0 1";
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 1000); // 1 second
-        let m = game.root(100).unwrap();
+        let m = game.root(1..100).unwrap();
         assert_eq!(m, Move::new(E1, F1, QUIET_MOVE));
         */
     }

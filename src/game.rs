@@ -1,17 +1,20 @@
 use std::fmt;
+use std::mem;
 
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};
 use positions::Positions;
-use transpositions::Transpositions;
+use transpositions::{Transposition, Transpositions};
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
+#[derive(Clone)]
 pub struct Game {
     pub is_debug: bool,  // Print debugging
     pub is_verbose: bool, // Print thinking
     pub is_colored: bool,
+    pub threads_count: usize,
     pub nodes_count: u64,
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
@@ -29,6 +32,7 @@ impl Game {
             is_debug: false,
             is_verbose: false,
             is_colored: false,
+            threads_count: 0,
             nodes_count: 0,
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
@@ -39,6 +43,14 @@ impl Game {
             history: Vec::new(),
             tt: Transpositions::with_memory(TT_SIZE)
         }
+    }
+
+    pub fn tt_resize(&mut self, memory: usize) {
+        self.tt = Transpositions::with_memory(memory);
+    }
+
+    pub fn tt_size(&self) -> usize {
+        self.tt.len() * mem::size_of::<Transposition>()
     }
 
     pub fn clear(&mut self) {
@@ -84,5 +96,19 @@ impl fmt::Display for Game {
         }
 
         write!(f, "{}", lines.join("\n"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tt_resize() {
+        let mut game = Game::new();
+
+        let size = 4 << 20; // 4 MB
+        game.tt_resize(size);
+        assert_eq!(game.tt_size(), size);
     }
 }

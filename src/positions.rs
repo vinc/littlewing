@@ -36,6 +36,7 @@ impl Position {
     }
 }
 
+#[derive(Clone)]
 pub struct Positions {
     stack: [Position; MAX_POSITIONS],
     fullmoves_init: u8,

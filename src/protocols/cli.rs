@@ -19,12 +19,12 @@ use moves_generator::MovesGenerator;
 use protocols::xboard::XBoard;
 use search::Search;
 
+#[derive(Clone)]
 pub struct CLI {
     pub game: Game,
     max_depth: usize,
     show_board: bool
 }
-
 
 impl CLI {
     pub fn new() -> CLI {
@@ -57,6 +57,7 @@ impl CLI {
                         "hide"       => { self.cmd_hide(&*args) },
                         "load"       => { self.cmd_setboard(&*args) },
                         "setboard"   => { self.cmd_setboard(&*args) },
+                        "threads"    => { self.cmd_threads(&*args) },
                         "perft"      => { self.cmd_perft() },
                         "perftsuite" => { self.cmd_perftsuite(&*args) },
                         "testsuite"  => { self.cmd_testsuite(&*args) },
@@ -80,6 +81,7 @@ impl CLI {
         println!("hide <feature>            Hide <feature>");
         println!("time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
         println!("setboard <fen>            Set the board to <fen>");
+        println!("threads <number>          Set the <number> of threads");
         println!("perft                     Count the nodes at each depth");
         println!("perftsuite <epd>          Compare perft results to each position of <epd>");
         println!("testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
@@ -91,6 +93,8 @@ impl CLI {
         let mut xboard = XBoard::new();
         xboard.game.is_debug = self.game.is_debug;
         xboard.game.is_colored = self.game.is_colored;
+        xboard.game.threads_count = self.game.threads_count;
+        xboard.game.tt_resize(self.game.tt_size());
         xboard.run();
     }
 
@@ -140,7 +144,8 @@ impl CLI {
     }
 
     pub fn cmd_play(&mut self) {
-        match self.game.root(self.max_depth) {
+        let n = self.max_depth;
+        match self.game.parallel(1..n) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("black mates");
@@ -247,6 +252,10 @@ impl CLI {
         println!("Nodes: {}", nodes_count);
     }
 
+    pub fn cmd_threads(&mut self, args: &[&str]) {
+        self.game.threads_count = args[1].parse::<usize>().unwrap();
+    }
+
     pub fn cmd_perft(&mut self) {
         self.game.moves.skip_ordering = true;
         let mut i = 0;
@@ -303,8 +312,8 @@ impl CLI {
         };
         let path = Path::new(args[1]);
         let file = BufReader::new(File::open(&path).unwrap());
-        let mut r = 0;
-        let mut n = 0;
+        let mut found_count = 0;
+        let mut total_count = 0;
         for line in file.lines() {
             let line = line.unwrap();
             let line = line.split(";").next().unwrap();
@@ -318,7 +327,8 @@ impl CLI {
             self.game.load_fen(fen);
             self.game.clock = Clock::new(1, time * 1000);
 
-            let best_move = self.game.root(MAX_PLY).unwrap();
+            let n = self.max_depth;
+            let best_move = self.game.parallel(1..n).unwrap();
             let mut best_move_str = self.game.move_to_san(best_move);
 
             // Add `+` to move in case of check
@@ -335,14 +345,14 @@ impl CLI {
                 _    => unreachable!()
             };
             if found {
-                r += 1;
+                found_count += 1;
                 println!("{}", self.colorize_green(best_move_str));
             } else {
                 println!("{}", self.colorize_red(best_move_str));
             }
-            n += 1;
+            total_count += 1;
         }
-        println!("Result {}/{}", r, n);
+        println!("Result {}/{}", found_count, total_count);
     }
 
     pub fn cmd_error(&mut self, args: &[&str]) {
