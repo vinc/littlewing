@@ -53,8 +53,8 @@ impl CLI {
                         "undo"       => { self.cmd_undo() },
                         "move"       => { self.cmd_move(&*args) },
                         "time"       => { self.cmd_time(&*args) },
-                        "show"       => { self.cmd_show(&*args) },
-                        "hide"       => { self.cmd_hide(&*args) },
+                        "show"       => { self.cmd_config(true, &*args) },
+                        "hide"       => { self.cmd_config(false, &*args) },
                         "load"       => { self.cmd_setboard(&*args) },
                         "setboard"   => { self.cmd_setboard(&*args) },
                         "threads"    => { self.cmd_threads(&*args) },
@@ -109,7 +109,7 @@ impl CLI {
         self.game.load_fen(fen);
     }
 
-    pub fn cmd_show(&mut self, args: &[&str]) {
+    pub fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
             self.print_error(format!("no subcommand given"));
             return;
@@ -117,36 +117,26 @@ impl CLI {
 
         match args[1] {
             "board" => {
-                self.show_board = true;
-                println!("{}", self.game.to_string());
+                self.show_board = value;
+                if value {
+                    println!("{}", self.game.to_string());
+                }
             }
             "color" => {
-                self.game.is_colored = true;
+                self.game.is_colored = value;
             }
             "debug" => {
-                self.game.is_debug = true;
+                self.game.is_debug = value;
             }
             "think" => {
-                self.game.is_verbose = true;
+                self.game.is_verbose = value;
+            }
+            "coords" => {
+                self.game.show_coordinates = value;
             }
             _ => {
                 self.print_error(format!("unrecognized subcommand '{}'", args[1]));
             }
-        }
-    }
-
-    pub fn cmd_hide(&mut self, args: &[&str]) {
-        if args.len() != 2 {
-            format!("no subcommand given");
-            return;
-        }
-
-        match args[1] {
-            "board" => { self.show_board = false; }
-            "color" => { self.game.is_colored = false; }
-            "debug" => { self.game.is_debug = false; }
-            "think" => { self.game.is_verbose = false; }
-            _       => { self.print_error(format!("unrecognized subcommand '{}'", args[1])); }
         }
     }
 
@@ -155,18 +145,18 @@ impl CLI {
         match self.game.parallel(1..n) {
             None => {
                 if self.game.is_check(WHITE) {
-                    println!("black mates");
+                    println!("< black mates");
                 } else if self.game.is_check(BLACK) {
-                    println!("white mates");
+                    println!("< white mates");
                 } else {
-                    println!("draw");
+                    println!("< draw");
                 }
             },
             Some(m) => {
                 self.game.make_move(m);
                 self.game.history.push(m);
 
-                println!("move {}", m.to_can());
+                println!("< move {}", m.to_can());
             }
         }
 

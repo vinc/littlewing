@@ -14,6 +14,7 @@ pub struct Game {
     pub is_debug: bool,  // Print debugging
     pub is_verbose: bool, // Print thinking
     pub is_colored: bool,
+    pub show_coordinates: bool,
     pub threads_count: usize,
     pub nodes_count: u64,
     pub clock: Clock,
@@ -32,6 +33,7 @@ impl Game {
             is_debug: false,
             is_verbose: false,
             is_colored: false,
+            show_coordinates: false,
             threads_count: 0,
             nodes_count: 0,
             clock: Clock::new(40, 5 * 60),
@@ -71,28 +73,40 @@ impl fmt::Display for Game {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut lines = vec![];
 
-        let sep = (0..8).map(|_| "+---").fold(String::new(), |r, s| r + s) + "+";
+        let mut sep = "+---".repeat(8) + "+";
+        if self.show_coordinates {
+            sep = format!("   {}", sep);
+        }
         lines.push(sep.clone());
-        for i in 0..8 {
-            let mut line = String::from("");
-            for j in 0..8 {
-                line.push_str("| ");
-                let p = self.board[8 * (7 - i) + j];
+
+        for rank in 0..8 {
+            let mut line = if self.show_coordinates {
+                format!(" {} ", 8 - rank)
+            } else {
+                format!("")
+            };
+
+            for file in 0..8 {
+                let p = self.board[8 * (7 - rank) + file];
                 let c = p.to_char();
-                if self.is_colored {
-                    if p.color() == WHITE {
-                        line.push_str(&format!("\x1B[1m\x1B[37m{}\x1B[0m", c));
-                    } else if p.color() == BLACK {
-                        line.push_str(&format!("\x1B[1m\x1B[31m{}\x1B[0m", c));
-                    }
+                let s = if self.is_colored && p.color() == WHITE {
+                    format!("\x1B[1m\x1B[37m{}\x1B[0m", c)
+                } else if self.is_colored && p.color() == BLACK {
+                    format!("\x1B[1m\x1B[31m{}\x1B[0m", c)
                 } else {
-                    line.push(c);
-                }
-                line.push_str(" ");
+                    format!("{}", c)
+                };
+                let s = format!("| {} ", s);
+                line.push_str(&s);
             }
-            line.push_str("|");
+            line.push('|');
             lines.push(line);
             lines.push(sep.clone());
+        }
+
+        if self.show_coordinates {
+            let line = " abcdefgh".chars().map(|c| format!(" {}  ", c)).collect();
+            lines.push(line);
         }
 
         write!(f, "{}", lines.join("\n"))
