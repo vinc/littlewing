@@ -116,15 +116,22 @@ impl CLI {
         }
 
         match args[1] {
-            "board" => { self.show_board = true; }
-            "color" => { self.game.is_colored = true; }
-            "debug" => { self.game.is_debug = true; }
-            "think" => { self.game.is_verbose = true; }
-            _       => { self.print_error(format!("unrecognized subcommand '{}'", args[1])); }
-        }
-
-        if self.show_board {
-            println!("{}", self.game.to_string());
+            "board" => {
+                self.show_board = true;
+                println!("{}", self.game.to_string());
+            }
+            "color" => {
+                self.game.is_colored = true;
+            }
+            "debug" => {
+                self.game.is_debug = true;
+            }
+            "think" => {
+                self.game.is_verbose = true;
+            }
+            _ => {
+                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+            }
         }
     }
 
