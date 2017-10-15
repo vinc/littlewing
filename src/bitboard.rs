@@ -12,10 +12,12 @@ pub trait BitboardExt {
 }
 
 impl BitboardExt for Bitboard {
+    #[inline]
     fn count(&self) -> u32 {
         self.count_ones()
     }
 
+    #[inline]
     fn shift(&self, x: Direction) -> Bitboard {
         if x > 0 {
             *self << x
@@ -24,18 +26,22 @@ impl BitboardExt for Bitboard {
         }
     }
 
+    #[inline]
     fn toggle(&mut self, i: Square) {
         *self ^= 1 << i
     }
 
+    #[inline]
     fn set(&mut self, i: Square) {
         *self |= 1 << i
     }
 
+    #[inline]
     fn reset(&mut self, i: Square) {
         *self &= !(1 << i)
     }
 
+    #[inline]
     fn get(&self, i: Square) -> bool {
         *self & (1 << i) > 0
     }
