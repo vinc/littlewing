@@ -1,5 +1,6 @@
 use std::mem;
 use std::cell::UnsafeCell;
+use std::sync::Arc;
 
 use common::*;
 use moves::Move;
@@ -67,7 +68,7 @@ impl Transposition {
 
 #[derive(Clone)]
 pub struct Transpositions {
-    entries: Box<[Transposition]>,
+    entries: Arc<SharedTable>,
     stats_lookups: u64,
     stats_inserts: u64,
     stats_hits : u64,
@@ -83,7 +84,7 @@ impl Transpositions {
         };
 
         Transpositions {
-            entries: vec![Transposition::new_null(); n].into_boxed_slice(),
+            entries: Arc::new(SharedTable::with_capacity(n)),
             stats_lookups: 0,
             stats_inserts: 0,
             stats_hits: 0,
@@ -98,11 +99,12 @@ impl Transpositions {
     }
 
     pub fn get(&mut self, hash: &u64) -> Option<&Transposition> {
+        let entries = self.entries.get();
         self.stats_lookups += 1;
 
         let n = self.len() as u64;
         let k = (hash % n) as usize; // TODO: hash & (n - 1)
-        let t = &self.entries[k]; // TODO: use get_unchecked?
+        let t = &entries[k]; // TODO: use get_unchecked?
 
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
@@ -118,22 +120,23 @@ impl Transpositions {
     }
 
     pub fn set(&mut self, hash: u64, depth: usize, score: Score, best_move: Move, bound: Bound) {
+        let entries = self.entries.get();
         let n = self.len() as u64;
         let k = (hash % n) as usize;
 
         // NOTE: replacement strategies:
         // 1. Always replace
         // 2. Depth prefered
-        if depth >= self.entries[k].depth() { // Using "depth prefered"
+        if depth >= entries[k].depth() { // Using "depth prefered"
             let t = Transposition::new(hash, depth, score, best_move, bound);
-            self.entries[k] = t;
+            entries[k] = t;
             self.stats_inserts += 1;
         }
     }
 
     pub fn clear(&mut self) {
-        let capacity = self.entries.len();
-        self.entries = vec![Transposition::new_null(); capacity].into_boxed_slice();
+        let capacity = self.len();
+        self.entries = Arc::new(SharedTable::with_capacity(capacity));
 
         self.stats_lookups = 0;
         self.stats_inserts = 0;
@@ -142,11 +145,11 @@ impl Transpositions {
     }
 
     pub fn len(&self) -> usize {
-        self.entries.len()
+        self.entries.get().len()
     }
 
     pub fn print_stats(&mut self) {
-        println!("# {:15} {}", "tt size:", self.entries.len());
+        println!("# {:15} {}", "tt size:", self.len());
         println!("# {:15} {}", "tt inserts:", self.stats_inserts);
         println!("# {:15} {}", "tt lookups:", self.stats_lookups);
         println!("# {:15} {}", "tt hits:", self.stats_hits);
@@ -154,20 +157,20 @@ impl Transpositions {
     }
 }
 
-pub struct SharedTranspositions {
-    inner: UnsafeCell<Transpositions>,
+pub struct SharedTable {
+    inner: UnsafeCell<Box<[Transposition]>>
 }
 
-unsafe impl Sync for SharedTranspositions {}
+unsafe impl Sync for SharedTable {}
 
-impl SharedTranspositions {
-    pub fn with_memory(memory: usize) -> SharedTranspositions {
-        SharedTranspositions {
-            inner: UnsafeCell::new(Transpositions::with_memory(memory))
+impl SharedTable {
+    pub fn with_capacity(capacity: usize) -> SharedTable {
+        SharedTable {
+            inner: UnsafeCell::new(vec![Transposition::new_null(); capacity].into_boxed_slice())
         }
     }
 
-    pub fn get(&self) -> &mut Transpositions {
+    pub fn get(&self) -> &mut Box<[Transposition]> {
         unsafe { &mut *self.inner.get() }
     }
 }
@@ -227,7 +230,7 @@ mod tests {
     }
 
     #[test]
-    fn test_shared_transpositions() {
+    fn test_transpositions_in_threads() {
         // Transposition content
         let h = 42;
         let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
@@ -237,14 +240,13 @@ mod tests {
 
         let n = 4;
         let mut children = Vec::with_capacity(n);
-        let shared_tt = Arc::new(SharedTranspositions::with_memory(1 << 20));
+        let shared_tt = Transpositions::with_memory(1 << 20);
         let barrier = Arc::new(Barrier::new(n));
         for i in 0..n {
-            let clone = shared_tt.clone();
+            let mut tt = shared_tt.clone();
             let c = barrier.clone();
 
             children.push(thread::spawn(move || {
-                let tt = clone.get();
                 if i == 0 {
                     tt.set(h, d, s, m, b); // First thread set a value in TT
                 }

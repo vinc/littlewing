@@ -1,12 +1,11 @@
 use std::fmt;
 use std::mem;
-use std::sync::Arc;
 
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};
 use positions::Positions;
-use transpositions::{Transposition, Transpositions, SharedTranspositions};
+use transpositions::{Transposition, Transpositions};
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
@@ -24,7 +23,7 @@ pub struct Game {
     pub positions: Positions,
     pub zobrist: Zobrist,
     pub history: Vec<Move>,
-    tt: Arc<SharedTranspositions>
+    pub tt: Transpositions
 }
 
 impl Game {
@@ -42,20 +41,16 @@ impl Game {
             positions: Positions::new(),
             zobrist: Zobrist::new(),
             history: Vec::new(),
-            tt: Arc::new(SharedTranspositions::with_memory(TT_SIZE))
+            tt: Transpositions::with_memory(TT_SIZE)
         }
     }
 
-    pub fn tt(&self) -> &mut Transpositions {
-        self.tt.get()
-    }
-
     pub fn tt_resize(&mut self, memory: usize) {
-        self.tt = Arc::new(SharedTranspositions::with_memory(memory));
+        self.tt = Transpositions::with_memory(memory);
     }
 
     pub fn tt_size(&self) -> usize {
-        self.tt().len() * mem::size_of::<Transposition>()
+        self.tt.len() * mem::size_of::<Transposition>()
     }
 
     pub fn clear(&mut self) {
@@ -64,7 +59,7 @@ impl Game {
         self.moves.clear_all();
         self.positions.clear();
         self.history.clear();
-        self.tt().clear();
+        self.tt.clear();
     }
 
     pub fn bitboard(&self, piece: Piece) -> &Bitboard {
