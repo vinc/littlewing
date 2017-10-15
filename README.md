@@ -1,8 +1,8 @@
 Little Wing
 ===========
 
-[![Travis](https://img.shields.io/travis/vinc/littlewing.svg)]()
-[![Crates.io](https://img.shields.io/crates/v/littlewing.svg)]()
+[![Travis](https://img.shields.io/travis/vinc/littlewing/master.svg)](https://travis-ci.org/vinc/littlewing/branches)
+[![Crates.io](https://img.shields.io/crates/v/littlewing.svg)](https://crates.io/crates/littlewing)
 
 A bitboard chess engine written in Rust.
 
@@ -10,12 +10,12 @@ A work in progress since December 2014.
 
 - [x] XBoard protocol
 - [x] Bitboard moves generation with De Bruijn sequence
+- [x] Transpositions table
 - [x] Quiescence search
 - [x] Principal variation search
 - [x] MVV/LVA moves ordering by insertion sort
 - [x] Staged moves generation
 - [x] Static exchange evaluation
-- [x] Transpositions table
 - [x] Null move pruning
 - [x] Internal iterative deepening
 - [x] Futility pruning
@@ -24,6 +24,7 @@ A work in progress since December 2014.
 - [x] Mobility evaluation
 - [x] Zobrist hashing
 - [x] FEN support
+- [ ] Lazy SMP
 
 Tested on GNU/Linux 32 and 64 bits, should run anywhere.
 
