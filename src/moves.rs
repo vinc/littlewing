@@ -489,6 +489,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_next_stage() {
+        let mut moves = Moves::new();
+        assert_eq!(moves.stage(), MovesStage::BestMove);
+        moves.next_stage();
+        assert_eq!(moves.stage(), MovesStage::Capture);
+        moves.next_stage();
+        assert_eq!(moves.stage(), MovesStage::KillerMove);
+        moves.next_stage();
+        assert_eq!(moves.stage(), MovesStage::QuietMove);
+    }
+
+    #[test]
     fn test_move_is_castle() {
         assert_eq!(Move::new(E2, E3, QUIET_MOVE).is_castle(), false);
         assert_eq!(Move::new(E1, G1, KING_CASTLE).is_castle(), true);

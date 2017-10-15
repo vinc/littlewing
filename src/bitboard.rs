@@ -71,10 +71,12 @@ impl BitboardExt for Bitboard {
 
 pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: Direction) -> Bitboard {
     let mut flood: Bitboard = 0;
+
     while sliders > 0 {
         flood |= sliders;
         sliders = sliders.shift(dir) & empty;
     }
+
     flood
 }
 
@@ -104,6 +106,19 @@ impl BitboardIterator for Bitboard {
 mod tests {
     use common::*;
     use super::*;
+
+    #[test]
+    fn test_shift() {
+        let bb1: Bitboard = 0b0011000000000000000000000000000000110000000000000000000000000000;
+        let bb2: Bitboard = 0b1100000000000000000000000000000011000000000000000000000000000011;
+        let bb3: Bitboard = 0b0000000000000000000000000000001100000000000000000000000000001100;
+
+        assert_eq!(bb2.shift(0),  bb2, "{:b} == {:b}", bb2, bb2);
+        assert_eq!(bb2 << 2,      bb3, "{:b} == {:b}", bb2, bb3);
+        assert_eq!(bb2.shift(2),  bb3, "{:b} == {:b}", bb2, bb3);
+        assert_eq!(bb2 >> 2,      bb1, "{:b} == {:b}", bb2, bb1);
+        assert_eq!(bb2.shift(-2), bb1, "{:b} == {:b}", bb2, bb1);
+    }
 
     #[test]
     fn test_dumb7fill() {
@@ -161,27 +176,4 @@ mod tests {
         assert_eq!(bb.next(), Some(D2));
         assert_eq!(bb.next(), None);
     }
-
-    /*
-    #[bench]
-    fn bench_iterator(b: &mut Bencher) {
-        let mut bb: Bitboard = 0; // TODO
-        b.iter(|| {
-            // Old way
-            while bb > 0 {
-                let sq = bb.trailing_zeros() as Square;
-                bb.reset(sq);
-                // TODO
-            }
-        })
-
-        let mut bb: Bitboard = 0; // TODO
-        b.iter(|| {
-            // New way
-            while let Some(sq) = bb.next() {
-                // TODO
-            }
-        })
-    }
-    */
 }
