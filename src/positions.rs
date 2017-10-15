@@ -97,7 +97,7 @@ impl Positions {
     pub fn is_draw(&self) -> bool {
         // Fifty-move rule
         if self.top().halfmoves_count >= 99 {
-            return true // Fifty-move rule
+            return true; // Fifty-move rule
         }
 
         // Threefold repetitions
@@ -106,7 +106,7 @@ impl Positions {
         while i >= 2 {
             i -= 2;
             if self[i].hash == hash {
-                return true
+                return true;
             }
             if self[i].halfmoves_count == 0 {
                 break;

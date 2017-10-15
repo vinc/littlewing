@@ -43,7 +43,7 @@ impl Search for Game {
 
     fn quiescence(&mut self, mut alpha: Score, beta: Score, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
-            return 0
+            return 0;
         }
 
         let stand_path = self.eval();
@@ -51,7 +51,7 @@ impl Search for Game {
             return stand_path;
         }
         if stand_path >= beta {
-            return beta
+            return beta;
         }
         if alpha < stand_path {
             alpha = stand_path;
@@ -74,7 +74,7 @@ impl Search for Game {
             self.undo_move(m);
 
             if score >= beta {
-                return beta
+                return beta;
             }
             if alpha < score {
                 alpha = score;
@@ -90,7 +90,6 @@ impl Search for Game {
         }
 
         if depth == 0 {
-            //return self.eval();
             return self.quiescence(alpha, beta, ply + 1);
         }
 
@@ -112,7 +111,7 @@ impl Search for Game {
             if t.depth() >= depth { // This node has already been searched
                 match t.bound() {
                     Bound::Exact => {
-                        return t.score()
+                        return t.score();
                     },
                     Bound::Lower => {
                         if t.score() > alpha {
@@ -126,7 +125,7 @@ impl Search for Game {
                     }
                 }
                 if alpha >= beta {
-                    return t.score()
+                    return t.score();
                 }
             }
 
@@ -250,6 +249,7 @@ impl Search for Game {
                 }
 
                 self.tt.set(hash, depth, score, m, Bound::Lower);
+
                 return beta;
             }
 
@@ -416,7 +416,7 @@ impl Search for Game {
         }
 
         if n == 0 {
-            return self.root(depths)
+            return self.root(depths);
         }
 
         let mut children = vec![];
@@ -461,7 +461,7 @@ impl Search for Game {
 
     fn get_pv(&mut self, depth: usize) -> String {
         if depth == 0 {
-            return String::new()
+            return String::new();
         }
 
         let mut res = vec![];
