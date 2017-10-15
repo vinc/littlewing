@@ -55,7 +55,7 @@ impl Game {
     }
 
     pub fn tt_size(&self) -> usize {
-        self.tt().size * mem::size_of::<Transposition>()
+        self.tt().len() * mem::size_of::<Transposition>()
     }
 
     pub fn clear(&mut self) {

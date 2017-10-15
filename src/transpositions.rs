@@ -67,25 +67,23 @@ impl Transposition {
 
 #[derive(Clone)]
 pub struct Transpositions {
-    pub entries: Box<[Transposition]>,
-    pub size: usize,
-    pub stats_lookups: u64,
-    pub stats_inserts: u64,
-    pub stats_hits : u64,
-    pub stats_collisions: u64
+    entries: Box<[Transposition]>,
+    stats_lookups: u64,
+    stats_inserts: u64,
+    stats_hits : u64,
+    stats_collisions: u64
 }
 
 impl Transpositions {
     pub fn with_capacity(capacity: usize) -> Transpositions {
-        let size = if capacity.is_power_of_two() {
+        let n = if capacity.is_power_of_two() {
             capacity
         } else {
             capacity.next_power_of_two()
         };
 
         Transpositions {
-            entries: vec![Transposition::new_null(); size].into_boxed_slice(),
-            size: size,
+            entries: vec![Transposition::new_null(); n].into_boxed_slice(),
             stats_lookups: 0,
             stats_inserts: 0,
             stats_hits: 0,
@@ -102,7 +100,7 @@ impl Transpositions {
     pub fn get(&mut self, hash: &u64) -> Option<&Transposition> {
         self.stats_lookups += 1;
 
-        let n = self.size as u64;
+        let n = self.len() as u64;
         let k = (hash % n) as usize; // TODO: hash & (n - 1)
         let t = &self.entries[k]; // TODO: use get_unchecked?
 
@@ -120,28 +118,31 @@ impl Transpositions {
     }
 
     pub fn set(&mut self, hash: u64, depth: usize, score: Score, best_move: Move, bound: Bound) {
-        self.stats_inserts += 1;
-
-        let t = Transposition::new(hash, depth, score, best_move, bound);
-        let n = self.size as u64;
+        let n = self.len() as u64;
         let k = (hash % n) as usize;
 
         // NOTE: replacement strategies:
         // 1. Always replace
         // 2. Depth prefered
-        if self.entries[k].depth() <= depth { // Using "depth prefered"
+        if depth >= self.entries[k].depth() { // Using "depth prefered"
+            let t = Transposition::new(hash, depth, score, best_move, bound);
             self.entries[k] = t;
+            self.stats_inserts += 1;
         }
     }
 
     pub fn clear(&mut self) {
-        let capacity = self.size;
+        let capacity = self.entries.len();
         self.entries = vec![Transposition::new_null(); capacity].into_boxed_slice();
 
         self.stats_lookups = 0;
         self.stats_inserts = 0;
         self.stats_hits = 0;
         self.stats_collisions = 0;
+    }
+
+    pub fn len(&self) -> usize {
+        self.entries.len()
     }
 
     pub fn print_stats(&mut self) {
@@ -192,14 +193,14 @@ mod tests {
 
     #[test]
     fn test_transpositions_size() {
-        assert_eq!(Transpositions::with_memory(512).size, 32); // 32 == 512 / 16
-        assert_eq!(Transpositions::with_capacity(32).size, 32);
+        assert_eq!(Transpositions::with_memory(512).len(), 32); // 32 == 512 / 16
+        assert_eq!(Transpositions::with_capacity(32).len(), 32);
 
         // Size should be a power of two for efficient lookups
-        assert_eq!(Transpositions::with_capacity(24).size, 32);
+        assert_eq!(Transpositions::with_capacity(24).len(), 32);
 
         // Large table of 1 M entries using 16 MB of memory
-        assert_eq!(Transpositions::with_memory(16 << 20).size, 1048576);
+        assert_eq!(Transpositions::with_memory(16 << 20).len(), 1048576);
     }
 
     #[test]
