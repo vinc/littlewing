@@ -20,7 +20,7 @@ pub const BONUS_HALF_OPEN_FILE: Score = 10;
 pub const BONUS_KNIGHT_PAWNS:   Score = 5;
 pub const BONUS_ROOK_OPEN_FILE: Score = 20;
 pub const BONUS_ROOK_PAWNS:     Score = 10;
-pub const MALUS_DOUBLED_PAWN:   Score = 20;
+pub const MALUS_DOUBLED_PAWN:   Score = -20;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
