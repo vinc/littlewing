@@ -624,6 +624,68 @@ mod tests {
     }
 
     #[test]
+    fn test_stalemate() {
+        let mut game = Game::from_fen("4k3/4P3/4K3/8/8/8/8/ b - - 0 1");
+
+        game.nodes_count = 0;
+        game.clock = Clock::new(1, 5 * 1000); // 5 seconds
+        game.clock.start(game.positions.len());
+
+        let ply = 0;
+        let alpha = -INF;
+        let beta = INF;
+
+        for depth in 1..5 {
+            let score = game.search(alpha, beta, depth, ply + 1);
+            assert_eq!(score, 0);
+        }
+    }
+
+    #[test]
+    fn test_threefold_repetition() {
+        // Fischer vs Petrosian (1971)
+        let mut game = Game::from_fen("8/pp3p1k/2p2q1p/3r1P1Q/5R2/7P/P1P2P2/7K w - - 1 30");
+        let moves = vec!["h5e2", "f6e5", "e2h5", "e5f6", "h5e2", "d5e5", "e2d3", "e5d5", "d3e2"];
+        for s in moves {
+            let m = game.move_from_can(s);
+            game.make_move(m);
+            game.history.push(m);
+        }
+
+        game.nodes_count = 0;
+        game.clock = Clock::new(1, 5 * 1000); // 5 seconds
+        game.clock.start(game.positions.len());
+
+        let ply = 0;
+        let alpha = -INF;
+        let beta = INF;
+
+        for depth in 1..5 {
+            let score = game.search(alpha, beta, depth, ply + 1);
+            assert_eq!(score, 0);
+        }
+    }
+
+    #[test]
+    fn test_fifty_move_rule() {
+        // Timman vs Lutz (1995)
+        let mut game = Game::from_fen("8/7k/8/1r3KR1/5B2/8/8/8 w - - 105 122");
+
+        game.nodes_count = 0;
+        game.clock = Clock::new(1, 5 * 1000); // 5 seconds
+        game.clock.start(game.positions.len());
+
+        let ply = 0;
+        let alpha = -INF;
+        let beta = INF;
+
+        for depth in 1..5 {
+            let score = game.search(alpha, beta, depth, ply + 1);
+            assert_eq!(score, 0);
+        }
+    }
+
+    #[test]
     fn test_root() {
         let fen = "2k4r/ppp3pp/8/2b2p1P/PPP2p2/N4P2/3r2K1/1q5R w - - 4 29";
         let best_move = Move::new(G2, H3, QUIET_MOVE);
