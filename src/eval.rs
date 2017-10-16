@@ -115,14 +115,27 @@ impl Eval for Game {
         let mut score = 0;
         let side = self.positions.top().side;
 
+        let kings = self.bitboard(WHITE | KING) | self.bitboard(BLACK | KING);
+        if kings.count() < 2 {
+            if self.bitboard(side | KING).count() == 0 {
+                return -INF; // Loss
+            } else {
+                return INF; // Win
+            }
+        }
+
+        // Draw by insufficient material
+        let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
+        if occupied.count() < 4 {
+            let knights = self.bitboard(WHITE | KNIGHT) | self.bitboard(BLACK | KNIGHT);
+            let bishops = self.bitboard(WHITE | BISHOP) | self.bitboard(BLACK | BISHOP);
+            if (kings | knights | bishops) == occupied {
+                return 0; // Draw
+            }
+        }
+
         score += self.eval_material(side);
         score -= self.eval_material(side ^ 1);
-
-        if score > KING_VALUE {
-            return INF; // Win
-        } else if score < -KING_VALUE {
-            return -INF; // Loss
-        }
 
         score += self.eval_mobility(side);
         score -= self.eval_mobility(side ^ 1);
@@ -199,6 +212,20 @@ mod tests {
     use fen::FEN;
     use game::Game;
     use moves::Move;
+
+    #[test]
+    fn test_draw() {
+        let mut game = Game::new();
+
+        game.load_fen("8/8/4k3/8/8/4K3/8/8 w - - 0 1");
+        assert_eq!(game.eval(), 0);
+
+        game.load_fen("8/8/4k3/8/4B3/4K3/8/8 w - - 0 1");
+        assert_eq!(game.eval(), 0);
+
+        game.load_fen("8/8/4k3/8/4N3/4K3/8/8 w - - 0 1");
+        assert_eq!(game.eval(), 0);
+    }
 
     #[test]
     fn test_see() {
