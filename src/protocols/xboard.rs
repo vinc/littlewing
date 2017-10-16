@@ -12,7 +12,7 @@ use version;
 
 pub struct XBoard {
     pub game: Game,
-    max_depth: usize,
+    max_depth: Depth,
     force: bool
 }
 
@@ -20,7 +20,7 @@ impl XBoard {
     pub fn new() -> XBoard {
         XBoard {
             game: Game::from_fen(DEFAULT_FEN),
-            max_depth: MAX_PLY - 10,
+            max_depth: (MAX_PLY - 10) as Depth,
             force: false
         }
     }
@@ -57,7 +57,7 @@ impl XBoard {
     }
 
     pub fn cmd_new(&mut self) {
-        self.max_depth = MAX_PLY - 10;
+        self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
         self.game.load_fen(DEFAULT_FEN);
     }
@@ -132,7 +132,7 @@ impl XBoard {
     }
 
     pub fn cmd_depth(&mut self, args: &[&str]) {
-        self.max_depth = args[1].parse::<usize>().unwrap() + 1;
+        self.max_depth = args[1].parse::<Depth>().unwrap() + 1;
     }
 
     pub fn cmd_memory(&mut self, args: &[&str]) {

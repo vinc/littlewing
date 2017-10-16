@@ -18,13 +18,13 @@ pub struct Transposition {
     hash: u64,       // 64 bits => 8 bytes
     best_move: Move, // 16 bits => 2 bytes
     score: Score,    // 16 bits => 2 bytes
-    depth: u8,       //  8 bits => 1 bytes
+    depth: Depth,    //  8 bits => 1 bytes
     bound: Bound,    //  8 bits => 1 bytes
 
-    // Total: 14 bytes, which will use 16 bytes including alignment padding.
+    // Total: 15 bytes, which will use 16 bytes including alignment padding.
 
     // NOTE: `depth` will never go above MAX_PLY, which is 128 so we can store
-    // it as `u8`.
+    // it as `i8`.
     //
     // TODO: we don't need to store the whole hash as the first part is the
     // index of the entry: `entries[hash % size]`
@@ -35,10 +35,10 @@ pub struct Transposition {
 }
 
 impl Transposition {
-    pub fn new(hash: u64, depth: usize, score: Score, best_move: Move, bound: Bound) -> Transposition {
+    pub fn new(hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound) -> Transposition {
         Transposition {
             hash: hash,
-            depth: depth as u8,
+            depth: depth,
             score: score,
             best_move: best_move,
             bound: bound
@@ -49,8 +49,8 @@ impl Transposition {
         Transposition::new(0, 0, 0, Move::new_null(), Bound::Exact)
     }
 
-    pub fn depth(&self) -> usize {
-        self.depth as usize
+    pub fn depth(&self) -> Depth {
+        self.depth as Depth
     }
 
     pub fn score(&self) -> Score {
@@ -119,7 +119,7 @@ impl Transpositions {
         }
     }
 
-    pub fn set(&mut self, hash: u64, depth: usize, score: Score, best_move: Move, bound: Bound) {
+    pub fn set(&mut self, hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound) {
         let entries = self.entries.get();
         let n = self.len() as u64;
         let k = (hash % n) as usize;

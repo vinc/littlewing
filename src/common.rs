@@ -7,6 +7,7 @@ pub type MoveType = u8;
 pub type Piece = u8;
 pub type Square = u8;
 pub type Score = i16;
+pub type Depth = i8;
 
 pub const INF: Score = 29999;
 

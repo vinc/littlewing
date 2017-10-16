@@ -22,7 +22,7 @@ use search::Search;
 #[derive(Clone)]
 pub struct CLI {
     pub game: Game,
-    max_depth: usize,
+    max_depth: Depth,
     show_board: bool
 }
 
@@ -30,7 +30,7 @@ impl CLI {
     pub fn new() -> CLI {
         CLI {
             game: Game::from_fen(DEFAULT_FEN),
-            max_depth: MAX_PLY - 10,
+            max_depth: (MAX_PLY - 10) as Depth,
             show_board: false
         }
     }
@@ -226,7 +226,7 @@ impl CLI {
             return;
         }
 
-        let d = args[1].parse::<usize>().unwrap();
+        let d = args[1].parse::<Depth>().unwrap();
 
         let side = self.game.positions.top().side;
         self.game.moves.clear();
@@ -283,7 +283,7 @@ impl CLI {
             self.game.moves.skip_ordering = true;
             for field in fields {
                 let mut it = field.trim().split(' ');
-                let d = it.next().unwrap()[1..].parse::<usize>().unwrap();
+                let d = it.next().unwrap()[1..].parse::<Depth>().unwrap();
                 let n = it.next().unwrap().parse::<u64>().unwrap();
                 if self.game.perft(d) == n {
                     print!("{}", self.colorize_green(".".into()));

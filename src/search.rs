@@ -13,17 +13,17 @@ use moves_generator::MovesGenerator;
 use transpositions::Bound;
 
 pub trait Search {
-    fn perft(&mut self, depth: usize) -> u64;
-    fn quiescence(&mut self, alpha: Score, beta: Score, ply: usize) -> Score;
-    fn search(&mut self, alpha: Score, beta: Score, depth: usize, ply: usize) -> Score;
-    fn root(&mut self, depths: Range<usize>) -> Option<Move>;
-    fn parallel(&mut self, depths: Range<usize>) -> Option<Move>;
-    fn print_thinking(&mut self, depth: usize, score: Score, m: Move);
-    fn get_pv(&mut self, depth: usize) -> String;
+    fn perft(&mut self, depth: Depth) -> u64;
+    fn quiescence(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
+    fn search(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
+    fn root(&mut self, depths: Range<Depth>) -> Option<Move>;
+    fn parallel(&mut self, depths: Range<Depth>) -> Option<Move>;
+    fn print_thinking(&mut self, depth: Depth, score: Score, m: Move);
+    fn get_pv(&mut self, depth: Depth) -> String;
 }
 
 impl Search for Game {
-    fn perft(&mut self, depth: usize) -> u64 {
+    fn perft(&mut self, depth: Depth) -> u64 {
         if depth == 0 {
             1
         } else {
@@ -41,7 +41,7 @@ impl Search for Game {
         }
     }
 
-    fn quiescence(&mut self, mut alpha: Score, beta: Score, ply: usize) -> Score {
+    fn quiescence(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
             return 0;
         }
@@ -69,14 +69,14 @@ impl Search for Game {
             }
             self.nodes_count += 1;
 
-            let score = -self.quiescence(-beta, -alpha, ply + 1);
+            let score = -self.quiescence(-beta, -alpha, depth - 1, ply + 1);
 
             self.undo_move(m);
 
             if score >= beta {
                 return beta;
             }
-            if alpha < score {
+            if score > alpha {
                 alpha = score;
             }
         }
@@ -84,13 +84,13 @@ impl Search for Game {
         alpha
     }
 
-    fn search(&mut self, mut alpha: Score, mut beta: Score, depth: usize, ply: usize) -> Score {
+    fn search(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
             return 0;
         }
 
         if depth == 0 {
-            return self.quiescence(alpha, beta, ply + 1);
+            return self.quiescence(alpha, beta, depth - 1, ply + 1);
         }
 
         // Detect draw by threefold repetitions and fifty-moves rule
@@ -280,7 +280,7 @@ impl Search for Game {
         alpha
     }
 
-    fn root(&mut self, depths: Range<usize>) -> Option<Move> {
+    fn root(&mut self, depths: Range<Depth>) -> Option<Move> {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
         let ply = 0;
@@ -334,7 +334,7 @@ impl Search for Game {
                 let mut is_mate = true;
                 let inf = INF - (MAX_PLY as Score);
                 for d in 1..4 {
-                    let score = best_scores[depth - d];
+                    let score = best_scores[(depth - d) as usize];
                     if -inf < score && score < inf {
                         is_mate = false;
                         break;
@@ -366,8 +366,8 @@ impl Search for Game {
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
-                        best_scores[depth] = score;
-                        best_moves[depth] = m;
+                        best_scores[depth as usize] = score;
+                        best_moves[depth as usize] = m;
                     }
                 }
                 self.undo_move(m);
@@ -375,9 +375,9 @@ impl Search for Game {
 
             // Save the best move only if we found one and if we still have
             // some time left after the search at this depth.
-            if !best_moves[depth].is_null() && !self.clock.poll(self.nodes_count) {
-                best_move = best_moves[depth];
-                best_score = best_scores[depth];
+            if !best_moves[depth as usize].is_null() && !self.clock.poll(self.nodes_count) {
+                best_move = best_moves[depth as usize];
+                best_score = best_scores[depth as usize];
 
                 // TODO: use best_score instead of alpha?
                 self.tt.set(hash, depth, alpha, best_move, Bound::Exact);
@@ -406,7 +406,7 @@ impl Search for Game {
         }
     }
 
-    fn parallel(&mut self, depths: Range<usize>) -> Option<Move> {
+    fn parallel(&mut self, depths: Range<Depth>) -> Option<Move> {
         self.tt.clear();
 
         let n = self.threads_count;
@@ -444,7 +444,7 @@ impl Search for Game {
         res[0] // best move found by the first thread
     }
 
-    fn print_thinking(&mut self, depth: usize, score: Score, m: Move) {
+    fn print_thinking(&mut self, depth: Depth, score: Score, m: Move) {
         let time = self.clock.elapsed_time() / 10; // In centiseconds
 
         self.undo_move(m);
@@ -459,7 +459,7 @@ impl Search for Game {
         println!(" {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time, self.nodes_count, pv);
     }
 
-    fn get_pv(&mut self, depth: usize) -> String {
+    fn get_pv(&mut self, depth: Depth) -> String {
         if depth == 0 {
             return String::new();
         }
