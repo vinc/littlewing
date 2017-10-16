@@ -419,7 +419,7 @@ impl Search for Game {
             return self.root(depths);
         }
 
-        let mut children = vec![];
+        let mut children = Vec::with_capacity(n);
 
         for i in 0..n {
             let mut clone = self.clone();
@@ -436,7 +436,7 @@ impl Search for Game {
             }));
         }
 
-        let mut res = vec![];
+        let mut res = Vec::with_capacity(n);
         for child in children {
             res.push(child.join().unwrap());
         }
