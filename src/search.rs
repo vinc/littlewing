@@ -57,9 +57,40 @@ impl Search for Game {
             alpha = stand_path;
         }
 
+        let hash = self.positions.top().hash;
         let side = self.positions.top().side;
+        let old_alpha = alpha;
+        let mut best_move = Move::new_null();
+
+        if let Some(t) = self.tt.get(&hash) {
+            if t.depth() >= depth { // This node has already been searched
+                match t.bound() {
+                    Bound::Exact => {
+                        return t.score();
+                    },
+                    Bound::Lower => {
+                        if t.score() > alpha {
+                            alpha = t.score();
+                        }
+                    },
+                    Bound::Upper => {
+                        if t.score() < beta {
+                            beta = t.score();
+                        }
+                    }
+                }
+                if alpha >= beta {
+                    return t.score();
+                }
+            }
+
+            best_move = t.best_move();
+        }
 
         self.moves.clear();
+        if !best_move.is_null() {
+            self.moves.add_move(best_move);
+        }
         while let Some(m) = self.next_capture() {
             self.make_move(m);
 
@@ -74,11 +105,22 @@ impl Search for Game {
             self.undo_move(m);
 
             if score >= beta {
+                self.tt.set(hash, depth, score, m, Bound::Lower);
                 return beta;
             }
             if score > alpha {
                 alpha = score;
+                best_move = m;
             }
+        }
+
+        if !best_move.is_null() {
+            let bound = if alpha > old_alpha { // TODO: try '&& is_pv'
+                Bound::Exact
+            } else {
+                Bound::Upper
+            };
+            self.tt.set(hash, depth, alpha, best_move, bound);
         }
 
         alpha
