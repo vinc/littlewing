@@ -80,6 +80,23 @@ pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: Direction) -> Bitb
     flood
 }
 
+pub fn upfill(mut pieces: Bitboard) -> Bitboard {
+    pieces |= pieces << 8;
+    pieces |= pieces << 16;
+    pieces |= pieces << 32;
+    pieces
+}
+
+pub fn downfill(mut pieces: Bitboard) -> Bitboard {
+    pieces |= pieces >> 8;
+    pieces |= pieces >> 16;
+    pieces |= pieces >> 32;
+    pieces
+}
+
+pub fn filefill(pieces: Bitboard) -> Bitboard {
+    upfill(pieces) | downfill(pieces)
+}
 
 pub trait BitboardIterator {
     type Item;

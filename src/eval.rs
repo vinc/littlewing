@@ -4,19 +4,23 @@ use common::*;
 use attack::Attack;
 use attack::piece_attacks;
 use bitboard::{BitboardExt, BitboardIterator};
+use bitboard::filefill;
 use game::Game;
 use moves::Move;
 
-pub const PAWN_VALUE:         Score = 100;
-pub const KNIGHT_VALUE:       Score = 350;
-pub const BISHOP_VALUE:       Score = 350;
-pub const ROOK_VALUE:         Score = 500;
-pub const QUEEN_VALUE:        Score = 1000; // R + B + P + bonus bishop pair
-pub const KING_VALUE:         Score = 10000;
+pub const PAWN_VALUE:           Score = 100;
+pub const KNIGHT_VALUE:         Score = 350;
+pub const BISHOP_VALUE:         Score = 350;
+pub const ROOK_VALUE:           Score = 500;
+pub const QUEEN_VALUE:          Score = 1000; // R + B + P + bonus bishop pair
+pub const KING_VALUE:           Score = 10000;
 
-pub const BONUS_BISHOP_PAIR:  Score = 50;
-pub const BONUS_KNIGHT_PAWNS: Score = 5;
-pub const BONUS_ROOK_PAWNS:   Score = 10;
+pub const BONUS_BISHOP_PAIR:    Score = 50;
+pub const BONUS_HALF_OPEN_FILE: Score = 10;
+pub const BONUS_KNIGHT_PAWNS:   Score = 5;
+pub const BONUS_ROOK_OPEN_FILE: Score = 20;
+pub const BONUS_ROOK_PAWNS:     Score = 10;
+pub const MALUS_DOUBLED_PAWN:   Score = 20;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
@@ -51,14 +55,27 @@ impl Eval for Game {
         let mut score = 0;
         let mut pawns_count = 0;
 
+        let color_pawns = self.bitboards[(c | PAWN) as usize];
+        let other_pawns = self.bitboards[(c ^ 1 | PAWN) as usize];
+
+        let open_files = open_files(color_pawns, other_pawns);
+
+        let half_open_files = half_open_files(color_pawns, other_pawns);
+        let half_open_files_count = (half_open_files & RANK_1).count() as Score;
+        score += half_open_files_count * BONUS_HALF_OPEN_FILE;
+
         for &p in PIECES.iter() {
             let piece = c | p;
-            let n = self.bitboards[piece as usize].count() as Score;
+            let pieces = self.bitboards[piece as usize];
+            let n = pieces.count() as Score;
             score += n * PIECE_VALUES[piece as usize];
 
             match p {
                 PAWN => {
                     pawns_count = n;
+
+                    let pawns_files_count = (filefill(pieces) & RANK_1).count() as Score;
+                    score += (pawns_count - pawns_files_count) * MALUS_DOUBLED_PAWN;
                 },
                 KNIGHT => {
                     score += n * pawns_count * BONUS_KNIGHT_PAWNS;
@@ -67,6 +84,8 @@ impl Eval for Game {
                     score += BONUS_BISHOP_PAIR;
                 },
                 ROOK => {
+                    score += ((pieces & open_files).count() as Score) * BONUS_ROOK_OPEN_FILE;
+                    score += ((pieces & half_open_files).count() as Score) * BONUS_ROOK_OPEN_FILE / 2;
                     score += n * (8 - pawns_count) * BONUS_ROOK_PAWNS;
                 },
                 _ => { }
@@ -160,6 +179,19 @@ impl Eval for Game {
     }
 }
 
+#[allow(dead_code)]
+pub fn closed_files(white_pawns: Bitboard, black_pawns: Bitboard) -> Bitboard {
+    filefill(white_pawns) & filefill(black_pawns)
+}
+
+pub fn open_files(white_pawns: Bitboard, black_pawns: Bitboard) -> Bitboard {
+    !filefill(white_pawns) & !filefill(black_pawns)
+}
+
+pub fn half_open_files(pawns: Bitboard, opponent_pawns: Bitboard) -> Bitboard {
+    !filefill(pawns) ^ open_files(pawns, opponent_pawns)
+}
+
 #[cfg(test)]
 mod tests {
     use common::*;
@@ -224,6 +256,52 @@ mod tests {
         let fen = "7k/3n4/1p6/8/8/1Q6/8/7K w - - 0 1";
         game.load_fen(fen);
         assert_eq!(game.see(Move::new(B3, B6, CAPTURE)), PAWN_VALUE - QUEEN_VALUE);
+    }
+
+    #[test]
+    fn test_open_files() {
+        let game = Game::from_fen("8/8/3k4/3p4/8/2PP4/3R1R2/3K4 w - - 0 1");
+
+        let black_pawns = game.bitboards[(BLACK | PAWN) as usize];
+        let white_pawns = game.bitboards[(WHITE | PAWN) as usize];
+        let white_rooks = game.bitboards[(WHITE | ROOK) as usize];
+
+        let open_files = open_files(white_pawns, black_pawns);
+
+        assert_eq!(white_rooks.count(), 2);
+        assert_eq!((white_rooks & open_files).count(), 1);
+    }
+
+    #[test]
+    fn test_closed_files() {
+        let game = Game::from_fen("8/8/3k4/3p4/8/2PP4/3R1R2/3K4 w - - 0 1");
+
+        let black_pawns = game.bitboards[(BLACK | PAWN) as usize];
+        let white_pawns = game.bitboards[(WHITE | PAWN) as usize];
+
+        let closed_files = closed_files(white_pawns, black_pawns);
+
+        assert_eq!(black_pawns.count(), 1);
+        assert_eq!(white_pawns.count(), 2);
+        assert_eq!((black_pawns & closed_files).count(), 1);
+        assert_eq!((white_pawns & closed_files).count(), 1);
+    }
+
+    #[test]
+    fn test_half_open_files() {
+        let game = Game::from_fen("8/8/3k4/3p4/8/2PP4/3R1R2/3K4 w - - 0 1");
+
+        let black_pawns = game.bitboards[(BLACK | PAWN) as usize];
+        let white_pawns = game.bitboards[(WHITE | PAWN) as usize];
+
+        // NOTE: Param order is important here
+        let black_half_open_files = half_open_files(black_pawns, white_pawns);
+        let white_half_open_files = half_open_files(white_pawns, black_pawns);
+
+        assert_eq!(black_pawns.count(), 1);
+        assert_eq!(white_pawns.count(), 2);
+        assert_eq!((black_pawns & white_half_open_files).count(), 0);
+        assert_eq!((white_pawns & black_half_open_files).count(), 1);
     }
 }
 
