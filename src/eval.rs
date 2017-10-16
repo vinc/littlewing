@@ -8,19 +8,19 @@ use bitboard::filefill;
 use game::Game;
 use moves::Move;
 
-pub const PAWN_VALUE:           Score = 100;
-pub const KNIGHT_VALUE:         Score = 350;
-pub const BISHOP_VALUE:         Score = 350;
-pub const ROOK_VALUE:           Score = 500;
-pub const QUEEN_VALUE:          Score = 1000; // R + B + P + bonus bishop pair
+pub const PAWN_VALUE:           Score =   100;
+pub const KNIGHT_VALUE:         Score =   350;
+pub const BISHOP_VALUE:         Score =   350;
+pub const ROOK_VALUE:           Score =   500;
+pub const QUEEN_VALUE:          Score =  1000; // R + B + P + bonus bishop pair
 pub const KING_VALUE:           Score = 10000;
 
-pub const BONUS_BISHOP_PAIR:    Score = 50;
-pub const BONUS_HALF_OPEN_FILE: Score = 10;
-pub const BONUS_KNIGHT_PAWNS:   Score = 5;
-pub const BONUS_ROOK_OPEN_FILE: Score = 20;
-pub const BONUS_ROOK_PAWNS:     Score = 10;
-pub const MALUS_DOUBLED_PAWN:   Score = -20;
+pub const BONUS_BISHOP_PAIR:    Score =    50;
+pub const BONUS_HALF_OPEN_FILE: Score =     5;
+pub const BONUS_KNIGHT_PAWNS:   Score =     5;
+pub const BONUS_ROOK_OPEN_FILE: Score =    20;
+pub const BONUS_ROOK_PAWNS:     Score =     5;
+pub const MALUS_DOUBLED_PAWN:   Score =   -10;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
