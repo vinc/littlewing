@@ -269,10 +269,10 @@ impl Search for Game {
         }
 
         if !best_move.is_null() {
-            let bound = if alpha <= old_alpha {
-                Bound::Upper
+            let bound = if alpha > old_alpha {
+                Bound::Exact
             } else {
-                Bound::Lower
+                Bound::Upper
             };
             self.tt.set(hash, depth, alpha, best_move, bound);
         }
