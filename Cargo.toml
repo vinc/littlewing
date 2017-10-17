@@ -7,6 +7,15 @@ repository = "https://github.com/vinc/littlewing"
 homepage = "https://vinc.cc/projects/littlewing.html"
 license = "GPL-3.0"
 
+[lib]
+name = "littlewing"
+path = "src/lib.rs"
+
+[[bin]]
+name = "littlewing"
+path = "src/main.rs"
+doc = false
+
 [dependencies]
 getopts = "0.2"
 lazy_static = "0.2"

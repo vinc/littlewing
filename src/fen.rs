@@ -7,9 +7,15 @@ use piece::PieceChar;
 use square::SquareExt;
 use positions::Position;
 
+/// Forsyth–Edwards Notation support
 pub trait FEN {
+    /// Create `Game` from a given FEN string
     fn from_fen(fen: &str) -> Self;
+
+    /// Load game state from a given FEN string
     fn load_fen(&mut self, fen: &str);
+
+    /// Export game state to a FEN string
     fn to_fen(&self) -> String;
 }
 

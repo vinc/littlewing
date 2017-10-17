@@ -1,41 +1,13 @@
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-extern crate rustyline;
+extern crate littlewing;
 extern crate getopts;
 
-mod attack;
-mod bitboard;
-mod clock;
-mod common;
-mod eval;
-mod fen;
-mod game;
-mod moves;
-mod moves_generator;
-mod piece;
-mod positions;
-mod protocols;
-mod search;
-mod square;
-mod transpositions;
-mod zobrist;
-
 use std::env;
-
 use getopts::Options;
-
-use protocols::cli::CLI;
+use littlewing::protocols::cli::CLI;
 
 fn print_usage(opts: Options) {
     let brief = format!("Usage: littlewing [options]");
     print!("{}", opts.usage(&brief));
-}
-
-fn version() -> String {
-    let ver = String::from("v") + env!("CARGO_PKG_VERSION");
-    let ver = option_env!("LITTLEWING_VERSION").unwrap_or(&ver);
-    format!("Little Wing {}", ver)
 }
 
 fn main() {
@@ -58,7 +30,7 @@ fn main() {
         return;
     }
 
-    println!("{}", version());
+    println!("{}", littlewing::version());
     if matches.opt_present("v") {
         return;
     }

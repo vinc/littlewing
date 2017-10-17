@@ -9,6 +9,7 @@ use transpositions::{Transposition, Transpositions};
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
+/// A `Game` type to store the state of a chess game
 #[derive(Clone)]
 pub struct Game {
     pub is_debug: bool,  // Print debugging
@@ -28,6 +29,7 @@ pub struct Game {
 }
 
 impl Game {
+    /// Create a new `Game`
     pub fn new() -> Game {
         Game {
             is_debug: false,
@@ -47,14 +49,18 @@ impl Game {
         }
     }
 
-    pub fn tt_resize(&mut self, memory: usize) {
-        self.tt = Transpositions::with_memory(memory);
-    }
-
+    /// Get the transposition table size in byte
     pub fn tt_size(&self) -> usize {
         self.tt.len() * mem::size_of::<Transposition>()
     }
 
+    /// Resize the transposition table at the given size in byte or the next
+    /// power of two
+    pub fn tt_resize(&mut self, memory: usize) {
+        self.tt = Transpositions::with_memory(memory);
+    }
+
+    /// Clear the current game state
     pub fn clear(&mut self) {
         self.bitboards = [0; 14];
         self.board = [EMPTY; 64];
@@ -64,6 +70,7 @@ impl Game {
         self.tt.clear();
     }
 
+    /// Get a bitboard representation of the given piece in the game
     pub fn bitboard(&self, piece: Piece) -> &Bitboard {
         &self.bitboards[piece as usize]
     }

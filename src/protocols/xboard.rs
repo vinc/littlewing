@@ -52,37 +52,37 @@ impl XBoard {
         }
     }
 
-    pub fn cmd_force(&mut self) {
+    fn cmd_force(&mut self) {
         self.force = true;
     }
 
-    pub fn cmd_new(&mut self) {
+    fn cmd_new(&mut self) {
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
         self.game.load_fen(DEFAULT_FEN);
     }
 
-    pub fn cmd_go(&mut self) {
+    fn cmd_go(&mut self) {
         self.force = false;
         self.think();
     }
 
-    pub fn cmd_post(&mut self) {
+    fn cmd_post(&mut self) {
         self.game.is_verbose = true;
     }
 
-    pub fn cmd_nopost(&mut self) {
+    fn cmd_nopost(&mut self) {
         self.game.is_verbose = false;
     }
 
-    pub fn cmd_undo(&mut self) {
+    fn cmd_undo(&mut self) {
         if self.game.history.len() > 0 {
             let m = self.game.history.pop().unwrap();
             self.game.undo_move(m);
         }
     }
 
-    pub fn cmd_remove(&mut self) {
+    fn cmd_remove(&mut self) {
         let m = self.game.history.pop().unwrap();
         self.game.undo_move(m);
 
@@ -90,17 +90,17 @@ impl XBoard {
         self.game.undo_move(m);
     }
 
-    pub fn cmd_time(&mut self, args: &[&str]) {
+    fn cmd_time(&mut self, args: &[&str]) {
         // `time` is given in centiseconds
         let time = args[1].parse::<u64>().unwrap();
         self.game.clock.set_time(time * 10);
     }
 
-    pub fn cmd_ping(&mut self, args: &[&str]) {
+    fn cmd_ping(&mut self, args: &[&str]) {
         println!("pong {}", args[1].parse::<usize>().unwrap());
     }
 
-    pub fn cmd_setboard(&mut self, args: &[&str]) {
+    fn cmd_setboard(&mut self, args: &[&str]) {
         if args.len() == 1 {
             panic!("no fen given");
         }
@@ -111,7 +111,7 @@ impl XBoard {
         self.game.load_fen(&fen);
     }
 
-    pub fn cmd_level(&mut self, args: &[&str]) {
+    fn cmd_level(&mut self, args: &[&str]) {
         let mut moves = args[1].parse::<u16>().unwrap();
 
         if moves == 0 {
@@ -131,27 +131,27 @@ impl XBoard {
         self.game.clock = Clock::new(moves, time * 1000);
     }
 
-    pub fn cmd_depth(&mut self, args: &[&str]) {
+    fn cmd_depth(&mut self, args: &[&str]) {
         self.max_depth = args[1].parse::<Depth>().unwrap() + 1;
     }
 
-    pub fn cmd_memory(&mut self, args: &[&str]) {
+    fn cmd_memory(&mut self, args: &[&str]) {
         let memory = args[1].parse::<usize>().unwrap(); // In MB
         self.game.tt_resize(memory << 20);
     }
 
-    pub fn cmd_cores(&mut self, args: &[&str]) {
+    fn cmd_cores(&mut self, args: &[&str]) {
         self.game.threads_count = args[1].parse::<usize>().unwrap();
     }
 
     #[allow(unused_variables)] // TODO: remove that
-    pub fn cmd_protover(&mut self, args: &[&str]) {
+    fn cmd_protover(&mut self, args: &[&str]) {
         println!("feature myname=\"{}\"", version());
         println!("feature sigint=0 ping=1 setboard=1 memory=1 smp=1 done=1");
         // TODO: check that the features got accepted
     }
 
-    pub fn parse_move(&mut self, args: &[&str]) {
+    fn parse_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
         if !re.is_match(args[0]) {
             return;
@@ -166,9 +166,9 @@ impl XBoard {
         }
     }
 
-    pub fn think(&mut self) {
+    fn think(&mut self) {
         let n = self.max_depth;
-        match self.game.parallel(1..n) {
+        match self.game.search(1..n) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("0-1 {{black mates}}");

@@ -71,7 +71,7 @@ impl CLI {
         }
     }
 
-    pub fn cmd_usage(&self) {
+    fn cmd_usage(&self) {
         println!("quit                      Exit this program");
         println!("help                      Display this screen");
         println!("play                      Search and play a move");
@@ -89,7 +89,7 @@ impl CLI {
         println!("xboard                    Start XBoard mode");
     }
 
-    pub fn cmd_xboard(&self) {
+    fn cmd_xboard(&self) {
         let mut xboard = XBoard::new();
         xboard.game.is_debug = self.game.is_debug;
         xboard.game.is_colored = self.game.is_colored;
@@ -98,7 +98,7 @@ impl CLI {
         xboard.run();
     }
 
-    pub fn cmd_setboard(&mut self, args: &[&str]) {
+    fn cmd_setboard(&mut self, args: &[&str]) {
         if args.len() == 1 {
             self.print_error(format!("no fen given"));
             return;
@@ -109,7 +109,7 @@ impl CLI {
         self.game.load_fen(fen);
     }
 
-    pub fn cmd_config(&mut self, value: bool, args: &[&str]) {
+    fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
             self.print_error(format!("no subcommand given"));
             return;
@@ -140,9 +140,9 @@ impl CLI {
         }
     }
 
-    pub fn cmd_play(&mut self) {
+    fn cmd_play(&mut self) {
         let n = self.max_depth;
-        match self.game.parallel(1..n) {
+        match self.game.search(1..n) {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("< black mates");
@@ -165,7 +165,7 @@ impl CLI {
         }
     }
 
-    pub fn cmd_undo(&mut self) {
+    fn cmd_undo(&mut self) {
         if self.game.history.len() > 0 {
             let m = self.game.history.pop().unwrap();
             self.game.undo_move(m);
@@ -176,7 +176,7 @@ impl CLI {
         }
     }
 
-    pub fn cmd_move(&mut self, args: &[&str]) {
+    fn cmd_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
         if !re.is_match(args[1]) {
             self.print_error(format!("could not parse move '{}'", args[1]));
@@ -210,13 +210,13 @@ impl CLI {
         }
     }
 
-    pub fn cmd_time(&mut self, args: &[&str]) {
+    fn cmd_time(&mut self, args: &[&str]) {
         let moves = args[1].parse::<u16>().unwrap();
         let time = args[2].parse::<u64>().unwrap();
         self.game.clock = Clock::new(moves, time * 1000);
     }
 
-    pub fn cmd_divide(&mut self, args: &[&str]) {
+    fn cmd_divide(&mut self, args: &[&str]) {
         self.game.moves.skip_ordering = true;
         let mut moves_count = 0u64;
         let mut nodes_count = 0u64;
@@ -249,11 +249,11 @@ impl CLI {
         println!("Nodes: {}", nodes_count);
     }
 
-    pub fn cmd_threads(&mut self, args: &[&str]) {
+    fn cmd_threads(&mut self, args: &[&str]) {
         self.game.threads_count = args[1].parse::<usize>().unwrap();
     }
 
-    pub fn cmd_perft(&mut self) {
+    fn cmd_perft(&mut self) {
         self.game.moves.skip_ordering = true;
         let mut i = 0;
         loop {
@@ -267,7 +267,7 @@ impl CLI {
         }
     }
 
-    pub fn cmd_perftsuite(&mut self, args: &[&str]) {
+    fn cmd_perftsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
             self.print_error(format!("no filename given"));
             return;
@@ -297,7 +297,7 @@ impl CLI {
         }
     }
 
-    pub fn cmd_testsuite(&mut self, args: &[&str]) {
+    fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
             self.print_error(format!("no filename given"));
             return;
@@ -325,7 +325,7 @@ impl CLI {
             self.game.clock = Clock::new(1, time * 1000);
 
             let n = self.max_depth;
-            let best_move = self.game.parallel(1..n).unwrap();
+            let best_move = self.game.search(1..n).unwrap();
             let mut best_move_str = self.game.move_to_san(best_move);
 
             // Add `+` to move in case of check
@@ -352,7 +352,7 @@ impl CLI {
         println!("Result {}/{}", found_count, total_count);
     }
 
-    pub fn cmd_error(&mut self, args: &[&str]) {
+    fn cmd_error(&mut self, args: &[&str]) {
         self.print_error(format!("unrecognized command '{}'", args[0]));
         println!("");
     }
