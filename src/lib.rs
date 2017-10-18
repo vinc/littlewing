@@ -45,7 +45,6 @@ extern crate rustyline;
 mod attack;
 mod bitboard;
 mod common;
-mod eval;
 mod moves;
 mod piece;
 mod positions;
@@ -55,6 +54,9 @@ mod zobrist;
 
 /// Clock controls
 pub mod clock;
+
+/// Evaluation algorithms
+pub mod eval;
 
 /// Forsyth–Edwards Notation support
 pub mod fen;
