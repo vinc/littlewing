@@ -55,6 +55,9 @@ mod zobrist;
 /// Clock controls
 pub mod clock;
 
+/// Color type
+pub mod color;
+
 /// Evaluation algorithms
 pub mod eval;
 

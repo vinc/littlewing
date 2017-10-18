@@ -1,5 +1,6 @@
 use std::cmp;
 
+use color::*;
 use common::*;
 use attack::Attack;
 use attack::piece_attacks;
@@ -219,6 +220,7 @@ fn half_open_files(pawns: Bitboard, opponent_pawns: Bitboard) -> Bitboard {
 
 #[cfg(test)]
 mod tests {
+    use color::*;
     use common::*;
     use super::*;
     use fen::FEN;

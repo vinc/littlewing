@@ -1,6 +1,7 @@
 use std::fmt;
 use std::mem;
 
+use color::*;
 use common::*;
 use clock::Clock;
 use moves::{Move, Moves};

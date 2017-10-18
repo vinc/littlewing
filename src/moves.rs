@@ -1,6 +1,7 @@
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
+use color::*;
 use common::*;
 use attack::*;
 use piece::PieceChar;

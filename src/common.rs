@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 
+use color::*;
+
 pub type Bitboard = u64;
-pub type Color = u8;
 pub type Direction = i8;
 pub type MoveType = u8;
 pub type Piece = u8;
@@ -10,9 +11,6 @@ pub type Score = i16;
 pub type Depth = i8;
 
 pub const INF: Score = 29999;
-
-pub const WHITE:  Color = 0b0000; // 0
-pub const BLACK:  Color = 0b0001; // 1
 
 //pub const LEAPER: Piece = 0b0000;
 pub const SLIDER: Piece = 0b1000;

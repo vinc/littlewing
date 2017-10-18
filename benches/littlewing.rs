@@ -5,6 +5,7 @@ extern crate littlewing;
 
 use test::Bencher;
 
+use littlewing::color;
 use littlewing::eval::Eval;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
@@ -65,5 +66,14 @@ fn bench_eval(b: &mut Bencher) {
 
     b.iter(|| {
         game.eval()
+    })
+}
+
+#[bench]
+fn bench_eval_material(b: &mut Bencher) {
+    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    b.iter(|| {
+        game.eval_material(color::WHITE)
     })
 }

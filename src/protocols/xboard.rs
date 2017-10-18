@@ -1,6 +1,7 @@
 use std::io;
 use regex::Regex;
 
+use color::*;
 use common::*;
 use attack::Attack;
 use clock::Clock;

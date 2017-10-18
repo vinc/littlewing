@@ -1,5 +1,6 @@
 use std;
 
+use color::*;
 use common::*;
 use bitboard::BitboardExt;
 use game::Game;

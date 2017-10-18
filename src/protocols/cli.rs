@@ -10,6 +10,7 @@ use std::path::Path;
 use regex::Regex;
 use rustyline::Editor;
 
+use color::*;
 use common::*;
 use attack::Attack;
 use clock::Clock;

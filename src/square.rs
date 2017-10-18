@@ -1,3 +1,4 @@
+use color::*;
 use common::*;
 
 pub trait SquareExt {
@@ -38,6 +39,7 @@ impl SquareExt for Square {
 
 #[cfg(test)]
 mod tests {
+    use color::*;
     use common::*;
     use super::SquareExt;
 

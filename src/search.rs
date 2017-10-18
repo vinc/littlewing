@@ -2,6 +2,7 @@ use std::cmp;
 use std::thread;
 use std::ops::Range;
 
+use color::*;
 use common::*;
 use attack::Attack;
 use bitboard::BitboardExt;
@@ -557,6 +558,7 @@ impl SearchExt for Game {
 
 #[cfg(test)]
 mod tests {
+    use color::*;
     use common::*;
     use bitboard::BitboardExt;
     use clock::Clock;

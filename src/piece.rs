@@ -1,3 +1,4 @@
+use color::*;
 use common::*;
 
 pub trait PieceChar {
