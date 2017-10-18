@@ -77,3 +77,12 @@ fn bench_eval_material(b: &mut Bencher) {
         game.eval_material(color::WHITE)
     })
 }
+
+#[bench]
+fn bench_eval_mobility(b: &mut Bencher) {
+    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    b.iter(|| {
+        game.eval_mobility(color::WHITE)
+    })
+}
