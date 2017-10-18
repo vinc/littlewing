@@ -170,7 +170,7 @@ impl SharedTable {
         }
     }
 
-    pub fn get(&self) -> &mut Box<[Transposition]> {
+    pub fn get(&self) -> &mut [Transposition] {
         unsafe { &mut *self.inner.get() }
     }
 }
