@@ -46,7 +46,6 @@ mod attack;
 mod bitboard;
 mod common;
 mod moves;
-mod piece;
 mod positions;
 mod square;
 mod transpositions;
@@ -69,6 +68,9 @@ pub mod game;
 
 /// Moves generator
 pub mod moves_generator;
+
+/// Piece type
+pub mod piece;
 
 /// Communication protocols
 pub mod protocols;

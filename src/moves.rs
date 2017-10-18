@@ -2,6 +2,7 @@ use std::fmt;
 use std::ops::{Index, IndexMut};
 
 use color::*;
+use piece::*;
 use common::*;
 use attack::*;
 use piece::PieceChar;
@@ -486,6 +487,7 @@ impl IndexMut<usize> for Moves {
 
 #[cfg(test)]
 mod tests {
+    use piece::*;
     use common::*;
     use super::*;
 

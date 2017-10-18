@@ -1,6 +1,7 @@
 use std;
 
 use color::*;
+use piece::*;
 use common::*;
 use bitboard::BitboardExt;
 use game::Game;
@@ -174,6 +175,7 @@ impl FEN for Game {
 
 #[cfg(test)]
 mod tests {
+    use piece::*;
     use common::*;
     use fen::FEN;
     use game::Game;

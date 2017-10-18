@@ -1,42 +1,15 @@
 #![allow(dead_code)]
 
-use color::*;
+use piece::*;
 
 pub type Bitboard = u64;
 pub type Direction = i8;
 pub type MoveType = u8;
-pub type Piece = u8;
 pub type Square = u8;
 pub type Score = i16;
 pub type Depth = i8;
 
 pub const INF: Score = 29999;
-
-//pub const LEAPER: Piece = 0b0000;
-pub const SLIDER: Piece = 0b1000;
-
-pub const EMPTY:  Piece = 0b0000; // 0
-pub const PAWN:   Piece = 0b0010; // 2
-pub const KNIGHT: Piece = 0b0100; // 4
-pub const KING:   Piece = 0b0110; // 6
-pub const BISHOP: Piece = 0b1000; // 8
-pub const ROOK:   Piece = 0b1010; // 10
-pub const QUEEN:  Piece = 0b1100; // 12
-
-pub const PIECES: [Piece; 6] = [PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING];
-
-pub const WHITE_PAWN:   Piece = WHITE | PAWN;
-pub const WHITE_KNIGHT: Piece = WHITE | KNIGHT;
-pub const WHITE_BISHOP: Piece = WHITE | BISHOP;
-pub const WHITE_ROOK:   Piece = WHITE | ROOK;
-pub const WHITE_QUEEN:  Piece = WHITE | QUEEN;
-pub const WHITE_KING:   Piece = WHITE | KING;
-pub const BLACK_PAWN:   Piece = BLACK | PAWN;
-pub const BLACK_KNIGHT: Piece = BLACK | KNIGHT;
-pub const BLACK_BISHOP: Piece = BLACK | BISHOP;
-pub const BLACK_ROOK:   Piece = BLACK | ROOK;
-pub const BLACK_QUEEN:  Piece = BLACK | QUEEN;
-pub const BLACK_KING:   Piece = BLACK | KING;
 
 pub const UP:    Direction = 8;
 pub const DOWN:  Direction = -8;

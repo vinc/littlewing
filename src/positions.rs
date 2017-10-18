@@ -1,6 +1,7 @@
 use std::ops::Index;
 
 use color::*;
+use piece::*;
 use common::*;
 
 #[derive(Copy, Clone)]

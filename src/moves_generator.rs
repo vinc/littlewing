@@ -1,4 +1,5 @@
 use color::*;
+use piece::*;
 use common::*;
 use attack::Attack;
 use attack::piece_attacks;
@@ -588,6 +589,7 @@ impl MovesGeneratorExt for Game {
 #[cfg(test)]
 mod tests {
     use color::*;
+    use piece::*;
     use common::*;
     use moves::Move;
     use fen::FEN;
