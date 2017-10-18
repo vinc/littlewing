@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
 use piece::*;
+use bitboard::Bitboard;
 
-pub type Bitboard = u64;
 pub type Direction = i8;
 pub type MoveType = u8;
 pub type Square = u8;

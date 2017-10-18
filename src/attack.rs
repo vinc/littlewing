@@ -1,7 +1,7 @@
 use color::*;
 use piece::*;
 use common::*;
-use bitboard::BitboardExt;
+use bitboard::{Bitboard, BitboardExt};
 use bitboard::dumb7fill;
 use game::Game;
 use piece::PieceAttr;

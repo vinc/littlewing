@@ -1,12 +1,26 @@
 use common::*;
 
+pub type Bitboard = u64;
+
 pub trait BitboardExt {
+    /// Population count
     fn count(&self) -> u32;
+
+    /// Left shift positive values or right shift negative values
     fn shift(&self, x: Direction) -> Bitboard;
+
+    /// Toggle occupancy bit at the given square
     fn toggle(&mut self, i: Square); // FIXME: Return instead of update?
+
+    /// Set occupancy bit at the given square
     fn set(&mut self, i: Square);
+
+    /// Reset occupancy bit at the given square
     fn reset(&mut self, i: Square);
+
+    /// Get occupancy at the given square
     fn get(&self, i: Square) -> bool;
+
     fn debug(&self);
     fn to_debug_string(&self) -> String;
 }

@@ -43,13 +43,15 @@ extern crate regex;
 extern crate rustyline;
 
 mod attack;
-mod bitboard;
 mod common;
 mod moves;
 mod positions;
 mod square;
 mod transpositions;
 mod zobrist;
+
+/// Bitboard type
+pub mod bitboard;
 
 /// Clock controls
 pub mod clock;

@@ -4,6 +4,7 @@ use std::mem;
 use color::*;
 use piece::*;
 use common::*;
+use bitboard::Bitboard;
 use clock::Clock;
 use moves::{Move, Moves};
 use positions::Positions;

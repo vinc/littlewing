@@ -7,7 +7,7 @@ use common::*;
 use attack::*;
 use piece::PieceChar;
 use square::SquareExt;
-use bitboard::{BitboardExt, BitboardIterator};
+use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 
 pub const BEST_MOVE_SCORE:    u8 = 255;
 pub const KILLER_MOVE_SCORE:  u8 = 254;

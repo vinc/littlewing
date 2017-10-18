@@ -5,7 +5,7 @@ use piece::*;
 use common::*;
 use attack::Attack;
 use attack::piece_attacks;
-use bitboard::{BitboardExt, BitboardIterator};
+use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use bitboard::filefill;
 use game::Game;
 use moves::Move;
