@@ -158,7 +158,7 @@ impl Eval for Game {
     }
 
     fn see(&self, capture: Move) -> Score {
-        let mut occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
+        let mut occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
         let mut sq = capture.from();
         let mut side = self.positions.top().side;
         let mut gains = [0; 32];

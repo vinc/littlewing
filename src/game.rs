@@ -74,6 +74,7 @@ impl Game {
     }
 
     /// Get a bitboard representation of the given piece in the game
+    #[inline]
     pub fn bitboard(&self, piece: Piece) -> &Bitboard {
         &self.bitboards[piece as usize]
     }

@@ -64,31 +64,33 @@ impl Attack for Game {
     fn attacks_to(&self, square: Square, occupied: Bitboard) -> Bitboard {
         let bbs = &self.bitboards;
 
-        let knights  = bbs[(WHITE | KNIGHT) as usize] | bbs[(BLACK | KNIGHT) as usize];
-        let kings    = bbs[(WHITE | KING)   as usize] | bbs[(BLACK | KING)   as usize];
-        let bishops  = bbs[(WHITE | BISHOP) as usize] | bbs[(BLACK | BISHOP) as usize];
-        let rooks    = bbs[(WHITE | ROOK)   as usize] | bbs[(BLACK | ROOK)   as usize];
-        let queens   = bbs[(WHITE | QUEEN)  as usize] | bbs[(BLACK | QUEEN)  as usize];
+        // Read the array in sequential order from bbs[0] to bbs[13]
+        let wpawns  = bbs[WHITE_PAWN   as usize];
+        let bpawns  = bbs[BLACK_PAWN   as usize];
+        let knights = bbs[WHITE_KNIGHT as usize] | bbs[BLACK_KNIGHT as usize];
+        let kings   = bbs[WHITE_KING   as usize] | bbs[BLACK_KING   as usize];
+        let bishops = bbs[WHITE_BISHOP as usize] | bbs[BLACK_BISHOP as usize];
+        let rooks   = bbs[WHITE_ROOK   as usize] | bbs[BLACK_ROOK   as usize];
+        let queens  = bbs[WHITE_QUEEN  as usize] | bbs[BLACK_QUEEN  as usize];
 
-        (piece_attacks(BLACK | PAWN, square, occupied) & bbs[(WHITE | PAWN) as usize]) |
-        (piece_attacks(WHITE | PAWN, square, occupied) & bbs[(BLACK | PAWN) as usize]) |
-        (piece_attacks(KNIGHT, square, occupied) & knights) |
-        (piece_attacks(KING,   square, occupied) & kings) |
-        (piece_attacks(BISHOP, square, occupied) & (bishops | queens)) |
-        (piece_attacks(ROOK,   square, occupied) & (rooks | queens))
+        (wpawns             & piece_attacks(BLACK_PAWN, square, occupied)) |
+        (bpawns             & piece_attacks(WHITE_PAWN, square, occupied)) |
+        (knights            & piece_attacks(KNIGHT,     square, occupied)) |
+        (kings              & piece_attacks(KING,       square, occupied)) |
+        ((queens | bishops) & piece_attacks(BISHOP,     square, occupied)) |
+        ((queens | rooks)   & piece_attacks(ROOK,       square, occupied))
     }
 }
 
-// TODO: rename to `piece_attacks` ?
 pub fn piece_attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
     match piece.kind() {
-        PAWN => PAWN_ATTACKS[piece.color() as usize][square as usize],
+        PAWN   => PAWN_ATTACKS[piece.color() as usize][square as usize],
         KNIGHT => PIECE_MASKS[KNIGHT as usize][square as usize],
-        KING => PIECE_MASKS[KING as usize][square as usize],
+        KING   => PIECE_MASKS[KING as usize][square as usize],
         BISHOP => bishop_attacks(square, occupied),
-        ROOK => rook_attacks(square, occupied),
-        QUEEN => bishop_attacks(square, occupied) | rook_attacks(square, occupied),
-        _ => panic!("wrong kind of piece") // FIXME
+        ROOK   => rook_attacks(square, occupied),
+        QUEEN  => bishop_attacks(square, occupied) | rook_attacks(square, occupied),
+        _      => unreachable!()
     }
 }
 
