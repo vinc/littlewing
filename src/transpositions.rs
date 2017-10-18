@@ -149,11 +149,27 @@ impl Transpositions {
     }
 
     pub fn print_stats(&mut self) {
+        let mut exact_count = 0;
+        let mut upper_count = 0;
+        let mut lower_count = 0;
+        for t in self.entries.get() {
+            if t.best_move().is_null() {
+                continue;
+            }
+            match t.bound() {
+                Bound::Exact => exact_count += 1,
+                Bound::Upper => upper_count += 1,
+                Bound::Lower => lower_count += 1,
+            }
+        }
         println!("# {:15} {}", "tt size:", self.len());
+        println!("# {:15} {}", " - lower:", lower_count);
+        println!("# {:15} {}", " - upper:", upper_count);
+        println!("# {:15} {}", " - exact:", exact_count);
         println!("# {:15} {}", "tt inserts:", self.stats_inserts);
         println!("# {:15} {}", "tt lookups:", self.stats_lookups);
-        println!("# {:15} {}", "tt hits:", self.stats_hits);
-        println!("# {:15} {}", "tt collisions:", self.stats_collisions);
+        println!("# {:15} {}", " - hits:", self.stats_hits);
+        println!("# {:15} {}", " - collisions:", self.stats_collisions);
     }
 }
 
