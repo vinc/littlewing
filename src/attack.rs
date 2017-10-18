@@ -1,5 +1,6 @@
 use color::*;
 use piece::*;
+use square::*;
 use common::*;
 use bitboard::{Bitboard, BitboardExt};
 use bitboard::dumb7fill;

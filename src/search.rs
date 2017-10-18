@@ -561,6 +561,7 @@ impl SearchExt for Game {
 mod tests {
     use color::*;
     use piece::*;
+    use square::*;
     use common::*;
     use bitboard::BitboardExt;
     use clock::Clock;

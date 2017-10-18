@@ -46,7 +46,6 @@ mod attack;
 mod common;
 mod moves;
 mod positions;
-mod square;
 mod transpositions;
 mod zobrist;
 
@@ -79,6 +78,9 @@ pub mod protocols;
 
 /// Search algorithms
 pub mod search;
+
+/// Square type
+pub mod square;
 
 /// Return Little Wing's version
 pub fn version() -> String {

@@ -182,6 +182,7 @@ mod tests {
     use std::thread;
 
     use super::*;
+    use square::*;
     use moves::Move;
 
     #[test]

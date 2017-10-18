@@ -2,6 +2,7 @@ use std::cmp;
 
 use color::*;
 use piece::*;
+use square::*;
 use common::*;
 use attack::Attack;
 use attack::piece_attacks;

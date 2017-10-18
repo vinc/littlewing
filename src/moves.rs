@@ -3,6 +3,7 @@ use std::ops::{Index, IndexMut};
 
 use color::*;
 use piece::*;
+use square::*;
 use common::*;
 use attack::*;
 use piece::PieceChar;

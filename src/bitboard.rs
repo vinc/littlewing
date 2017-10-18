@@ -1,4 +1,5 @@
 use common::*;
+use square::*;
 
 pub type Bitboard = u64;
 
