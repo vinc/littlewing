@@ -40,15 +40,15 @@ impl XBoard {
                 "nopost"   => self.cmd_nopost(),
                 "undo"     => self.cmd_undo(),
                 "remove"   => self.cmd_remove(),
-                "time"     => self.cmd_time(&*args),
-                "ping"     => self.cmd_ping(&*args),
-                "setboard" => self.cmd_setboard(&*args),
-                "memory"   => self.cmd_memory(&*args),
-                "cores"    => self.cmd_cores(&*args),
-                "sd"       => self.cmd_depth(&*args),
-                "level"    => self.cmd_level(&*args),
-                "protover" => self.cmd_protover(&*args),
-                _          => self.parse_move(&*args)
+                "time"     => self.cmd_time(&args),
+                "ping"     => self.cmd_ping(&args),
+                "setboard" => self.cmd_setboard(&args),
+                "memory"   => self.cmd_memory(&args),
+                "cores"    => self.cmd_cores(&args),
+                "sd"       => self.cmd_depth(&args),
+                "level"    => self.cmd_level(&args),
+                "protover" => self.cmd_protover(&args),
+                _          => self.parse_move(&args)
             }
         }
     }
@@ -158,7 +158,7 @@ impl XBoard {
             return;
         }
 
-        let m = self.game.move_from_can(&args[0]);
+        let m = self.game.move_from_can(args[0]);
         self.game.make_move(m);
         self.game.history.push(m);
 

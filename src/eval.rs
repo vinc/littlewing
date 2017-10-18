@@ -110,7 +110,7 @@ impl Eval for Game {
         let half_open_files_count = (half_open_files & RANK_1).count() as Score;
         score += half_open_files_count * BONUS_HALF_OPEN_FILE;
 
-        for &p in PIECES.iter() {
+        for &p in &PIECES {
             let piece = c | p;
             let pieces = self.bitboards[piece as usize];
             let n = pieces.count() as Score;
@@ -145,7 +145,7 @@ impl Eval for Game {
         let mut score = 0;
 
         let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
-        for p in PIECES.iter() {
+        for p in &PIECES {
             let piece = c | p;
             let mut pieces = self.bitboards[piece as usize];
             while let Some(from) = pieces.next() {
@@ -193,7 +193,7 @@ impl Eval for Game {
 impl EvalExt for Game {
     // Get square of least valuable piece
     fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square {
-        for p in PIECES.iter() {
+        for p in &PIECES {
             let piece = side | p;
             // NOTE: we need `occupied` only to be able to hide some pieces
             // from the bitboard.

@@ -170,6 +170,7 @@ impl SharedTable {
         }
     }
 
+    // FIXME: mutable borrow from immutable input
     pub fn get(&self) -> &mut [Transposition] {
         unsafe { &mut *self.inner.get() }
     }

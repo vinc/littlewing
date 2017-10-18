@@ -52,19 +52,19 @@ impl CLI {
                         "help"       => { self.cmd_usage() },
                         "play"       => { self.cmd_play() },
                         "undo"       => { self.cmd_undo() },
-                        "move"       => { self.cmd_move(&*args) },
-                        "time"       => { self.cmd_time(&*args) },
-                        "show"       => { self.cmd_config(true, &*args) },
-                        "hide"       => { self.cmd_config(false, &*args) },
-                        "load"       => { self.cmd_setboard(&*args) },
-                        "setboard"   => { self.cmd_setboard(&*args) },
-                        "threads"    => { self.cmd_threads(&*args) },
+                        "move"       => { self.cmd_move(&args) },
+                        "time"       => { self.cmd_time(&args) },
+                        "show"       => { self.cmd_config(true, &args) },
+                        "hide"       => { self.cmd_config(false, &args) },
+                        "load"       => { self.cmd_setboard(&args) },
+                        "setboard"   => { self.cmd_setboard(&args) },
+                        "threads"    => { self.cmd_threads(&args) },
                         "perft"      => { self.cmd_perft() },
-                        "perftsuite" => { self.cmd_perftsuite(&*args) },
-                        "testsuite"  => { self.cmd_testsuite(&*args) },
-                        "divide"     => { self.cmd_divide(&*args) },
+                        "perftsuite" => { self.cmd_perftsuite(&args) },
+                        "testsuite"  => { self.cmd_testsuite(&args) },
+                        "divide"     => { self.cmd_divide(&args) },
                         "xboard"     => { self.cmd_xboard(); break },
-                        _            => { self.cmd_error(&*args); self.cmd_usage() }
+                        _            => { self.cmd_error(&args); self.cmd_usage() }
                     }
                 },
                 Err(_) => { break }
@@ -105,9 +105,8 @@ impl CLI {
             return;
         }
 
-        let s = args[1..].join(" ");
-        let fen = &*s;
-        self.game.load_fen(fen);
+        let fen = args[1..].join(" ");
+        self.game.load_fen(&fen);
     }
 
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
@@ -183,7 +182,7 @@ impl CLI {
             self.print_error(format!("could not parse move '{}'", args[1]));
             return;
         }
-        let parsed_move = self.game.move_from_can(&args[1]);
+        let parsed_move = self.game.move_from_can(args[1]);
 
         let mut is_valid = false;
         let side = self.game.positions.top().side;
