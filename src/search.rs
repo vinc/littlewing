@@ -333,6 +333,7 @@ impl Search for Game {
                 score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
                 is_first_move = false;
+                best_move = m;
             } else {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
