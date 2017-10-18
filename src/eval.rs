@@ -343,23 +343,3 @@ mod tests {
         assert_eq!((white_pawns & black_half_open_files).count(), 1);
     }
 }
-
-/*
-#[cfg(test)]
-mod tests {
-    extern crate test;
-    use self::test::Bencher;
-    use common::*;
-    use game::Game;
-    use eval::Eval;
-    use fen::FEN;
-
-    #[bench]
-    fn bench_eval(b: &mut Bencher) {
-        let game = Game::from_fen(DEFAULT_FEN);
-        b.iter(|| {
-            game.eval()
-        })
-    }
-}
-*/

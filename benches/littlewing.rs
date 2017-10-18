@@ -5,6 +5,7 @@ extern crate littlewing;
 
 use test::Bencher;
 
+use littlewing::eval::Eval;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
 use littlewing::moves_generator::MovesGenerator;
@@ -55,5 +56,14 @@ fn bench_make_undo_move(b: &mut Bencher) {
     b.iter(|| {
         game.make_move(m);
         game.undo_move(m);
+    })
+}
+
+#[bench]
+fn bench_eval(b: &mut Bencher) {
+    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    b.iter(|| {
+        game.eval()
     })
 }
