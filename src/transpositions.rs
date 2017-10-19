@@ -197,6 +197,8 @@ pub struct SharedTable {
     inner: UnsafeCell<Box<[Transposition]>>
 }
 
+// Tell the compiler than the transposition table can be shared between
+// threads inside an `Arc`, even if it's not really safe at all in reality :)
 unsafe impl Sync for SharedTable {}
 
 impl SharedTable {

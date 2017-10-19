@@ -193,8 +193,7 @@ impl Search for Game {
                 best_move = best_moves[depth as usize];
                 best_score = best_scores[depth as usize];
 
-                // TODO: use best_score instead of alpha?
-                self.tt.set(hash, depth, alpha, best_move, Bound::Exact);
+                self.tt.set(hash, depth, best_score, best_move, Bound::Exact);
             }
 
             // No need to iterate if there's no legal moves to play
@@ -241,9 +240,10 @@ impl Search for Game {
         let side = self.positions.top().side;
         let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
-        let old_alpha = alpha;
 
         let mut best_move = Move::new_null();
+        let mut best_score = alpha;
+        let old_alpha = alpha; // To test if best score raise initial alpha
 
         // Try to get the best move from transpositions table
         if let Some(t) = self.tt.get(&hash) {
@@ -335,8 +335,9 @@ impl Search for Game {
                 // Search the first move with the full window
                 score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
-                is_first_move = false;
+                best_score = score;
                 best_move = m;
+                is_first_move = false;
             } else {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
@@ -395,6 +396,7 @@ impl Search for Game {
 
             if score > alpha {
                 alpha = score;
+                best_score = score;
                 best_move = m;
             }
         }
@@ -409,12 +411,12 @@ impl Search for Game {
         }
 
         if !best_move.is_null() {
-            let bound = if alpha > old_alpha {
+            let bound = if best_score > old_alpha {
                 Bound::Exact
             } else {
                 Bound::Upper
             };
-            self.tt.set(hash, depth, alpha, best_move, bound);
+            self.tt.set(hash, depth, best_score, best_move, bound);
         }
 
         alpha

@@ -13,14 +13,6 @@ use littlewing::moves_generator::MovesGenerator;
 use littlewing::search::Search;
 
 #[bench]
-fn bench_perft(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    b.iter(|| {
-        game.perft(3)
-    });
-}
-
-#[bench]
 fn bench_next_move(b: &mut Bencher) {
     let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
@@ -95,4 +87,21 @@ fn bench_see(b: &mut Bencher) {
     b.iter(|| {
         game.see(m)
     })
+}
+
+#[bench]
+fn bench_search(b: &mut Bencher) {
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    b.iter(|| {
+        game.search(1..5)
+    })
+}
+
+#[bench]
+fn bench_perft(b: &mut Bencher) {
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    b.iter(|| {
+        game.perft(3)
+    });
 }
