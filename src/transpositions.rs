@@ -148,7 +148,18 @@ impl Transpositions {
         self.entries.get().len()
     }
 
+    pub fn memory(&self) -> usize {
+        self.len() * mem::size_of::<Transposition>()
+    }
+
     pub fn print_stats(&mut self) {
+        // Memory size
+        let v = self.memory() as u64;
+        let z = (63 - v.leading_zeros()) / 10;
+        let size = v / (1 << (10 * z));
+        let unit = "KMG".chars().nth((z - 1) as usize).unwrap();
+
+        // Occupacy
         let mut exact_count = 0;
         let mut upper_count = 0;
         let mut lower_count = 0;
@@ -162,14 +173,23 @@ impl Transpositions {
                 Bound::Lower => lower_count += 1,
             }
         }
-        println!("# {:15} {}", "tt size:", self.len());
-        println!("# {:15} {}", " - lower:", lower_count);
-        println!("# {:15} {}", " - upper:", upper_count);
-        println!("# {:15} {}", " - exact:", exact_count);
-        println!("# {:15} {}", "tt inserts:", self.stats_inserts);
-        println!("# {:15} {}", "tt lookups:", self.stats_lookups);
-        println!("# {:15} {}", " - hits:", self.stats_hits);
-        println!("# {:15} {}", " - collisions:", self.stats_collisions);
+
+        // Usage
+        let collisions = self.stats_collisions;
+        let hits = self.stats_hits;
+        let miss = self.stats_lookups - hits - collisions;
+
+        println!("# {:15} {:>8} ({} {}B)", "tt size:", self.len(), size, unit);
+        let percent = 100.0 / (self.len() as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - lower:", lower_count, (lower_count as f64) * percent);
+        println!("# {:15} {:>8} ({:.2} %)", " - upper:", upper_count, (upper_count as f64) * percent);
+        println!("# {:15} {:>8} ({:.2} %)", " - exact:", exact_count, (exact_count as f64) * percent);
+        println!("# {:15} {:>8}", "tt inserts:", self.stats_inserts);
+        println!("# {:15} {:>8}", "tt lookups:", self.stats_lookups);
+        let percent = 100.0 / (self.stats_lookups as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - miss:", miss, (miss as f64) * percent);
+        println!("# {:15} {:>8} ({:.2} %)", " - hits:", hits, (hits as f64) * percent);
+        println!("# {:15} {:>8} ({:.2} %)", " - collisions:", collisions, (collisions as f64) * percent);
     }
 }
 

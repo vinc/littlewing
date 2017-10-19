@@ -1,5 +1,4 @@
 use std::fmt;
-use std::mem;
 
 use color::*;
 use piece::*;
@@ -8,7 +7,7 @@ use bitboard::Bitboard;
 use clock::Clock;
 use moves::{Move, Moves};
 use positions::Positions;
-use transpositions::{Transposition, Transpositions};
+use transpositions::Transpositions;
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
@@ -54,7 +53,7 @@ impl Game {
 
     /// Get the transposition table size in byte
     pub fn tt_size(&self) -> usize {
-        self.tt.len() * mem::size_of::<Transposition>()
+        self.tt.memory()
     }
 
     /// Resize the transposition table at the given size in byte or the next

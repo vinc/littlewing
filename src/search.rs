@@ -196,22 +196,25 @@ impl Search for Game {
                 // TODO: use best_score instead of alpha?
                 self.tt.set(hash, depth, alpha, best_move, Bound::Exact);
             }
+
+            // No need to iterate if there's no legal moves to play
             if !has_legal_moves {
                 break;
             }
         }
 
         let new_fen = self.to_fen();
+        debug_assert_eq!(old_fen, new_fen);
+
         if self.is_debug {
             let n = self.nodes_count;
             let t = self.clock.elapsed_time();
             let nps = (n as f64) / ((t as f64) / 1000.0);
-            println!("# {:15} {}", "score:", best_score);
-            println!("# {:15} {} ms", "time:", t);
-            println!("# {:15} {} ({:.2e} nps)", "nodes:", n, nps);
+            println!("# {:15} {:>8}", "score:", best_score);
+            println!("# {:15} {:>8} ms", "time:", t);
+            println!("# {:15} {:>8} ({:.2e} nps)", "nodes:", n, nps);
             self.tt.print_stats();
         }
-        debug_assert_eq!(old_fen, new_fen);
 
         if best_move.is_null() {
             None
