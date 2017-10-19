@@ -34,6 +34,7 @@ pub trait Search {
 }
 
 trait SearchExt {
+    fn print_thinking_header(&self);
     fn print_thinking(&mut self, depth: Depth, score: Score, m: Move);
     fn get_pv(&mut self, depth: Depth) -> String;
 }
@@ -121,7 +122,7 @@ impl Search for Game {
         }
 
         if self.is_verbose {
-            println!(" ply   score   time     nodes  pv");
+            self.print_thinking_header();
         }
 
         // Current best move
@@ -510,6 +511,12 @@ impl Search for Game {
 }
 
 impl SearchExt for Game {
+    fn print_thinking_header(&self) {
+        if self.protocol != Protocol::UCI {
+            println!(" ply   score   time     nodes  pv");
+        }
+    }
+
     fn print_thinking(&mut self, depth: Depth, score: Score, m: Move) {
         self.undo_move(m);
 
