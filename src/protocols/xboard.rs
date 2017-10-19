@@ -9,6 +9,7 @@ use fen::FEN;
 use game::Game;
 use moves_generator::MovesGenerator;
 use search::Search;
+use protocols::Protocol;
 use version;
 
 pub struct XBoard {
@@ -26,6 +27,7 @@ impl XBoard {
         }
     }
     pub fn run(&mut self) {
+        self.game.protocol = Protocol::XBoard;
         println!(""); // Acknowledge XBoard mode
         loop {
             let mut line = String::new();
@@ -128,6 +130,8 @@ impl XBoard {
                        args[2][(i + 1)..].parse::<u64>().unwrap(),
             None    => args[2].parse::<u64>().unwrap()
         };
+
+        // FIXME: time increment is ignored
 
         self.game.clock = Clock::new(moves, time * 1000);
     }

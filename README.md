@@ -8,7 +8,7 @@ A bitboard chess engine written in Rust.
 
 A work in progress since December 2014.
 
-- [x] XBoard protocol
+- [x] XBoard and UCI communication protocol
 - [x] Bitboard moves generation with De Bruijn sequence
 - [x] Transpositions table
 - [x] Quiescence search
