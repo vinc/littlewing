@@ -7,6 +7,7 @@ use bitboard::Bitboard;
 use clock::Clock;
 use moves::{Move, Moves};
 use positions::Positions;
+use protocols::Protocol;
 use transpositions::Transpositions;
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
@@ -14,6 +15,7 @@ use piece::{PieceAttr, PieceChar};
 /// A `Game` type to store the state of a chess game
 #[derive(Clone)]
 pub struct Game {
+    pub protocol: Protocol,
     pub is_debug: bool,  // Print debugging
     pub is_verbose: bool, // Print thinking
     pub is_colored: bool,
@@ -34,6 +36,7 @@ impl Game {
     /// Create a new `Game`
     pub fn new() -> Game {
         Game {
+            protocol: Protocol::CLI,
             is_debug: false,
             is_verbose: false,
             is_colored: false,

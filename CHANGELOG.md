@@ -7,6 +7,7 @@
 - Save upper and lower bounds in transposition table
 - Add readline to user interface
 - Add getopt to parse program options
+- Add basic UCI support
 
 ### Changed
 - Allow NMP, IID, and LMR at shallower depth

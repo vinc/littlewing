@@ -18,6 +18,7 @@ use fen::FEN;
 use game::Game;
 use moves_generator::MovesGenerator;
 use protocols::xboard::XBoard;
+use protocols::uci::UCI;
 use search::Search;
 
 #[derive(Clone)]
@@ -63,6 +64,7 @@ impl CLI {
                         "perftsuite" => { self.cmd_perftsuite(&args) },
                         "testsuite"  => { self.cmd_testsuite(&args) },
                         "divide"     => { self.cmd_divide(&args) },
+                        "uci"        => { self.cmd_uci(); break },
                         "xboard"     => { self.cmd_xboard(); break },
                         _            => { self.cmd_error(&args); self.cmd_usage() }
                     }
@@ -87,13 +89,21 @@ impl CLI {
         println!("perftsuite <epd>          Compare perft results to each position of <epd>");
         println!("testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
         println!("divide <depth>            Count the nodes at <depth> for each moves");
+        println!("uci                       Start UCI mode");
         println!("xboard                    Start XBoard mode");
+    }
+
+    fn cmd_uci(&self) {
+        let mut uci = UCI::new();
+        uci.game.is_debug = self.game.is_debug;
+        uci.game.threads_count = self.game.threads_count;
+        uci.game.tt_resize(self.game.tt_size());
+        uci.run();
     }
 
     fn cmd_xboard(&self) {
         let mut xboard = XBoard::new();
         xboard.game.is_debug = self.game.is_debug;
-        xboard.game.is_colored = self.game.is_colored;
         xboard.game.threads_count = self.game.threads_count;
         xboard.game.tt_resize(self.game.tt_size());
         xboard.run();
@@ -212,8 +222,8 @@ impl CLI {
 
     fn cmd_time(&mut self, args: &[&str]) {
         let moves = args[1].parse::<u16>().unwrap();
-        let time = args[2].parse::<u64>().unwrap();
-        self.game.clock = Clock::new(moves, time * 1000);
+        let time = args[2].parse::<f64>().unwrap();
+        self.game.clock = Clock::new(moves, (time * 1000.0).round() as u64);
     }
 
     fn cmd_divide(&mut self, args: &[&str]) {

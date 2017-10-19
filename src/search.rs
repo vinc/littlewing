@@ -12,6 +12,7 @@ use fen::FEN;
 use game::Game;
 use moves::Move;
 use moves_generator::MovesGenerator;
+use protocols::Protocol;
 use transpositions::Bound;
 
 /// Search the game
@@ -510,21 +511,31 @@ impl Search for Game {
 
 impl SearchExt for Game {
     fn print_thinking(&mut self, depth: Depth, score: Score, m: Move) {
-        let time = self.clock.elapsed_time() / 10; // In centiseconds
-
         self.undo_move(m);
+
+        let time = self.clock.elapsed_time();
+        let nodes = self.nodes_count;
         let mut pv = self.get_pv(depth);
 
-        if self.positions.top().side == BLACK {
-            let fm = self.positions.fullmoves();
-            pv = format!("{}. ... {}", fm, pv);
+        match self.protocol {
+            Protocol::UCI => {
+                println!("info depth {} score {} time {} nodes {} pv {}", depth, score, time, nodes, pv);
+            },
+            Protocol::XBoard | Protocol::CLI => {
+                if self.positions.top().side == BLACK {
+                    let fm = self.positions.fullmoves();
+                    pv = format!("{}. ... {}", fm, pv);
+                }
+                println!(" {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time / 10, nodes, pv);
+            }
         }
-        self.make_move(m);
 
-        println!(" {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time, self.nodes_count, pv);
+        self.make_move(m);
     }
 
     fn get_pv(&mut self, depth: Depth) -> String {
+        let is_san_format = self.protocol != Protocol::UCI;
+
         if depth == 0 {
             return String::new();
         }
@@ -537,7 +548,7 @@ impl SearchExt for Game {
         if let Some(t) = self.tt.get(&hash) {
             m = t.best_move();
 
-            if side == WHITE {
+            if is_san_format && side == WHITE {
                 let fm = self.positions.fullmoves();
                 res.push(format!("{}.", fm));
             }
@@ -546,17 +557,26 @@ impl SearchExt for Game {
         }
 
         if !m.is_null() {
-            let san = self.move_to_san(m);
+            let cur = if is_san_format {
+                self.move_to_san(m)
+            } else {
+                m.to_can()
+            };
             self.make_move(m);
 
             let pv = &self.get_pv(depth - 1);
-            let ck = self.is_check(side ^ 1);
-            let sep = if ck { if pv == "#" { "" } else { "+ " } } else { " " };
-            res.push(format!("{}{}{}", san, sep, pv));
+            let sep = if is_san_format && self.is_check(side ^ 1) {
+                if pv == "#" { "" } else { "+ " }
+            } else {
+                " "
+            };
+            res.push(format!("{}{}{}", cur, sep, pv));
 
             self.undo_move(m);
         } else if self.is_check(side) {
-            res.push("#".into());
+            if is_san_format {
+                res.push("#".into());
+            }
         }
 
         res.join(" ")

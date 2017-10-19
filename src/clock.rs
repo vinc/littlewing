@@ -11,7 +11,8 @@ pub struct Clock {
     pub started_at: u64,
     pub polling_nodes_count: u64,
     last_nodes_count: u64,
-    is_finished: bool
+    is_finished: bool,
+    is_level: bool // TODO: find a better name
 }
 
 impl Clock {
@@ -25,6 +26,7 @@ impl Clock {
             polling_nodes_count: 100,
             last_nodes_count: 0,
             is_finished: false,
+            is_level: true
         }
     }
 
@@ -33,9 +35,18 @@ impl Clock {
         self.last_nodes_count = 0;
         self.started_at = (time::precise_time_s() * 1000.0) as u64;
 
-        assert!(ply > 0);
-        let moves_done = (((ply - 1) / 2) as u16) % self.moves_level;
-        self.moves_remaining = self.moves_level - moves_done;
+        // The UCI protocol gives the number of remaining moves before each
+        // search but XBoard doesn't so we need to calculate it based on moves
+        // history and the level command.
+        if self.is_level {
+            assert!(ply > 0);
+            let moves_done = (((ply - 1) / 2) as u16) % self.moves_level;
+            self.moves_remaining = self.moves_level - moves_done;
+        }
+    }
+
+    pub fn disable_level(&mut self) {
+        self.is_level = false;
     }
 
     pub fn set_time(&mut self, time: u64) {
