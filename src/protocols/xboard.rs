@@ -131,6 +131,8 @@ impl XBoard {
             None    => args[2].parse::<u64>().unwrap()
         };
 
+        // FIXME: time increment is ignored
+
         self.game.clock = Clock::new(moves, time * 1000);
     }
 

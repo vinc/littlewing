@@ -78,12 +78,13 @@ impl UCI {
                         time = arg.parse::<u64>().unwrap();
                         is_time = false;
                     } else if is_moves {
-                        moves = args[6].parse::<u16>().unwrap();
+                        moves = arg.parse::<u16>().unwrap();
                         is_moves = false;
                     }
                 }
             }
         }
+        // FIXME: time increment is ignored
         self.game.clock = Clock::new(moves, time);
         self.game.clock.disable_level();
         self.think();
