@@ -69,53 +69,46 @@ trait MovesGeneratorExt {
 
 impl MovesGenerator for Game {
     fn generate_moves(&mut self) {
-        // TODO: make sure that `moves.clear()` has been called at this ply
-        // NOTE: BestMove -> Capture -> KillerMove -> QuietMove -> Done
+        match self.moves.stage() {
+            MovesStage::BestMove | MovesStage::Done => {
+            },
+            MovesStage::KillerMove => {
+                if !self.moves.skip_killers {
+                    for i in 0..2 {
+                        let m = self.moves.get_killer_move(i);
 
-        let stage = self.moves.stage();
-
-        if stage == MovesStage::BestMove || stage == MovesStage::Done {
-            return;
-        }
-
-        if stage == MovesStage::KillerMove {
-            if !self.moves.skip_killers {
-                for i in 0..2 {
-                    let m = self.moves.get_killer_move(i);
-
-                    if self.is_legal_move(m) {
-                        self.moves.add_move(m);
+                        if self.is_legal_move(m) {
+                            self.moves.add_move(m);
+                        }
                     }
                 }
+            },
+            MovesStage::Capture | MovesStage::QuietMove => {
+                let &position = self.positions.top();
+                let side = position.side;
+                let ep = position.en_passant;
+
+                self.moves.add_pawns_moves(&self.bitboards, side, ep);
+                self.moves.add_knights_moves(&self.bitboards, side);
+                self.moves.add_king_moves(&self.bitboards, side);
+                self.moves.add_bishops_moves(&self.bitboards, side);
+                self.moves.add_rooks_moves(&self.bitboards, side);
+                self.moves.add_queens_moves(&self.bitboards, side);
+
+                if self.moves.stage() == MovesStage::Capture {
+                    self.sort_moves();
+
+                    return; // Skip castling
+                }
+
+                // Castling moves generation
+                if self.can_king_castle(side) {
+                    self.moves.add_king_castle(side);
+                }
+                if self.can_queen_castle(side) {
+                    self.moves.add_queen_castle(side);
+                }
             }
-            return;
-        }
-
-        let &position = self.positions.top();
-        let side = position.side;
-        let ep = position.en_passant;
-
-        self.moves.add_pawns_moves(&self.bitboards, side, ep);
-        self.moves.add_knights_moves(&self.bitboards, side);
-        self.moves.add_king_moves(&self.bitboards, side);
-        self.moves.add_bishops_moves(&self.bitboards, side);
-        self.moves.add_rooks_moves(&self.bitboards, side);
-        self.moves.add_queens_moves(&self.bitboards, side);
-
-        if stage == MovesStage::Capture {
-            self.sort_moves();
-
-            return; // Skip castling
-        }
-
-        debug_assert_eq!(stage, MovesStage::QuietMove);
-
-        // Castling moves generation
-        if self.can_king_castle(side) {
-            self.moves.add_king_castle(side);
-        }
-        if self.can_queen_castle(side) {
-            self.moves.add_queen_castle(side);
         }
     }
 
