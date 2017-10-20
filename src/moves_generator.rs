@@ -70,14 +70,22 @@ trait MovesGeneratorExt {
 impl MovesGenerator for Game {
     fn generate_moves(&mut self) {
         // TODO: make sure that `moves.clear()` has been called at this ply
-        // NOTE: stages: BestMove --> Capture --> KillerMove --> QuietMove
+        // NOTE: BestMove -> Capture -> KillerMove -> QuietMove -> Done
 
-        if self.moves.stage() == MovesStage::KillerMove {
-            for i in 0..2 {
-                let m = self.moves.get_killer_move(i);
+        let stage = self.moves.stage();
 
-                if self.is_legal_move(m) {
-                    self.moves.add_move(m);
+        if stage == MovesStage::BestMove || stage == MovesStage::Done {
+            return;
+        }
+
+        if stage == MovesStage::KillerMove {
+            if !self.moves.skip_killers {
+                for i in 0..2 {
+                    let m = self.moves.get_killer_move(i);
+
+                    if self.is_legal_move(m) {
+                        self.moves.add_move(m);
+                    }
                 }
             }
             return;
@@ -94,19 +102,15 @@ impl MovesGenerator for Game {
         self.moves.add_rooks_moves(&self.bitboards, side);
         self.moves.add_queens_moves(&self.bitboards, side);
 
-        if self.moves.stage() == MovesStage::Capture {
-            // Avoid needless moves ordering in perft and perfsuite
-            if !self.moves.skip_ordering {
-                self.sort_moves();
-            }
+        if stage == MovesStage::Capture {
+            self.sort_moves();
 
             return; // Skip castling
         }
 
-        debug_assert_eq!(self.moves.stage(), MovesStage::QuietMove);
+        debug_assert_eq!(stage, MovesStage::QuietMove);
 
         // Castling moves generation
-
         if self.can_king_castle(side) {
             self.moves.add_king_castle(side);
         }
@@ -116,16 +120,19 @@ impl MovesGenerator for Game {
     }
 
     fn sort_moves(&mut self) {
-        let a = self.moves.len_best_moves(); // TODO: how slower to just use 0 ?
-        let b = self.moves.len();
-        for i in a..b {
+        if self.moves.skip_ordering {
+            return;
+        }
+
+        let n = self.moves.len();
+        for i in 0..n {
             if self.moves[i].item.is_capture() {
                 self.moves[i].score = self.mvv_lva(self.moves[i].item);
                 if self.see(self.moves[i].item) >= 0 {
                     self.moves[i].score += GOOD_CAPTURE_SCORE;
                 }
             }
-            for j in a..i {
+            for j in 0..i {
                 if self.moves[j].score < self.moves[i].score {
                     self.moves.swap(i, j);
                 }
@@ -134,21 +141,16 @@ impl MovesGenerator for Game {
     }
 
     fn next_move(&mut self) -> Option<Move> {
-        // FIXME: it's more costly in perft to generate
-        // moves from here rather than before the while
-        // loop calling this method.
+        let mut next_move = self.moves.next();
 
         // Staged moves generation
-        while self.moves.index() == self.moves.len() {
-            if self.moves.stage() == MovesStage::QuietMove {
-                return None; // NOTE: Could also be `break`
-            }
-
+        while next_move.is_none() && !self.moves.is_last_stage() {
             self.moves.next_stage();
             self.generate_moves();
+            next_move = self.moves.next();
         }
 
-        self.moves.next()
+        next_move
     }
 
     // Specialized version of `next_move` for quiescence search.
@@ -156,6 +158,7 @@ impl MovesGenerator for Game {
         if self.moves.stage() == MovesStage::BestMove {
             self.moves.next_stage();
             self.generate_moves();
+            debug_assert_eq!(self.moves.stage(), MovesStage::Capture);
         }
 
         // Skip bad captures

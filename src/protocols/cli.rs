@@ -228,6 +228,7 @@ impl CLI {
 
     fn cmd_divide(&mut self, args: &[&str]) {
         self.game.moves.skip_ordering = true;
+        self.game.moves.skip_killers = true;
         let mut moves_count = 0u64;
         let mut nodes_count = 0u64;
 
@@ -265,6 +266,7 @@ impl CLI {
 
     fn cmd_perft(&mut self) {
         self.game.moves.skip_ordering = true;
+        self.game.moves.skip_killers = true;
         let mut i = 0;
         loop {
             i += 1;
@@ -278,6 +280,9 @@ impl CLI {
     }
 
     fn cmd_perftsuite(&mut self, args: &[&str]) {
+        self.game.moves.skip_ordering = true;
+        self.game.moves.skip_killers = true;
+
         if args.len() == 1 {
             self.print_error(format!("no filename given"));
             return;
@@ -290,7 +295,6 @@ impl CLI {
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
             self.game.load_fen(fen);
-            self.game.moves.skip_ordering = true;
             for field in fields {
                 let mut it = field.trim().split(' ');
                 let d = it.next().unwrap()[1..].parse::<Depth>().unwrap();
