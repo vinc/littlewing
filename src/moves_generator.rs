@@ -112,11 +112,15 @@ impl MovesGenerator for Game {
     fn sort_moves(&mut self) {
         let n = self.moves.len();
         for i in 0..n {
+            if i == 0 && self.moves[0].score == BEST_MOVE_SCORE {
+                continue;
+            }
             if self.moves[i].item.is_capture() {
                 self.moves[i].score = self.mvv_lva(self.moves[i].item);
                 if self.see(self.moves[i].item) >= 0 {
                     self.moves[i].score += GOOD_CAPTURE_SCORE;
                 }
+                debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
             }
             for j in 0..i {
                 if self.moves[j].score < self.moves[i].score {
@@ -879,5 +883,71 @@ mod tests {
             n += 1;
         }
         assert_eq!(n, 31);
+    }
+
+    #[test]
+    fn test_moves_order_when_best_move_is_quiet_move() {
+        // Ruy Lopez Opening: Morphy Defense (1. e4 e5 2. Nf3 Nc6 3. Bb5 a6)
+        let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
+        let mut game = Game::from_fen(fen);
+
+        let best_move     = game.move_from_can("b5a4");
+        let good_capture  = game.move_from_can("b5c6");
+        let bad_capture_1 = game.move_from_can("f3e5");
+        let bad_capture_2 = game.move_from_can("b5a6");
+        let quiet_move_1  = game.move_from_can("a2a3");
+        let killer_move_1 = game.move_from_can("b5c4");
+
+        game.moves.add_killer_move(killer_move_1);
+        game.moves.clear();
+        game.moves.add_move(best_move);
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, best_move),
+                1 => assert_eq!(m, good_capture),
+                2 => assert_eq!(m, bad_capture_1),
+                3 => assert_eq!(m, bad_capture_2),
+                4 => assert_eq!(m, killer_move_1),
+                5 => assert_eq!(m, quiet_move_1),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 32);
+    }
+
+    #[test]
+    fn test_moves_order_when_best_move_is_bad_capture() {
+        // Ruy Lopez Opening: Morphy Defense (1. e4 e5 2. Nf3 Nc6 3. Bb5 a6)
+        let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
+        let mut game = Game::from_fen(fen);
+
+        let good_capture  = game.move_from_can("b5c6");
+        let bad_capture_1 = game.move_from_can("f3e5");
+        let bad_capture_2 = game.move_from_can("b5a6");
+        let quiet_move_1  = game.move_from_can("a2a3");
+        let killer_move_1 = game.move_from_can("b5c4");
+
+        let best_move = bad_capture_2;
+
+        game.moves.add_killer_move(killer_move_1);
+        game.moves.clear();
+        game.moves.add_move(best_move);
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, best_move),
+                1 => assert_eq!(m, good_capture),
+                2 => assert_eq!(m, bad_capture_1),
+                3 => assert_eq!(m, killer_move_1),
+                4 => assert_eq!(m, quiet_move_1),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 32);
     }
 }
