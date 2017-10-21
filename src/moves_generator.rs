@@ -72,9 +72,8 @@ impl MovesGenerator for Game {
         match self.moves.stage() {
             MovesStage::KillerMove => {
                 if !self.moves.skip_killers {
-                    for i in 0..2 {
+                    for i in 0..MAX_KILLERS {
                         let m = self.moves.get_killer_move(i);
-
                         if self.is_legal_move(m) {
                             self.moves.add_move(m);
                         }

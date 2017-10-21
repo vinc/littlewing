@@ -10,8 +10,6 @@ use piece::PieceChar;
 use square::SquareExt;
 use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 
-pub const MAX_KILLERS: usize = 2;
-
 pub const BEST_MOVE_SCORE:    u8 = 255;
 pub const KILLER_MOVE_SCORE:  u8 = 254;
 pub const GOOD_CAPTURE_SCORE: u8 = 64;
@@ -242,8 +240,8 @@ impl Moves {
 
         // Avoid adding again a killer move
         if self.stage() == MovesStage::QuietMove && !self.skip_killers {
-            for i in 0..MAX_KILLERS {
-                if self.killers[self.ply][i] == m {
+            for &killer in &self.killers[self.ply] {
+                if killer == m {
                     return;
                 }
             }
