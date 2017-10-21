@@ -70,8 +70,6 @@ trait MovesGeneratorExt {
 impl MovesGenerator for Game {
     fn generate_moves(&mut self) {
         match self.moves.stage() {
-            MovesStage::BestMove | MovesStage::Done => {
-            },
             MovesStage::KillerMove => {
                 if !self.moves.skip_killers {
                     for i in 0..2 {
@@ -96,27 +94,23 @@ impl MovesGenerator for Game {
                 self.moves.add_queens_moves(&self.bitboards, side);
 
                 if self.moves.stage() == MovesStage::Capture {
-                    self.sort_moves();
-
-                    return; // Skip castling
+                    if !self.moves.skip_ordering {
+                        self.sort_moves();
+                    }
+                } else { // Castlings
+                    if self.can_king_castle(side) {
+                        self.moves.add_king_castle(side);
+                    }
+                    if self.can_queen_castle(side) {
+                        self.moves.add_queen_castle(side);
+                    }
                 }
-
-                // Castling moves generation
-                if self.can_king_castle(side) {
-                    self.moves.add_king_castle(side);
-                }
-                if self.can_queen_castle(side) {
-                    self.moves.add_queen_castle(side);
-                }
-            }
+            },
+            _ => {} // Nothing to do in `BestMove` or `Done` stages
         }
     }
 
     fn sort_moves(&mut self) {
-        if self.moves.skip_ordering {
-            return;
-        }
-
         let n = self.moves.len();
         for i in 0..n {
             if self.moves[i].item.is_capture() {
