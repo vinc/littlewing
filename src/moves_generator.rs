@@ -37,13 +37,13 @@ pub trait MovesGenerator {
     /// Generate the list of moves from the current game position
     fn generate_moves(&mut self);
 
-    /// Sort the moves list to try the best first
+    /// Sort the moves list to try good candidates first in search
     fn sort_moves(&mut self);
 
     /// Get the next capture from the moves list (for quiescence search)
     fn next_capture(&mut self) -> Option<Move>;
 
-    /// Get the next move from the moves list
+    /// Get the next move from the moves list (for regular search)
     fn next_move(&mut self) -> Option<Move>;
 
     /// Make the given move and update the game state
