@@ -22,6 +22,9 @@ pub struct Move(u16);
 
 impl Move {
     pub fn new(from: Square, to: Square, mt: MoveType) -> Move {
+        // from: 6 bits
+        // to:   6 bits
+        // mt:   4 bits
         Move(((from as u16) << 10) | ((to as u16) << 4) | mt as u16)
     }
 
@@ -109,13 +112,23 @@ impl<T, S> Scored<T, S> {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
-pub enum MovesStage {
-    BestMove   = BEST_MOVE,
-    Capture    = CAPTURE,
-    KillerMove = KILLER_MOVE,
-    QuietMove  = QUIET_MOVE,
-    Done       = NULL_MOVE
+#[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
+pub enum MovesStage { // If we don't care about `PartialOrd` we could do:
+    BestMove   = 0,   // = 16 (BEST_MOVE)
+    Capture    = 1,   // =  4 (CAPTURE)
+    KillerMove = 2,   // = 17 (KILLER_MOVE)
+    QuietMove  = 3,   // =  0 (QUIET_MOVE < CAPTURE)
+    Done       = 4,
+}
+
+// Convert `MovesStage::Capture` into `CAPTURE`
+// and `MovesStage::QuietMove` into `QUIET_MOVE`
+// but does not work with other values of `MovesStage`
+impl From<MovesStage> for MoveType {
+    fn from(stage: MovesStage) -> Self {
+        // Without `PartialOrd` we could do: stage as MoveType
+        CAPTURE * ((stage == MovesStage::Capture) as MoveType)
+    }
 }
 
 #[derive(Clone)]
@@ -203,12 +216,14 @@ impl Moves {
             MovesStage::Capture    => MovesStage::KillerMove,
             MovesStage::KillerMove => MovesStage::QuietMove,
             MovesStage::QuietMove  => MovesStage::Done,
-            MovesStage::Done       => panic!("last stage")
+            MovesStage::Done       => panic!("no next stage")
         }
     }
 
     pub fn is_last_stage(&self) -> bool {
-        self.stages[self.ply] == MovesStage::Done
+        // debug_assert(self.stages[self.ply] != MovesStage::Done);
+        // self.stages[self.ply] == MovesStage::QuietMove
+        self.stages[self.ply] >= MovesStage::QuietMove
     }
 
     #[allow(dead_code)]
@@ -315,9 +330,9 @@ impl Moves {
     // but it's slower due to the `match` in `attacks` called in the loop.
     #[allow(dead_code)]
     pub fn add_moves_for(&mut self, p: Piece, bitboards: &[Bitboard], side: Color) {
-        let mut pieces = bitboards[(side | p) as usize];
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
-        let mt = self.stage() as MoveType;
+        let mut pieces = bitboards[(side | p) as usize];
+        let mt = MoveType::from(self.stage());
         let targets = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -330,9 +345,9 @@ impl Moves {
     }
 
     pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut knights = bitboards[(side | KNIGHT) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut knights = bitboards[(side | KNIGHT) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -346,9 +361,9 @@ impl Moves {
     }
 
     pub fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut kings = bitboards[(side | KING) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut kings = bitboards[(side | KING) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -362,9 +377,9 @@ impl Moves {
     }
 
     pub fn add_bishops_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut bishops = bitboards[(side | BISHOP) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut bishops = bitboards[(side | BISHOP) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -377,9 +392,9 @@ impl Moves {
     }
 
     pub fn add_rooks_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut rooks = bitboards[(side | ROOK) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut rooks = bitboards[(side | ROOK) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -392,9 +407,9 @@ impl Moves {
     }
 
     pub fn add_queens_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut queens = bitboards[(side | QUEEN) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut queens = bitboards[(side | QUEEN) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],

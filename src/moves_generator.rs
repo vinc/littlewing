@@ -106,7 +106,7 @@ impl MovesGenerator for Game {
                     }
                 }
             },
-            _ => {} // Nothing to do in `BestMove` or `Done` stages
+            _ => () // Nothing to do in `BestMove` or `Done` stages
         }
     }
 
