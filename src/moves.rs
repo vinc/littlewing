@@ -20,6 +20,9 @@ pub struct Move(u16);
 
 impl Move {
     pub fn new(from: Square, to: Square, mt: MoveType) -> Move {
+        // from: 6 bits
+        // to:   6 bits
+        // mt:   4 bits
         Move(((from as u16) << 10) | ((to as u16) << 4) | mt as u16)
     }
 
@@ -107,17 +110,28 @@ impl<T, S> Scored<T, S> {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
-pub enum MovesStage {
-    BestMove   = BEST_MOVE,
-    Capture    = CAPTURE,
-    KillerMove = KILLER_MOVE,
-    QuietMove  = QUIET_MOVE
+#[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
+pub enum MovesStage { // If we don't care about `PartialOrd` we could do:
+    BestMove   = 0,   // = 16 (BEST_MOVE)
+    Capture    = 1,   // =  4 (CAPTURE)
+    KillerMove = 2,   // = 17 (KILLER_MOVE)
+    QuietMove  = 3,   // =  0 (QUIET_MOVE < CAPTURE)
+    Done       = 4,
+}
+
+// Convert `MovesStage::Capture` into `CAPTURE`
+// and `MovesStage::QuietMove` into `QUIET_MOVE`
+// but does not work with other values of `MovesStage`
+impl From<MovesStage> for MoveType {
+    fn from(stage: MovesStage) -> Self {
+        // Without `PartialOrd` we could do: stage as MoveType
+        CAPTURE * ((stage == MovesStage::Capture) as MoveType)
+    }
 }
 
 #[derive(Clone)]
 pub struct Moves {
-    killers: [[Move; 2]; MAX_PLY],
+    killers: [[Move; MAX_KILLERS]; MAX_PLY],
 
     // We store the generated moves for each ply in a two dimensional array
     // used by the recursive search function. It must be able to store any
@@ -125,9 +139,6 @@ pub struct Moves {
     // game. And likewise it must be able to store the generated moves up to
     // the maximum of any chess position `MAX_MOVES`.
     lists: [[Scored<Move, u8>; MAX_MOVES]; MAX_PLY],
-
-    // Number of best moves at a given ply.
-    best_moves_counts: [usize; MAX_PLY],
 
     // Number of moves at a given ply.
     sizes: [usize; MAX_PLY],
@@ -138,6 +149,7 @@ pub struct Moves {
     stages: [MovesStage; MAX_PLY],
 
     pub skip_ordering: bool,
+    pub skip_killers: bool,
 
     // Index of the ply currently searched.
     ply: usize,
@@ -146,13 +158,13 @@ pub struct Moves {
 impl Moves {
     pub fn new() -> Moves {
         Moves {
-            killers: [[Move::new_null(); 2]; MAX_PLY],
+            killers: [[Move::new_null(); MAX_KILLERS]; MAX_PLY],
             lists: [[Scored::new(Move::new_null(), 0); MAX_MOVES]; MAX_PLY],
             sizes: [0; MAX_PLY],
             indexes: [0; MAX_PLY],
-            best_moves_counts: [0; MAX_PLY],
             stages: [MovesStage::BestMove; MAX_PLY],
             skip_ordering: false,
+            skip_killers: false,
             ply: 0,
         }
     }
@@ -173,21 +185,15 @@ impl Moves {
     pub fn clear(&mut self) {
         self.sizes[self.ply] = 0;
         self.indexes[self.ply] = 0;
-        self.best_moves_counts[self.ply] = 0;
         self.stages[self.ply] = MovesStage::BestMove;
     }
 
     pub fn clear_all(&mut self) {
-        self.killers = [[Move::new_null(); 2]; MAX_PLY];
+        self.killers = [[Move::new_null(); MAX_KILLERS]; MAX_PLY];
         self.sizes = [0; MAX_PLY];
         self.indexes = [0; MAX_PLY];
-        self.best_moves_counts = [0; MAX_PLY];
         self.stages = [MovesStage::BestMove; MAX_PLY];
         self.ply = 0;
-    }
-
-    pub fn len_best_moves(&self) -> usize {
-        self.best_moves_counts[self.ply]
     }
 
     pub fn len(&self) -> usize {
@@ -207,8 +213,15 @@ impl Moves {
             MovesStage::BestMove   => MovesStage::Capture,
             MovesStage::Capture    => MovesStage::KillerMove,
             MovesStage::KillerMove => MovesStage::QuietMove,
-            MovesStage::QuietMove  => panic!("wrong stage transition")
+            MovesStage::QuietMove  => MovesStage::Done,
+            MovesStage::Done       => panic!("no next stage")
         }
+    }
+
+    pub fn is_last_stage(&self) -> bool {
+        // debug_assert(self.stages[self.ply] != MovesStage::Done);
+        // self.stages[self.ply] == MovesStage::QuietMove
+        self.stages[self.ply] >= MovesStage::QuietMove
     }
 
     #[allow(dead_code)]
@@ -217,28 +230,21 @@ impl Moves {
     }
 
     pub fn add_move(&mut self, m: Move) {
-        if !self.skip_ordering {
-            // Avoid adding again a best move
-            // TODO: just compare first move if more than one moves
-            let n = self.best_moves_counts[self.ply];
-            for i in 0..n {
-                if self.lists[self.ply][i].item == m {
+        // Avoid adding again a best move
+        // NOTE: The best move is always first in the list, but the list
+        // could contains previous entries so we need to check its current
+        // length.
+        if self.len() > 0 && self.lists[self.ply][0].item == m {
+            return;
+        }
+
+        // Avoid adding again a killer move
+        if self.stage() == MovesStage::QuietMove && !self.skip_killers {
+            for &killer in &self.killers[self.ply] {
+                if killer == m {
                     return;
                 }
             }
-
-            // Avoid adding again a killer move
-            if self.stage() == MovesStage::QuietMove {
-                for i in 0..2 {
-                    if self.killers[self.ply][i] == m {
-                        return;
-                    }
-                }
-            }
-        }
-
-        if self.stage() == MovesStage::BestMove {
-            self.best_moves_counts[self.ply] += 1;
         }
 
         // NOTE: we cannot use MVV/LVA or SEE to assign a score to captures
@@ -247,7 +253,8 @@ impl Moves {
             MovesStage::BestMove   => BEST_MOVE_SCORE,
             MovesStage::Capture    => QUIET_MOVE_SCORE,
             MovesStage::KillerMove => KILLER_MOVE_SCORE,
-            MovesStage::QuietMove  => QUIET_MOVE_SCORE
+            MovesStage::QuietMove  => QUIET_MOVE_SCORE,
+            MovesStage::Done       => panic!("last stage")
         };
 
         self.lists[self.ply][self.sizes[self.ply]] = Scored::new(m, score);
@@ -321,9 +328,9 @@ impl Moves {
     // but it's slower due to the `match` in `attacks` called in the loop.
     #[allow(dead_code)]
     pub fn add_moves_for(&mut self, p: Piece, bitboards: &[Bitboard], side: Color) {
-        let mut pieces = bitboards[(side | p) as usize];
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
-        let mt = self.stage() as MoveType;
+        let mut pieces = bitboards[(side | p) as usize];
+        let mt = MoveType::from(self.stage());
         let targets = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -336,9 +343,9 @@ impl Moves {
     }
 
     pub fn add_knights_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut knights = bitboards[(side | KNIGHT) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut knights = bitboards[(side | KNIGHT) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -352,9 +359,9 @@ impl Moves {
     }
 
     pub fn add_king_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut kings = bitboards[(side | KING) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut kings = bitboards[(side | KING) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -368,9 +375,9 @@ impl Moves {
     }
 
     pub fn add_bishops_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut bishops = bitboards[(side | BISHOP) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut bishops = bitboards[(side | BISHOP) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -383,9 +390,9 @@ impl Moves {
     }
 
     pub fn add_rooks_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut rooks = bitboards[(side | ROOK) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut rooks = bitboards[(side | ROOK) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -398,9 +405,9 @@ impl Moves {
     }
 
     pub fn add_queens_moves(&mut self, bitboards: &[Bitboard], side: Color) {
-        let mut queens = bitboards[(side | QUEEN) as usize];
-        let mt = self.stage() as MoveType;
         let occupied = bitboards[WHITE as usize] | bitboards[BLACK as usize];
+        let mut queens = bitboards[(side | QUEEN) as usize];
+        let mt = MoveType::from(self.stage());
         let dests = match self.stage() {
             MovesStage::QuietMove => !occupied,
             MovesStage::Capture   => bitboards[(side ^ 1) as usize],
@@ -431,6 +438,7 @@ impl Moves {
     }
 
     pub fn add_killer_move(&mut self, killer_move: Move) {
+        debug_assert_eq!(MAX_KILLERS, 2);
         if killer_move != self.killers[self.ply][0] {
             self.killers[self.ply][1] = self.killers[self.ply][0];
             self.killers[self.ply][0] = killer_move;
@@ -445,11 +453,10 @@ impl Iterator for Moves {
         let i = self.indexes[self.ply];
         let n = self.sizes[self.ply];
 
-        self.indexes[self.ply] += 1;
-
         if i < n {
+            self.indexes[self.ply] += 1;
+            /*
             if !self.skip_ordering {
-                /*
                 // Find the next best move by selection sort
                 let mut j = i;
                 for k in (i + 1)..n {
@@ -462,8 +469,8 @@ impl Iterator for Moves {
                 if i != j {
                     self.lists[self.ply].swap(i, j);
                 }
-                */
             }
+            */
 
             Some(self.lists[self.ply][i].item)
         } else {

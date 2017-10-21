@@ -37,13 +37,13 @@ pub trait MovesGenerator {
     /// Generate the list of moves from the current game position
     fn generate_moves(&mut self);
 
-    /// Sort the moves list to try the best first
+    /// Sort the moves list to try good candidates first in search
     fn sort_moves(&mut self);
 
     /// Get the next capture from the moves list (for quiescence search)
     fn next_capture(&mut self) -> Option<Move>;
 
-    /// Get the next move from the moves list
+    /// Get the next move from the moves list (for regular search)
     fn next_move(&mut self) -> Option<Move>;
 
     /// Make the given move and update the game state
@@ -69,54 +69,49 @@ trait MovesGeneratorExt {
 
 impl MovesGenerator for Game {
     fn generate_moves(&mut self) {
-        // TODO: make sure that `moves.clear()` has been called at this ply
-        // NOTE: stages: BestMove --> Capture --> KillerMove --> QuietMove
-
-        if self.moves.stage() == MovesStage::KillerMove {
-            for i in 0..2 {
-                let m = self.moves.get_killer_move(i);
-
-                if self.is_legal_move(m) {
-                    self.moves.add_move(m);
+        match self.moves.stage() {
+            MovesStage::KillerMove => {
+                if !self.moves.skip_killers {
+                    for i in 0..MAX_KILLERS {
+                        let m = self.moves.get_killer_move(i);
+                        if self.is_legal_move(m) {
+                            self.moves.add_move(m);
+                        }
+                    }
                 }
-            }
-            return;
-        }
+            },
+            MovesStage::Capture | MovesStage::QuietMove => {
+                let &position = self.positions.top();
+                let side = position.side;
+                let ep = position.en_passant;
 
-        let &position = self.positions.top();
-        let side = position.side;
-        let ep = position.en_passant;
+                self.moves.add_pawns_moves(&self.bitboards, side, ep);
+                self.moves.add_knights_moves(&self.bitboards, side);
+                self.moves.add_king_moves(&self.bitboards, side);
+                self.moves.add_bishops_moves(&self.bitboards, side);
+                self.moves.add_rooks_moves(&self.bitboards, side);
+                self.moves.add_queens_moves(&self.bitboards, side);
 
-        self.moves.add_pawns_moves(&self.bitboards, side, ep);
-        self.moves.add_knights_moves(&self.bitboards, side);
-        self.moves.add_king_moves(&self.bitboards, side);
-        self.moves.add_bishops_moves(&self.bitboards, side);
-        self.moves.add_rooks_moves(&self.bitboards, side);
-        self.moves.add_queens_moves(&self.bitboards, side);
-
-        if self.moves.stage() == MovesStage::Capture {
-            // Avoid needless moves ordering in perft and perfsuite
-            if !self.moves.skip_ordering {
-                self.sort_moves();
-            }
-
-            return; // Skip castling
-        }
-
-        debug_assert_eq!(self.moves.stage(), MovesStage::QuietMove);
-
-        // Castling moves generation
-
-        if self.can_king_castle(side) {
-            self.moves.add_king_castle(side);
-        }
-        if self.can_queen_castle(side) {
-            self.moves.add_queen_castle(side);
+                if self.moves.stage() == MovesStage::Capture {
+                    if !self.moves.skip_ordering {
+                        self.sort_moves();
+                    }
+                } else { // Castlings
+                    if self.can_king_castle(side) {
+                        self.moves.add_king_castle(side);
+                    }
+                    if self.can_queen_castle(side) {
+                        self.moves.add_queen_castle(side);
+                    }
+                }
+            },
+            _ => () // Nothing to do in `BestMove` or `Done` stages
         }
     }
 
     fn sort_moves(&mut self) {
-        let a = self.moves.len_best_moves(); // TODO: how slower to just use 0 ?
+        // Sort all moves currently in the list except the best move
+        let a = if self.moves[0].score == BEST_MOVE_SCORE { 1 } else { 0 };
         let b = self.moves.len();
         for i in a..b {
             if self.moves[i].item.is_capture() {
@@ -124,6 +119,7 @@ impl MovesGenerator for Game {
                 if self.see(self.moves[i].item) >= 0 {
                     self.moves[i].score += GOOD_CAPTURE_SCORE;
                 }
+                debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
             }
             for j in a..i {
                 if self.moves[j].score < self.moves[i].score {
@@ -134,21 +130,16 @@ impl MovesGenerator for Game {
     }
 
     fn next_move(&mut self) -> Option<Move> {
-        // FIXME: it's more costly in perft to generate
-        // moves from here rather than before the while
-        // loop calling this method.
+        let mut next_move = self.moves.next();
 
         // Staged moves generation
-        while self.moves.index() == self.moves.len() {
-            if self.moves.stage() == MovesStage::QuietMove {
-                return None; // NOTE: Could also be `break`
-            }
-
+        while next_move.is_none() && !self.moves.is_last_stage() {
             self.moves.next_stage();
             self.generate_moves();
+            next_move = self.moves.next();
         }
 
-        self.moves.next()
+        next_move
     }
 
     // Specialized version of `next_move` for quiescence search.
@@ -156,6 +147,7 @@ impl MovesGenerator for Game {
         if self.moves.stage() == MovesStage::BestMove {
             self.moves.next_stage();
             self.generate_moves();
+            debug_assert_eq!(self.moves.stage(), MovesStage::Capture);
         }
 
         // Skip bad captures
@@ -838,5 +830,123 @@ mod tests {
         // Cannot be done with pseudo legal move checking
         //assert!(!game.is_legal_move(Move::new(C8, B8, QUIET_MOVE))); // Illegal
         //assert!(!game.is_legal_move(Move::new(C8, B7, QUIET_MOVE))); // Illegal
+    }
+
+    #[test]
+    fn test_moves_order() {
+        let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
+        let mut game = Game::from_fen(fen);
+
+        let capture = game.move_from_can("e4d5");
+        let first_quiet_move = game.move_from_can("a2a3");
+
+        game.moves.clear();
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, capture),
+                1 => assert_eq!(m, first_quiet_move),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 31);
+    }
+
+    #[test]
+    fn test_moves_order_with_best_and_killer_moves() {
+        let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
+        let mut game = Game::from_fen(fen);
+
+        let capture = game.move_from_can("e4d5");
+        let first_quiet_move = game.move_from_can("a2a3");
+
+        let first_killer_move = game.move_from_can("f1b5");
+        game.moves.add_killer_move(first_killer_move);
+
+        game.moves.clear();
+
+        let best_move = game.move_from_can("b1c3");
+        game.moves.add_move(best_move);
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, best_move),
+                1 => assert_eq!(m, capture),
+                2 => assert_eq!(m, first_killer_move),
+                3 => assert_eq!(m, first_quiet_move),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 31);
+    }
+
+    #[test]
+    fn test_moves_order_when_best_move_is_quiet_move() {
+        // Ruy Lopez Opening: Morphy Defense (1. e4 e5 2. Nf3 Nc6 3. Bb5 a6)
+        let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
+        let mut game = Game::from_fen(fen);
+
+        let best_move     = game.move_from_can("b5a4");
+        let good_capture  = game.move_from_can("b5c6");
+        let bad_capture_1 = game.move_from_can("f3e5");
+        let bad_capture_2 = game.move_from_can("b5a6");
+        let quiet_move_1  = game.move_from_can("a2a3");
+        let killer_move_1 = game.move_from_can("b5c4");
+
+        game.moves.add_killer_move(killer_move_1);
+        game.moves.clear();
+        game.moves.add_move(best_move);
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, best_move),
+                1 => assert_eq!(m, good_capture),
+                2 => assert_eq!(m, bad_capture_1),
+                3 => assert_eq!(m, bad_capture_2),
+                4 => assert_eq!(m, killer_move_1),
+                5 => assert_eq!(m, quiet_move_1),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 32);
+    }
+
+    #[test]
+    fn test_moves_order_when_best_move_is_bad_capture() {
+        // Ruy Lopez Opening: Morphy Defense (1. e4 e5 2. Nf3 Nc6 3. Bb5 a6)
+        let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
+        let mut game = Game::from_fen(fen);
+
+        let good_capture  = game.move_from_can("b5c6");
+        let bad_capture_1 = game.move_from_can("f3e5");
+        let bad_capture_2 = game.move_from_can("b5a6");
+        let quiet_move_1  = game.move_from_can("a2a3");
+        let killer_move_1 = game.move_from_can("b5c4");
+
+        let best_move = bad_capture_2;
+
+        game.moves.add_killer_move(killer_move_1);
+        game.moves.clear();
+        game.moves.add_move(best_move);
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, best_move),
+                1 => assert_eq!(m, good_capture),
+                2 => assert_eq!(m, bad_capture_1),
+                3 => assert_eq!(m, killer_move_1),
+                4 => assert_eq!(m, quiet_move_1),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 32);
     }
 }

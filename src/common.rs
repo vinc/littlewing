@@ -44,8 +44,8 @@ pub const BISHOP_PROMOTION_CAPTURE: MoveType = 0b1101; // 13
 pub const ROOK_PROMOTION_CAPTURE:   MoveType = 0b1110; // 14
 pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 0b1111; // 15
 
-pub const BEST_MOVE:                MoveType = 0b0001_0000; // 16
-pub const KILLER_MOVE:              MoveType = 0b0001_0001; // 17
+pub const BEST_MOVE:                MoveType = 0b00010000; // 16
+pub const KILLER_MOVE:              MoveType = 0b00010001; // 17
 
 pub const PROMOTION_MASK:           MoveType = 0b1000;
 pub const PROMOTION_KIND_MASK:      MoveType = 0b1100;
@@ -76,6 +76,7 @@ pub const SQUARES: [Square; 64] = [
 pub const MAX_PLY: usize = 128;
 pub const MAX_MOVES: usize = 256;
 pub const MAX_POSITIONS: usize = 512;
+pub const MAX_KILLERS: usize = 2;
 
 pub const TT_SIZE: usize = 8 << 20; // 8 Mb
 
