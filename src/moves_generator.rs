@@ -110,11 +110,10 @@ impl MovesGenerator for Game {
     }
 
     fn sort_moves(&mut self) {
-        let n = self.moves.len();
-        for i in 0..n {
-            if i == 0 && self.moves[0].score == BEST_MOVE_SCORE {
-                continue;
-            }
+        // Sort all moves currently in the list except the best move
+        let a = if self.moves[0].score == BEST_MOVE_SCORE { 1 } else { 0 };
+        let b = self.moves.len();
+        for i in a..b {
             if self.moves[i].item.is_capture() {
                 self.moves[i].score = self.mvv_lva(self.moves[i].item);
                 if self.see(self.moves[i].item) >= 0 {
@@ -122,7 +121,7 @@ impl MovesGenerator for Game {
                 }
                 debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
             }
-            for j in 0..i {
+            for j in a..i {
                 if self.moves[j].score < self.moves[i].score {
                     self.moves.swap(i, j);
                 }
