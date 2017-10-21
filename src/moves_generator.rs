@@ -835,4 +835,56 @@ mod tests {
         //assert!(!game.is_legal_move(Move::new(C8, B8, QUIET_MOVE))); // Illegal
         //assert!(!game.is_legal_move(Move::new(C8, B7, QUIET_MOVE))); // Illegal
     }
+
+    #[test]
+    fn test_moves_order() {
+        let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
+        let mut game = Game::from_fen(fen);
+
+        let capture = game.move_from_can("e4d5");
+        let first_quiet_move = game.move_from_can("a2a3");
+
+        game.moves.clear();
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, capture),
+                1 => assert_eq!(m, first_quiet_move),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 31);
+    }
+
+    #[test]
+    fn test_moves_order_with_best_and_killer_moves() {
+        let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
+        let mut game = Game::from_fen(fen);
+
+        let capture = game.move_from_can("e4d5");
+        let first_quiet_move = game.move_from_can("a2a3");
+
+        let first_killer_move = game.move_from_can("f1b5");
+        game.moves.add_killer_move(first_killer_move);
+
+        game.moves.clear();
+
+        let best_move = game.move_from_can("b1c3");
+        game.moves.add_move(best_move);
+
+        let mut n = 0;
+        while let Some(m) = game.next_move() {
+            match n {
+                0 => assert_eq!(m, best_move),
+                1 => assert_eq!(m, capture),
+                2 => assert_eq!(m, first_killer_move),
+                3 => assert_eq!(m, first_quiet_move),
+                _ => {}
+            }
+            n += 1;
+        }
+        assert_eq!(n, 31);
+    }
 }
