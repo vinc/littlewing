@@ -173,10 +173,12 @@ impl MovesGenerator for Game {
         new_position.halfmoves_count += 1;
 
         if !m.is_null() {
+            self.bitboards[side as usize].toggle(m.from());
+            self.bitboards[side as usize].toggle(m.to());
             self.bitboards[piece as usize].toggle(m.from());
             self.board[m.from() as usize] = EMPTY;
-            new_position.hash ^= self.zobrist.positions[piece as usize][m.from() as usize];
 
+            new_position.hash ^= self.zobrist.positions[piece as usize][m.from() as usize];
             new_position.capture = capture;
 
             if piece.kind() == PAWN {
@@ -244,9 +246,6 @@ impl MovesGenerator for Game {
                 new_position.hash ^= self.zobrist.positions[piece as usize][m.to() as usize];
             }
 
-            self.bitboards[side as usize].toggle(m.from());
-            self.bitboards[side as usize].toggle(m.to());
-
             // if m.is_capture() {
             if capture != EMPTY {
                 new_position.halfmoves_count = 0;
@@ -311,14 +310,14 @@ impl MovesGenerator for Game {
 
             self.board[rook_from as usize] = rook;
             self.board[rook_to as usize] = EMPTY;
-            self.bitboards[rook as usize].toggle(rook_from);
-            self.bitboards[rook as usize].toggle(rook_to);
             self.bitboards[side as usize].toggle(rook_from);
             self.bitboards[side as usize].toggle(rook_to);
+            self.bitboards[rook as usize].toggle(rook_from);
+            self.bitboards[rook as usize].toggle(rook_to);
         }
 
         if m.is_promotion() {
-            let pawn = position.side | PAWN;
+            let pawn = side | PAWN;
             self.board[m.from() as usize] = pawn;
             self.bitboards[pawn as usize].toggle(m.from());
         } else {
@@ -333,15 +332,14 @@ impl MovesGenerator for Game {
             self.bitboards[(side ^ 1) as usize].toggle(square);
         }
 
-        self.board[m.to() as usize] = capture;
+        self.bitboards[side as usize].toggle(m.from());
+        self.bitboards[side as usize].toggle(m.to());
         self.bitboards[piece as usize].toggle(m.to());
-
-        self.bitboards[position.side as usize].toggle(m.from());
-        self.bitboards[position.side as usize].toggle(m.to());
+        self.board[m.to() as usize] = capture;
 
         if capture != EMPTY {
             self.bitboards[capture as usize].toggle(m.to());
-            self.bitboards[(position.side ^ 1) as usize].toggle(m.to());
+            self.bitboards[(side ^ 1) as usize].toggle(m.to());
         }
     }
 
