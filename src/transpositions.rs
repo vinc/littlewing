@@ -20,37 +20,35 @@ pub struct Transposition {
     score: Score,    // 16 bits => 2 bytes
     depth: Depth,    //  8 bits => 1 bytes
     bound: Bound,    //  8 bits => 1 bytes
+    age: u8,         //  8 bits => 1 bytes
 
-    // Total: 15 bytes, which will use 16 bytes including alignment padding.
-
+    // Total: 16 bytes
+    //
     // NOTE: `depth` will never go above MAX_PLY, which is 128 so we can store
     // it as `i8`.
     //
     // TODO: we don't need to store the whole hash as the first part is the
     // index of the entry: `entries[hash % size]`
-    //
-    // TODO: add age counter incremented at the begining of each root search
-    // to be used to replace old entries from previous search without having
-    // to clear the whole table.
 }
 
 impl Transposition {
-    pub fn new(hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound) -> Transposition {
+    pub fn new(hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound, age: u8) -> Transposition {
         Transposition {
             hash: hash,
             depth: depth,
             score: score,
             best_move: best_move,
-            bound: bound
+            bound: bound,
+            age: age
         }
     }
 
     pub fn new_null() -> Transposition {
-        Transposition::new(0, 0, 0, Move::new_null(), Bound::Exact)
+        Transposition::new(0, 0, 0, Move::new_null(), Bound::Exact, 0)
     }
 
     pub fn depth(&self) -> Depth {
-        self.depth as Depth
+        self.depth
     }
 
     pub fn score(&self) -> Score {
@@ -64,11 +62,16 @@ impl Transposition {
     pub fn bound(&self) -> Bound {
         self.bound
     }
+
+    pub fn age(&self) -> u8 {
+        self.age
+    }
 }
 
 #[derive(Clone)]
 pub struct Transpositions {
     entries: Arc<SharedTable>,
+    age: u8,
     stats_lookups: u64,
     stats_inserts: u64,
     stats_hits : u64,
@@ -85,6 +88,7 @@ impl Transpositions {
 
         Transpositions {
             entries: Arc::new(SharedTable::with_capacity(n)),
+            age: 0,
             stats_lookups: 0,
             stats_inserts: 0,
             stats_hits: 0,
@@ -99,12 +103,12 @@ impl Transpositions {
     }
 
     pub fn get(&mut self, hash: &u64) -> Option<&Transposition> {
-        let entries = self.entries.get();
         self.stats_lookups += 1;
 
+        let h = self.entries.get();
         let n = self.len() as u64;
         let k = (hash % n) as usize; // TODO: hash & (n - 1)
-        let t = &entries[k]; // TODO: use get_unchecked?
+        let t = &h[k]; // TODO: use get_unchecked?
 
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
@@ -120,24 +124,32 @@ impl Transpositions {
     }
 
     pub fn set(&mut self, hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound) {
-        let entries = self.entries.get();
+        let age = self.age;
+        let h = self.entries.get();
         let n = self.len() as u64;
         let k = (hash % n) as usize;
 
-        // NOTE: replacement strategies:
-        // 1. Always replace
-        // 2. Depth prefered
-        if depth >= entries[k].depth() { // Using "depth prefered"
-            let t = Transposition::new(hash, depth, score, best_move, bound);
-            entries[k] = t;
+        // Always replace entries from previous searches (entry.age < age)
+        // but use depth preferred replacement strategy for the current search.
+        if age > h[k].age || (age == 0 && h[k].age > 0) || depth >= h[k].depth() {
+            let t = Transposition::new(hash, depth, score, best_move, bound, age);
+            h[k] = t;
             self.stats_inserts += 1;
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.age = (self.age + 1) % u8::max_value();
+        self.clear_stats();
     }
 
     pub fn clear(&mut self) {
         let capacity = self.len();
         self.entries = Arc::new(SharedTable::with_capacity(capacity));
+        self.clear_stats();
+    }
 
+    fn clear_stats(&mut self) {
         self.stats_lookups = 0;
         self.stats_inserts = 0;
         self.stats_hits = 0;
@@ -255,7 +267,8 @@ mod tests {
         let s = 100;
         let d = 8;
         let b = Bound::Exact;
-        let t = Transposition::new(h, d, s, m, b);
+        let a = 0;
+        let t = Transposition::new(h, d, s, m, b, a);
 
         assert_eq!(t.best_move(), m);
         assert_eq!(t.score(), s);
