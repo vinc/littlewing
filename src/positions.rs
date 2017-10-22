@@ -14,8 +14,13 @@ pub struct Position {
     pub en_passant: Square, // TODO: use `Option<Square>`?
     pub null_move_right: bool,
 
-    // castling_rights[WHITE][KING]
-    // castling_rights[BLACK][QUEEN]
+    // WHITE == 0
+    // BLACK == 1
+    //
+    // KING  == 0b0100 =>  king's wing ==  KING >> 3 == 0
+    // QUEEN == 0b1100 => queen's wing == QUEEN >> 3 == 1
+    //
+    // castling_rights[side][wing]
     pub castling_rights: [[bool; 2]; 2]
 }
 
@@ -32,10 +37,12 @@ impl Position {
         }
     }
 
-    pub fn has_castling_right_on(&self, side: Color, wing: Piece) -> bool {
-        // KING  == 0b0100
-        // QUEEN == 0b1100
+    pub fn castling_right(&self, side: Color, wing: Piece) -> bool {
         self.castling_rights[side as usize][(wing >> 3) as usize]
+    }
+
+    pub fn remove_castling_right(&mut self, side: Color, wing: Piece) {
+        self.castling_rights[side as usize][(wing >> 3) as usize] = false;
     }
 }
 
