@@ -59,7 +59,7 @@ impl Search for Game {
     }
 
     fn search(&mut self, depths: Range<Depth>) -> Option<Move> {
-        self.tt.clear();
+        self.tt.reset();
 
         let n = self.threads_count;
 
