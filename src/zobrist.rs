@@ -3,6 +3,9 @@ extern crate rand;
 use self::rand::Rng;
 use self::rand::weak_rng;
 
+use color::Color;
+use piece::Piece;
+
 #[derive(Clone)]
 pub struct Zobrist {
     pub positions: [[u64; 64]; 14],
@@ -37,6 +40,10 @@ impl Zobrist {
         zobrist.side = rng.next_u64();
 
         zobrist
+    }
+
+    pub fn castling_right(&self, side: Color, wing: Piece) -> u64 {
+        self.castling_rights[side as usize][(wing >> 3) as usize]
     }
 }
 
