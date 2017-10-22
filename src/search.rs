@@ -430,12 +430,21 @@ impl Search for Game {
         }
 
         let stand_path = self.eval();
+
         if ply >= MAX_PLY {
             return stand_path;
         }
+
         if stand_path >= beta {
             return beta;
         }
+
+        // Delta pruning
+        let delta = 1000; // Queen value
+        if stand_path < alpha - delta {
+            return alpha;
+        }
+
         if alpha < stand_path {
             alpha = stand_path;
         }
