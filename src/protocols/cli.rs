@@ -97,7 +97,7 @@ impl CLI {
         let mut uci = UCI::new();
         uci.game.is_debug = self.game.is_debug;
         uci.game.threads_count = self.game.threads_count;
-        uci.game.tt_resize(self.game.tt_size());
+        uci.game.tt = self.game.tt.clone();
         uci.run();
     }
 
@@ -105,7 +105,7 @@ impl CLI {
         let mut xboard = XBoard::new();
         xboard.game.is_debug = self.game.is_debug;
         xboard.game.threads_count = self.game.threads_count;
-        xboard.game.tt_resize(self.game.tt_size());
+        xboard.game.tt = self.game.tt.clone();
         xboard.run();
     }
 
