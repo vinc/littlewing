@@ -73,8 +73,10 @@ pub const OUT: Square = 64;
 pub trait SquareExt {
     fn from_coord(s: String) -> Self;
     fn to_coord(&self) -> String;
-    fn rank(&self) -> u8;
+    fn file_to_char(&self) -> char;
+    fn rank_to_char(&self) -> char;
     fn file(&self) -> u8;
+    fn rank(&self) -> u8;
     fn flip(&self, c: Color) -> Self;
 }
 
@@ -87,10 +89,15 @@ impl SquareExt for Square {
 
     fn to_coord(&self) -> String {
         // FIXME: OUT.to_coord() => a9
-        let f = b'a' + self.file();
-        let r = b'1' + self.rank();
+        format!("{}{}", self.file_to_char(), self.rank_to_char())
+    }
 
-        String::from_utf8(vec![f, r]).unwrap()
+    fn rank_to_char(&self) -> char {
+        (b'1' + self.rank()) as char
+    }
+
+    fn file_to_char(&self) -> char {
+        (b'a' + self.file()) as char
     }
 
     fn file(&self) -> u8 {

@@ -25,8 +25,26 @@ pub const RANK_5: Bitboard = 0x000000FF00000000;
 pub const RANK_6: Bitboard = 0x0000FF0000000000;
 pub const RANK_7: Bitboard = 0x00FF000000000000;
 pub const RANK_8: Bitboard = 0xFF00000000000000;
+
 pub const FILE_A: Bitboard = 0x0101010101010101;
+pub const FILE_B: Bitboard = 0x0202020202020202;
+pub const FILE_C: Bitboard = 0x0404040404040404;
+pub const FILE_D: Bitboard = 0x0808080808080808;
+pub const FILE_E: Bitboard = 0x1010101010101010;
+pub const FILE_F: Bitboard = 0x2020202020202020;
+pub const FILE_G: Bitboard = 0x4040404040404040;
 pub const FILE_H: Bitboard = 0x8080808080808080;
+
+pub const FILES: [Bitboard; 8] = [
+    FILE_A,
+    FILE_B,
+    FILE_C,
+    FILE_D,
+    FILE_E,
+    FILE_F,
+    FILE_G,
+    FILE_H,
+];
 
 pub const QUIET_MOVE:               MoveType = 0b0000; // 0
 pub const DOUBLE_PAWN_PUSH:         MoveType = 0b0001; // 1
@@ -82,7 +100,7 @@ pub const TT_SIZE: usize = 8 << 20; // 8 Mb
 
 pub const XDIRS: [Direction; 2] = [LEFT, RIGHT];
 pub const YDIRS: [Direction; 2] = [UP, DOWN];
-pub const FILES: [Bitboard; 2] = [FILE_A, FILE_H];
+pub const END_FILES: [Bitboard; 2] = [FILE_A, FILE_H];
 pub const SEC_RANKS: [Bitboard; 2] = [RANK_3, RANK_6];
 pub const END_RANKS: [Bitboard; 2] = [RANK_8, RANK_1];
 

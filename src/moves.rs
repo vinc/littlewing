@@ -304,7 +304,7 @@ impl Moves {
             MovesStage::Capture => {
                 for i in 0..2 { // LEFT and RIGHT attacks
                     let dir = ydir + XDIRS[i as usize];
-                    let attackers = bitboards[(side | PAWN) as usize] & !FILES[i];
+                    let attackers = bitboards[(side | PAWN) as usize] & !END_FILES[i];
 
                     let targets = attackers.shift(dir);
                     //let epb = 1 << ep; // FIXME: 1 << 64 == 0
