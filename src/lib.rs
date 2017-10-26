@@ -46,6 +46,7 @@ mod attack;
 mod common;
 mod moves;
 mod positions;
+mod pst;
 mod transpositions;
 mod zobrist;
 

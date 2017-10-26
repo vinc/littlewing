@@ -10,6 +10,7 @@ use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use bitboard::filefill;
 use game::Game;
 use moves::Move;
+use pst::{PST_OPENING, PST_ENDING};
 
 pub const PAWN_VALUE:       Score =   100;
 pub const KNIGHT_VALUE:     Score =   350;
@@ -43,12 +44,36 @@ lazy_static! {
 
         piece_values
     };
+
+    static ref PST: [[[Score; 2]; 64]; 14] = {
+        let mut pst_values = [[[0; 2]; 64]; 14];
+
+        for c in 0..2 {
+            for p in 0..6 {
+                for s in 0..64 {
+                    let square = (s as Square).flip((c as Color) ^ 1);
+                    let piece = (c as Color) | PIECES[p];
+
+                    let score = PST_OPENING[p][s] as Score;
+                    pst_values[piece as usize][square as usize][0] = score;
+
+                    let score = PST_ENDING[p][s] as Score;
+                    pst_values[piece as usize][square as usize][1] = score;
+                }
+            }
+        }
+
+        pst_values
+    };
 }
 
 /// Evaluation algorithms
 pub trait Eval {
     /// Evaluate the current position
     fn eval(&self) -> Score;
+
+    /// Evaluate piece squate table at the current position for the given side
+    fn eval_pst(&self, c: Color) -> Score;
 
     /// Evaluate material at the current position for the given side
     fn eval_material(&self, c: Color) -> Score;
@@ -66,8 +91,9 @@ trait EvalExt {
 
 impl Eval for Game {
     fn eval(&self) -> Score {
-        let mut score = 0;
+        let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
         let side = self.positions.top().side;
+        let mut score = 0;
 
         let kings = self.bitboard(WHITE | KING) | self.bitboard(BLACK | KING);
         if kings.count() < 2 {
@@ -79,7 +105,6 @@ impl Eval for Game {
         }
 
         // Draw by insufficient material
-        let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
         if occupied.count() < 4 {
             let knights = self.bitboard(WHITE | KNIGHT) | self.bitboard(BLACK | KNIGHT);
             let bishops = self.bitboard(WHITE | BISHOP) | self.bitboard(BLACK | BISHOP);
@@ -88,11 +113,42 @@ impl Eval for Game {
             }
         }
 
-        score += self.eval_material(side);
-        score -= self.eval_material(side ^ 1);
+        // Number of pieces on board
+        let x0 = 32; // Max
+        let x1 = 2; // Min
+        let x = occupied.count() as Score; // Current
 
-        score += self.eval_mobility(side);
-        score -= self.eval_mobility(side ^ 1);
+        for &c in &COLORS {
+            let mut material = 0;
+            let mut mobility = 0;
+            let mut position = [0, 0]; // Opening and ending phases
+
+            for &p in &PIECES {
+                let piece = c | p;
+                let mut pieces = self.bitboards[piece as usize];
+
+                let n = pieces.count() as Score;
+                material += n * PIECE_VALUES[piece as usize];
+
+                while let Some(square) = pieces.next() {
+                    let targets = piece_attacks(piece, square, occupied);
+                    mobility += targets.count() as Score;
+
+                    position[0] += PST[piece as usize][square as usize][0];
+                    position[1] += PST[piece as usize][square as usize][1];
+                }
+            }
+
+            let sign = 1 - (2 * (side ^ c) as Score);
+
+            // Linear interpolation between opening and ending
+            let y0 = position[0];
+            let y1 = position[1];
+            score += sign * (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
+
+            score += sign * material;
+            score += sign * mobility;
+        }
 
         score
     }
@@ -139,6 +195,32 @@ impl Eval for Game {
         }
 
         score
+    }
+
+    fn eval_pst(&self, c: Color) -> Score {
+        let mut score_0 = 0; // Opening score
+        let mut score_1 = 0; // Ending score
+
+        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
+
+        for p in &PIECES {
+            let piece = c | p;
+            let mut pieces = self.bitboards[piece as usize];
+            while let Some(square) = pieces.next() {
+                score_0 += PST[0][piece as usize][square as usize];
+                score_1 += PST[1][piece as usize][square as usize];
+            }
+        }
+
+        let x0 = 32;
+        let x1 = 2;
+        let x = occupied.count() as Score;
+
+        let y0 = score_0;
+        let y1 = score_1;
+
+        // Linear interpolation between opening and ending scores
+        (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0)
     }
 
     fn eval_mobility(&self, c: Color) -> Score {
