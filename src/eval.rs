@@ -102,42 +102,44 @@ impl Eval for Game {
 
         let mut score = 0;
 
-        // Number of pieces on board
+        let mut material = [0, 0];
+        let mut mobility = [0, 0];
+        let mut position = [[0, 0], [0, 0]]; // Opening and ending phases
+
+        for &c in &COLORS {
+            for &p in &PIECES {
+                let piece = c | p;
+                let mut pieces = self.bitboards[piece as usize];
+                let n = pieces.count() as Score;
+                material[c as usize] += n * PIECE_VALUES[piece as usize];
+                while let Some(square) = pieces.next() {
+                    let targets = piece_attacks(piece, square, occupied);
+                    mobility[c as usize] += targets.count() as Score;
+                    position[c as usize][0] += PST[piece as usize][square as usize][0];
+                    position[c as usize][1] += PST[piece as usize][square as usize][1];
+                }
+            }
+        }
+
+        let c = side as usize;
+
+        // Linear interpolation between opening and ending scores
+        // based on the number of pieces on the board
         let x0 = 32; // Max
         let x1 = 2; // Min
         let x = occupied.count() as Score; // Current
 
-        for &c in &COLORS {
-            let mut material = 0;
-            let mut mobility = 0;
-            let mut position = [0, 0]; // Opening and ending phases
+        let y0 = position[c][0];
+        let y1 = position[c][1];
+        score += (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
+        score += material[c];
+        score += mobility[c];
 
-            for &p in &PIECES {
-                let piece = c | p;
-                let mut pieces = self.bitboards[piece as usize];
-
-                let n = pieces.count() as Score;
-                material += n * PIECE_VALUES[piece as usize];
-
-                while let Some(square) = pieces.next() {
-                    let targets = piece_attacks(piece, square, occupied);
-                    mobility += targets.count() as Score;
-
-                    position[0] += PST[piece as usize][square as usize][0];
-                    position[1] += PST[piece as usize][square as usize][1];
-                }
-            }
-
-            let sign = 1 - (2 * (side ^ c) as Score);
-
-            // Linear interpolation between opening and ending
-            let y0 = position[0];
-            let y1 = position[1];
-            score += sign * (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
-
-            score += sign * material;
-            score += sign * mobility;
-        }
+        let y0 = position[c ^ 1][0];
+        let y1 = position[c ^ 1][1];
+        score -= (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
+        score -= material[c ^ 1];
+        score -= mobility[c ^ 1];
 
         score
     }
