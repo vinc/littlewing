@@ -86,6 +86,7 @@ pub trait Eval {
 }
 
 trait EvalExt {
+    fn eval_ending(&self, c: Color) -> Option<Score>;
     fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square;
 }
 
@@ -93,25 +94,13 @@ impl Eval for Game {
     fn eval(&self) -> Score {
         let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
         let side = self.positions.top().side;
+
+        // Look for win/loss/draw
+        if let Some(score) = self.eval_ending(side) {
+            return score;
+        }
+
         let mut score = 0;
-
-        let kings = self.bitboard(WHITE | KING) | self.bitboard(BLACK | KING);
-        if kings.count() < 2 {
-            if self.bitboard(side | KING).count() == 0 {
-                return -INF; // Loss
-            } else {
-                return INF; // Win
-            }
-        }
-
-        // Draw by insufficient material
-        if occupied.count() < 4 {
-            let knights = self.bitboard(WHITE | KNIGHT) | self.bitboard(BLACK | KNIGHT);
-            let bishops = self.bitboard(WHITE | BISHOP) | self.bitboard(BLACK | BISHOP);
-            if (kings | knights | bishops) == occupied {
-                return 0; // Draw
-            }
-        }
 
         // Number of pieces on board
         let x0 = 32; // Max
@@ -273,6 +262,30 @@ impl Eval for Game {
 }
 
 impl EvalExt for Game {
+    fn eval_ending(&self, side: Color) -> Option<Score> {
+        let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
+
+        let kings = self.bitboard(WHITE | KING) | self.bitboard(BLACK | KING);
+        if kings.count() < 2 {
+            if self.bitboard(side | KING).count() == 0 {
+                return Some(-INF); // Loss
+            } else {
+                return Some(INF); // Win
+            }
+        }
+
+        // Draw by insufficient material
+        if occupied.count() < 4 {
+            let knights = self.bitboard(WHITE | KNIGHT) | self.bitboard(BLACK | KNIGHT);
+            let bishops = self.bitboard(WHITE | BISHOP) | self.bitboard(BLACK | BISHOP);
+            if (kings | knights | bishops) == occupied {
+                return Some(0); // Draw
+            }
+        }
+
+        None
+    }
+
     // Get square of least valuable piece
     fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square {
         for p in &PIECES {
