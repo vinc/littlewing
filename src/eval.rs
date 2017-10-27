@@ -207,8 +207,8 @@ impl Eval for Game {
             let piece = c | p;
             let mut pieces = self.bitboards[piece as usize];
             while let Some(square) = pieces.next() {
-                score_0 += PST[0][piece as usize][square as usize];
-                score_1 += PST[1][piece as usize][square as usize];
+                score_0 += PST[piece as usize][square as usize][0];
+                score_1 += PST[piece as usize][square as usize][1];
             }
         }
 
