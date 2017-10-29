@@ -10,7 +10,7 @@ use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use bitboard::filefill;
 use game::Game;
 use moves::Move;
-use pst::{PST_OPENING, PST_ENDING};
+use pst::PST;
 
 pub const PAWN_VALUE:       Score =   100;
 pub const KNIGHT_VALUE:     Score =   350;
@@ -44,27 +44,6 @@ lazy_static! {
 
         piece_values
     };
-
-    static ref PST: [[[Score; 2]; 64]; 14] = {
-        let mut pst_values = [[[0; 2]; 64]; 14];
-
-        for c in 0..2 {
-            for p in 0..6 {
-                for s in 0..64 {
-                    let square = (s as Square).flip((c as Color) ^ 1);
-                    let piece = (c as Color) | PIECES[p];
-
-                    let score = PST_OPENING[p][s] as Score;
-                    pst_values[piece as usize][square as usize][0] = score;
-
-                    let score = PST_ENDING[p][s] as Score;
-                    pst_values[piece as usize][square as usize][1] = score;
-                }
-            }
-        }
-
-        pst_values
-    };
 }
 
 /// Evaluation algorithms
@@ -94,9 +73,9 @@ impl Eval for Game {
             return score;
         }
 
-        let mut material = [0, 0];
-        let mut mobility = [0, 0];
-        let mut position = [[0, 0], [0, 0]]; // Opening and ending phases
+        let mut material = [0; 2];
+        let mut mobility = [0; 2];
+        let mut position = [[0; 2]; 2]; // Opening and ending phases
 
         for &c in &COLORS {
             for &p in &PIECES {
