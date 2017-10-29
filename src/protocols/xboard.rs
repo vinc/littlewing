@@ -71,11 +71,11 @@ impl XBoard {
     }
 
     fn cmd_post(&mut self) {
-        self.game.is_verbose = true;
+        self.game.is_search_verbose = true;
     }
 
     fn cmd_nopost(&mut self) {
-        self.game.is_verbose = false;
+        self.game.is_search_verbose = false;
     }
 
     fn cmd_undo(&mut self) {

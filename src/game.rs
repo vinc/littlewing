@@ -17,7 +17,8 @@ use piece::{PieceAttr, PieceChar};
 pub struct Game {
     pub protocol: Protocol,
     pub is_debug: bool,  // Print debugging
-    pub is_verbose: bool, // Print thinking
+    pub is_eval_verbose: bool, // Print thinking in eval
+    pub is_search_verbose: bool, // Print thinking in search
     pub is_colored: bool,
     pub show_coordinates: bool,
     pub threads_count: usize,
@@ -38,7 +39,8 @@ impl Game {
         Game {
             protocol: Protocol::CLI,
             is_debug: false,
-            is_verbose: false,
+            is_eval_verbose: false,
+            is_search_verbose: false,
             is_colored: false,
             show_coordinates: false,
             threads_count: 0,

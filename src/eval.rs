@@ -100,8 +100,6 @@ impl Eval for Game {
             return score;
         }
 
-        let mut score = 0;
-
         let mut material = [0, 0];
         let mut mobility = [0, 0];
         let mut position = [[0, 0], [0, 0]]; // Opening and ending phases
@@ -121,6 +119,9 @@ impl Eval for Game {
             }
         }
 
+        let mut position_score = 0;
+        let mut material_score = 0;
+        let mut mobility_score = 0;
         let c = side as usize;
 
         // Linear interpolation between opening and ending scores
@@ -131,15 +132,24 @@ impl Eval for Game {
 
         let y0 = position[c][0];
         let y1 = position[c][1];
-        score += (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
-        score += material[c];
-        score += mobility[c];
+        position_score += (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
+        material_score += material[c];
+        mobility_score += mobility[c];
 
         let y0 = position[c ^ 1][0];
         let y1 = position[c ^ 1][1];
-        score -= (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
-        score -= material[c ^ 1];
-        score -= mobility[c ^ 1];
+        position_score -= (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
+        material_score -= material[c ^ 1];
+        mobility_score -= mobility[c ^ 1];
+
+        let score = position_score + material_score + mobility_score;
+
+        if self.is_eval_verbose {
+            println!("material: {:>5.2}", 0.01 * material_score as f64);
+            println!("position: {:>5.2}", 0.01 * position_score as f64);
+            println!("mobility: {:>5.2}", 0.01 * mobility_score as f64);
+            println!("total:    {:>5.2}", 0.01 * score as f64);
+        }
 
         score
     }

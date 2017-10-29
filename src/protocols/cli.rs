@@ -141,7 +141,7 @@ impl CLI {
                 self.game.is_debug = value;
             }
             "think" => {
-                self.game.is_verbose = value;
+                self.game.is_search_verbose = value;
             }
             "coords" => {
                 self.game.show_coordinates = value;
@@ -179,17 +179,12 @@ impl CLI {
 
     fn cmd_eval(&mut self) {
         let c = self.game.positions.top().side;
-        let material = self.game.eval_material(c) - self.game.eval_material(c ^ 1);
-        let mobility = self.game.eval_mobility(c) - self.game.eval_mobility(c ^ 1);
-        let pst = self.game.eval_pst(c) - self.game.eval_pst(c ^ 1);
-        let total = self.game.eval();
 
-        println!("Static evaluation of current position:");
+        println!("Static evaluation of the current position:");
         println!("");
-        println!("material:   {:>5.2}", 0.01 * material as f64);
-        println!("mobility:   {:>5.2}", 0.01 * mobility as f64);
-        println!("pst:        {:>5.2}", 0.01 * pst as f64);
-        println!("total:      {:>5.2}", 0.01 * total as f64);
+        self.game.is_eval_verbose = true;
+        self.game.eval();
+        self.game.is_eval_verbose = false;
         println!("");
         println!("(score in pawn, relative to {})", if c == WHITE { "white" } else { "black"});
     }

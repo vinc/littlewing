@@ -76,7 +76,7 @@ impl Search for Game {
         for i in 0..n {
             let mut clone = self.clone();
             if i > 0 {
-                clone.is_verbose = false;
+                clone.is_search_verbose = false;
                 clone.is_debug = false;
             }
 
@@ -121,7 +121,7 @@ impl Search for Game {
             println!("# starting search at depth {}", depths.start);
         }
 
-        if self.is_verbose {
+        if self.is_search_verbose {
             self.print_thinking_header();
         }
 
@@ -173,7 +173,7 @@ impl Search for Game {
                     has_legal_moves = true;
                     self.nodes_count += 1;
                     if score > alpha {
-                        if self.is_verbose && !self.clock.poll(self.nodes_count) {
+                        if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
                             // TODO: skip the first thousand nodes to gain time?
 
                             self.tt.set(hash, depth, score, m, Bound::Exact);

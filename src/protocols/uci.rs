@@ -24,7 +24,7 @@ impl UCI {
     }
     pub fn run(&mut self) {
         self.game.protocol = Protocol::UCI;
-        self.game.is_verbose = true;
+        self.game.is_search_verbose = true;
         println!("id name {}", version());
         println!("id author Vincent Ollivier");
         println!("uciok");
