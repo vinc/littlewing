@@ -71,15 +71,6 @@ fn bench_eval_material(b: &mut Bencher) {
 }
 
 #[bench]
-fn bench_eval_mobility(b: &mut Bencher) {
-    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-    b.iter(|| {
-        game.eval_mobility(color::WHITE)
-    })
-}
-
-#[bench]
 fn bench_see(b: &mut Bencher) {
     let mut game = Game::from_fen("rnbqkb1r/pp2pppp/2p2n2/1B1p4/4P3/2N5/PPPP1PPP/R1BQK1NR w KQkq - 0 4");
     let m = game.move_from_can("c2d5");
