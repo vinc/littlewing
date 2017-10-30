@@ -3,7 +3,6 @@ use std::ops::Index;
 use color::*;
 use piece::*;
 use square::*;
-use common::*;
 
 #[derive(Copy, Clone)]
 pub struct Position {
@@ -45,6 +44,8 @@ impl Position {
         self.castling_rights[side as usize][(wing >> 3) as usize] = false;
     }
 }
+
+const MAX_POSITIONS: usize = 1024;
 
 #[derive(Clone)]
 pub struct Positions {
