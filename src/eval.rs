@@ -19,7 +19,7 @@ pub const ROOK_VALUE:       Score =   500;
 pub const QUEEN_VALUE:      Score =  1000; // R + B + P + bonus bishop pair
 pub const KING_VALUE:       Score = 10000;
 
-//const BONUS_BISHOP_PAIR:    Score =    50;
+const BONUS_BISHOP_PAIR:    Score =    50;
 //const BONUS_HALF_OPEN_FILE: Score =     5;
 //const BONUS_KNIGHT_PAWNS:   Score =     5;
 //const BONUS_ROOK_OPEN_FILE: Score =    20;
@@ -84,9 +84,9 @@ impl Eval for Game {
                 let n = pieces.count() as Score;
                 material[c as usize] += n * PIECE_VALUES[piece as usize];
                 // FIXME: This conditional slows the function from 1250ns to 1350ns
-                //if p == BISHOP && n > 1 {
-                //    material[c as usize] += BONUS_BISHOP_PAIR;
-                //}
+                if p == BISHOP && n > 1 {
+                    material[c as usize] += BONUS_BISHOP_PAIR;
+                }
                 while let Some(square) = pieces.next() {
                     let targets = piece_attacks(piece, square, occupied);
                     mobility[c as usize] += targets.count() as Score;
