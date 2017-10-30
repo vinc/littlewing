@@ -14,6 +14,7 @@ use color::*;
 use common::*;
 use attack::Attack;
 use clock::Clock;
+use eval::Eval;
 use fen::FEN;
 use game::Game;
 use moves_generator::MovesGenerator;
@@ -52,6 +53,7 @@ impl CLI {
                         "quit"       => { break },
                         "help"       => { self.cmd_usage() },
                         "play"       => { self.cmd_play() },
+                        "eval"       => { self.cmd_eval() },
                         "undo"       => { self.cmd_undo() },
                         "move"       => { self.cmd_move(&args) },
                         "time"       => { self.cmd_time(&args) },
@@ -139,7 +141,7 @@ impl CLI {
                 self.game.is_debug = value;
             }
             "think" => {
-                self.game.is_verbose = value;
+                self.game.is_search_verbose = value;
             }
             "coords" => {
                 self.game.show_coordinates = value;
@@ -173,6 +175,18 @@ impl CLI {
         if self.show_board {
             println!("{}", self.game.to_string());
         }
+    }
+
+    fn cmd_eval(&mut self) {
+        let c = self.game.positions.top().side;
+
+        println!("Static evaluation of the current position:");
+        println!("");
+        self.game.is_eval_verbose = true;
+        self.game.eval();
+        self.game.is_eval_verbose = false;
+        println!("");
+        println!("(score in pawn, relative to {})", if c == WHITE { "white" } else { "black"});
     }
 
     fn cmd_undo(&mut self) {

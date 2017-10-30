@@ -10,6 +10,7 @@ use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use bitboard::filefill;
 use game::Game;
 use moves::Move;
+use pst::PST;
 
 pub const PAWN_VALUE:       Score =   100;
 pub const KNIGHT_VALUE:     Score =   350;
@@ -19,11 +20,11 @@ pub const QUEEN_VALUE:      Score =  1000; // R + B + P + bonus bishop pair
 pub const KING_VALUE:       Score = 10000;
 
 const BONUS_BISHOP_PAIR:    Score =    50;
-const BONUS_HALF_OPEN_FILE: Score =     5;
-const BONUS_KNIGHT_PAWNS:   Score =     5;
-const BONUS_ROOK_OPEN_FILE: Score =    20;
-const BONUS_ROOK_PAWNS:     Score =     5;
-const MALUS_DOUBLED_PAWN:   Score =   -10;
+//const BONUS_HALF_OPEN_FILE: Score =     5;
+//const BONUS_KNIGHT_PAWNS:   Score =     5;
+//const BONUS_ROOK_OPEN_FILE: Score =    20;
+//const BONUS_ROOK_PAWNS:     Score =     5;
+//const MALUS_DOUBLED_PAWN:   Score =   -10;
 
 lazy_static! {
     static ref PIECE_VALUES: [Score; 14] = {
@@ -53,52 +54,87 @@ pub trait Eval {
     /// Evaluate material at the current position for the given side
     fn eval_material(&self, c: Color) -> Score;
 
-    /// Evaluate mobility at the current position for the given side
-    fn eval_mobility(&self, c: Color) -> Score;
-
     /// Static Exchange Evaluation
     fn see(&self, capture: Move) -> Score;
 }
 
 trait EvalExt {
+    fn eval_ending(&self, c: Color) -> Option<Score>;
     fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square;
 }
 
 impl Eval for Game {
     fn eval(&self) -> Score {
-        let mut score = 0;
+        let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
         let side = self.positions.top().side;
 
-        let kings = self.bitboard(WHITE | KING) | self.bitboard(BLACK | KING);
-        if kings.count() < 2 {
-            if self.bitboard(side | KING).count() == 0 {
-                return -INF; // Loss
-            } else {
-                return INF; // Win
+        // Look for win/loss/draw
+        if let Some(score) = self.eval_ending(side) {
+            return score;
+        }
+
+        let mut material = [0; 2];
+        let mut mobility = [0; 2];
+        let mut position = [[0; 2]; 2]; // Opening and ending phases
+
+        for &c in &COLORS {
+            for &p in &PIECES {
+                let piece = c | p;
+                let mut pieces = self.bitboards[piece as usize];
+                let n = pieces.count() as Score;
+                material[c as usize] += n * PIECE_VALUES[piece as usize];
+                // FIXME: This conditional slows the function from 1250ns to 1350ns
+                if p == BISHOP && n > 1 {
+                    material[c as usize] += BONUS_BISHOP_PAIR;
+                }
+                while let Some(square) = pieces.next() {
+                    let targets = piece_attacks(piece, square, occupied);
+                    mobility[c as usize] += targets.count() as Score;
+                    position[c as usize][0] += PST[piece as usize][square as usize][0];
+                    position[c as usize][1] += PST[piece as usize][square as usize][1];
+                }
             }
         }
 
-        // Draw by insufficient material
-        let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
-        if occupied.count() < 4 {
-            let knights = self.bitboard(WHITE | KNIGHT) | self.bitboard(BLACK | KNIGHT);
-            let bishops = self.bitboard(WHITE | BISHOP) | self.bitboard(BLACK | BISHOP);
-            if (kings | knights | bishops) == occupied {
-                return 0; // Draw
-            }
+        let mut position_score = 0;
+        let mut material_score = 0;
+        let mut mobility_score = 0;
+        let c = side as usize;
+
+        // Linear interpolation between opening and ending scores
+        // based on the number of pieces on the board
+        let x0 = 32; // Max
+        let x1 = 2; // Min
+        let x = occupied.count() as Score; // Current
+
+        let y0 = position[c][0];
+        let y1 = position[c][1];
+        position_score += (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
+        material_score += material[c];
+        mobility_score += mobility[c];
+
+        let y0 = position[c ^ 1][0];
+        let y1 = position[c ^ 1][1];
+        position_score -= (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
+        material_score -= material[c ^ 1];
+        mobility_score -= mobility[c ^ 1];
+
+        let score = position_score + material_score + mobility_score;
+
+        if self.is_eval_verbose {
+            println!("material: {:>5.2}", 0.01 * material_score as f64);
+            println!("position: {:>5.2}", 0.01 * position_score as f64);
+            println!("mobility: {:>5.2}", 0.01 * mobility_score as f64);
+            println!("total:    {:>5.2}", 0.01 * score as f64);
         }
-
-        score += self.eval_material(side);
-        score -= self.eval_material(side ^ 1);
-
-        score += self.eval_mobility(side);
-        score -= self.eval_mobility(side ^ 1);
 
         score
     }
 
     fn eval_material(&self, c: Color) -> Score {
         let mut score = 0;
+
+        /*
         let mut pawns_count = 0;
 
         let color_pawns = self.bitboards[(c | PAWN) as usize];
@@ -109,6 +145,7 @@ impl Eval for Game {
         let half_open_files = half_open_files(color_pawns, other_pawns);
         let half_open_files_count = (half_open_files & RANK_1).count() as Score;
         score += half_open_files_count * BONUS_HALF_OPEN_FILE;
+        */
 
         for &p in &PIECES {
             let piece = c | p;
@@ -116,6 +153,8 @@ impl Eval for Game {
             let n = pieces.count() as Score;
             score += n * PIECE_VALUES[piece as usize];
 
+            // FIXME: This conditional slows the function from 65 to 130ns
+            /*
             match p {
                 PAWN => {
                     pawns_count = n;
@@ -136,22 +175,7 @@ impl Eval for Game {
                 },
                 _ => { }
             }
-        }
-
-        score
-    }
-
-    fn eval_mobility(&self, c: Color) -> Score {
-        let mut score = 0;
-
-        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
-        for p in &PIECES {
-            let piece = c | p;
-            let mut pieces = self.bitboards[piece as usize];
-            while let Some(from) = pieces.next() {
-                let targets = piece_attacks(piece, from, occupied);
-                score += targets.count() as Score;
-            }
+            */
         }
 
         score
@@ -191,6 +215,30 @@ impl Eval for Game {
 }
 
 impl EvalExt for Game {
+    fn eval_ending(&self, side: Color) -> Option<Score> {
+        let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
+
+        let kings = self.bitboard(WHITE | KING) | self.bitboard(BLACK | KING);
+        if kings.count() < 2 {
+            if self.bitboard(side | KING).count() == 0 {
+                return Some(-INF); // Loss
+            } else {
+                return Some(INF); // Win
+            }
+        }
+
+        // Draw by insufficient material
+        if occupied.count() < 4 {
+            let knights = self.bitboard(WHITE | KNIGHT) | self.bitboard(BLACK | KNIGHT);
+            let bishops = self.bitboard(WHITE | BISHOP) | self.bitboard(BLACK | BISHOP);
+            if (kings | knights | bishops) == occupied {
+                return Some(0); // Draw
+            }
+        }
+
+        None
+    }
+
     // Get square of least valuable piece
     fn lvp(&self, side: Color, attacks: Bitboard, occupied: Bitboard) -> Square {
         for p in &PIECES {
@@ -212,10 +260,12 @@ fn closed_files(white_pawns: Bitboard, black_pawns: Bitboard) -> Bitboard {
     filefill(white_pawns) & filefill(black_pawns)
 }
 
+#[allow(dead_code)]
 fn open_files(white_pawns: Bitboard, black_pawns: Bitboard) -> Bitboard {
     !filefill(white_pawns) & !filefill(black_pawns)
 }
 
+#[allow(dead_code)]
 fn half_open_files(pawns: Bitboard, opponent_pawns: Bitboard) -> Bitboard {
     !filefill(pawns) ^ open_files(pawns, opponent_pawns)
 }
