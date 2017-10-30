@@ -93,7 +93,6 @@ pub const SQUARES: [Square; 64] = [
 
 pub const MAX_PLY: usize = 128;
 pub const MAX_MOVES: usize = 256;
-pub const MAX_POSITIONS: usize = 512;
 pub const MAX_KILLERS: usize = 2;
 
 pub const TT_SIZE: usize = 8 << 20; // 8 Mb
