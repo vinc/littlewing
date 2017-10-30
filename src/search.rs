@@ -83,9 +83,13 @@ impl Search for Game {
             let min_depth = depths.start; // TODO: = 1 + i;
             let max_depth = depths.end;
 
-            children.push(thread::spawn(move || {
+            let builder = thread::Builder::new().
+                name(format!("search_{}", i)).
+                stack_size(4 << 20);
+
+            children.push(builder.spawn(move || {
                 clone.search_root(min_depth..max_depth)
-            }));
+            }).unwrap());
         }
 
         let mut res = Vec::with_capacity(n);
