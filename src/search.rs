@@ -80,7 +80,7 @@ impl Search for Game {
                 clone.is_debug = false;
             }
 
-            let min_depth = depths.start; // TODO: = 1 + i;
+            let min_depth = depths.start; // TODO: + i as usize;
             let max_depth = depths.end;
 
             let builder = thread::Builder::new().

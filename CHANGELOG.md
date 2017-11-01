@@ -3,13 +3,20 @@
 ## [Unreleased]
 
 ### Added
+- Add piece square tables to evaluation
 - Add parallel search in threads with shared transposition table
-- Save upper and lower bounds in transposition table
+- Add upper and lower bounds in transposition table
+- Add age field in transposition table
+- Add delta pruning to quiescence search
+- Add transposition table to quiescence search
 - Add readline to user interface
 - Add getopt to parse program options
 - Add basic UCI support
+- Add public library
 
 ### Changed
+- Refactor a lot of code
+- Improve statistics debug output
 - Allow NMP, IID, and LMR at shallower depth
 - Set NMP R to 3
 
