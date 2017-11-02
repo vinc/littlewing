@@ -1,6 +1,3 @@
-#![feature(test)]
-
-extern crate test;
 extern crate littlewing;
 
 use std::fs::File;
