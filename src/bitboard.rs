@@ -72,13 +72,16 @@ impl BitboardExt for Bitboard {
 
         out.push_str(&format!("DEBUG(bitboard): 0x{:016X}\n", *self));
 
+        out.push_str("+--------+\n");
         for i in 0..8 {
+            out.push_str("|");
             for j in 0..8 {
-                out.push_str(&format!("{:b}", self.get(8 * i + j) as usize));
+                let s = 8 * i + j;
+                out.push_str(&format!("{:b}", self.get(s) as usize));
             }
-            out.push('\n');
+            out.push_str(&format!("|{}\n", i + 1));
         }
-        out.push('\n');
+        out.push_str("+--------+\n abcdefgh\n");
 
         out
     }
