@@ -82,6 +82,7 @@ impl Attack for Game {
     }
 }
 
+/// Return the attacks bitboard of a piece attacks to a square
 pub fn piece_attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboard {
     match piece.kind() {
         PAWN   => PAWN_ATTACKS[piece.color() as usize][square as usize],
@@ -142,27 +143,40 @@ lazy_static! {
     };
 }
 
-/*
 #[cfg(test)]
 mod tests {
-    extern crate test;
+    use super::*;
+    use fen::FEN;
 
-    //use self::test::Bencher;
-    use common::*;
-    use attack::{bishop_attacks, rook_attacks};
+    #[test]
+    fn test_piece_attacks() {
+        let fen = "r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQR1K1 b kq - 5 6";
+        let game = Game::from_fen(fen);
 
-    #[bench]
-    fn bench_bishop_attacks(b: &mut Bencher) {
-        b.iter(|| {
-            bishop_attacks(E4, 0u64)
-        })
-    }
+        let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
 
-    #[bench]
-    fn bench_rook_attacks(b: &mut Bencher) {
-        b.iter(|| {
-            rook_attacks(E4, 0u64)
-        })
+        assert_eq!(game.board[A4 as usize], WHITE | BISHOP);
+        assert_eq!(game.board[C2 as usize], WHITE | PAWN);
+        assert_eq!(game.board[C6 as usize], BLACK | KNIGHT);
+
+        // Return the attacks set of bishop attacks to C6
+        let attacks = piece_attacks(WHITE | BISHOP, C6, occupied);
+        assert_eq!(attacks.count(), 6);
+        assert_eq!(attacks & game.bitboard(WHITE | BISHOP), 1 << A4);
+
+        // Return the attacks set of bishop attacks from A4
+        let moves = piece_attacks(WHITE | BISHOP, A4, occupied);
+        assert_eq!(moves.count(), 4);
+
+        let quiet_moves = moves & !occupied;
+        assert_eq!(quiet_moves.count(), 2);
+
+        let captures = moves & game.bitboard(BLACK);
+        assert_eq!(captures.count(), 1);
+        assert_eq!(captures.scan() as Square, C6);
+
+        let defended = moves & game.bitboard(WHITE);
+        assert_eq!(defended.count(), 1);
+        assert_eq!(defended.scan() as Square, C2);
     }
 }
-*/
