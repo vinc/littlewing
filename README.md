@@ -98,44 +98,57 @@ user interface:
     > show think
     > time 1 10
     > play
+    # using 0 threads
     # FEN rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
     # allocating 10000 ms to move
+    # starting search at depth 1
      ply   score   time     nodes  pv
-       1      -6      0         1  1. ... a6
-       1      -5      0         3  1. ... c6
-       1      -2      0         4  1. ... d6
-       1       0      0         5  1. ... e6
-       2     -10      0        51  1. ... e6 2. Qf3
-       3      -1      0       484  1. ... e6 2. Qh5 Qf6
-       3       0      0       944  1. ... e5 2. Qf3 Qf6
-       4      -4      0      2259  1. ... e5 2. Qf3 Qf6 3. Nc3
-       5       0      1     10414  1. ... e5 2. Qf3 Qf6 3. Nc3 Nc6
-       6      -4      9     60123  1. ... e5 2. Qf3 Qf6 3. Nc3 Nc6 4. Bc4
-       6      -3     14     94638  1. ... c6 2. Qh5 Nf6 3. Qe5 d6 4. Qd4
-       7      -5     51    318377  1. ... c6 2. d4 Qa5+ 3. Qd2 Qxd2+ 4. Bxd2 Nf6
-       7      -1     90    562244  1. ... d6 2. Qf3 Nf6 3. Bc4 Nc6 4. Qb3 e6
-       8      -5    168   1129349  1. ... d6 2. Nc3 Nf6 3. d4 Nc6 4. Nf3 Be6 5. Bf4
-       8      -2    249   1658850  1. ... e6 2. Nc3 Nc6 3. d4 Qf6
-       8       0    292   1954015  1. ... d5 2. Qf3 dxe4 3. Qxe4 Nf6 4. Qa4+ Nc6 5. Nc3
-       9       3    393   2721094  1. ... d5 2. d3 Nc6 3. Nc3 Nf6
-      10       3    762   5572125  1. ... d5 2. exd5 Qxd5 3. Qf3 Nf6 4. Nc3 Qd4
-      11       0    995   7245726  1. ... d5 2. exd5 Qxd5 3. Nc3 Qe6+ 4. Qe2 Nc6 5. Nf3 Nf6 6. Qe3 Qg4
-    # 9951 ms used in search
-    # 7245726 nodes visited (7.28e5 nps)
-    # tt size:       524288
-    # tt inserts:    1431
-    # tt lookups:    1042442
-    # tt hits:       1487
-    # tt collisions: 1249
-    move d7d5
+       1     -46      0         1  1. ... a6
+       1     -45      0         3  1. ... c6
+       1     -22      0         4  1. ... d6
+       1     -20      0         5  1. ... e6
+       1      -1      0        14  1. ... d5
+       1       0      0        15  1. ... e5
+       1       9      0        20  1. ... Nc6
+       2     -47      0        53  1. ... Nc6 2. Nc3
+       3       9      0       278  1. ... Nc6 2. Nc3 Nf6
+       4     -45      1       860  1. ... Nc6 2. Nc3 Nf6 3. Nf3
+       4     -31      1      2435  1. ... d5 2. exd5 Qxd5 3. Nc3
+       5     -32      1      4559  1. ... d5 2. exd5 Qxd5 3. Nc3 Qd4
+       5     -21      2      7708  1. ... d6 2. Qe2 Nf6 3. Nc3 Nc6
+       5      -3      3     11522  1. ... e5 2. Qh5 d6 3. d3 Nc6
+       5       1      3     13090  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5
+       6     -21      3     14191  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5 4. d3
+       7      -7     10     42915  1. ... Nc6 2. Nf3 Nf6 3. e5 Ng4 4. d4 d5
+       8     -30     15     69004  1. ... Nc6 2. Nf3 Nf6 3. Nc3 e6 4. d4 d5 5. e5
+       9     -18     41    203279  1. ... Nc6 2. d4 d5 3. exd5 Qxd5 4. Nf3 Qe4+ 5. Be3 e5
+      10     -43     67    337609  1. ... Nc6 2. d4 e6 3. Nc3 d5 4. Nf3 dxe4 5. Nxe4 Nf6 6. Bg5
+      10     -38    112    571330  1. ... d5 2. exd5 Qxd5 3. Nc3 Qe6+ 4. Ne2 Nf6 5. d4 Nc6 6. Bf4
+      10     -21    135    689624  1. ... e5 2. Nc3 Nf6 3. Nf3 Nc6 4. Bb5 Qe7 5. d3 Qe6 6. a3
+      11      -9    236   1203094  1. ... e5 2. c4 Bd6 3. Nf3 Nc6 4. Nc3 Ne7 5. d4 O-O 6. Be3 exd4
+      12     -22    518   2721242  1. ... e5 2. Nf3 Nf6 3. Nc3 Nc6 4. d4 exd4 5. Nxd4 d5 6. exd5 Nxd5 7. Bc4
+      13     -13    952   5228761  1. ... e5 2. Nf3 Nc6 3. Nc3 Nf6 4. d4 exd4 5. Nxd4 d5 6. exd5 Nxd5 7. Bc4 Qe7+
+    # score:               -22
+    # time:               9951 ms
+    # nodes:           5495966 (5.52e5 nps)
+    # tt size:          524288 (8 MB)
+    #  - lower:         380565 (72.59 %)
+    #  - upper:          52120 (9.94 %)
+    #  - exact:            290 (0.06 %)
+    # tt inserts:       906503
+    # tt lookups:      3675353
+    #  - miss:         1502646 (40.88 %)
+    #  - hits:          448500 (12.20 %)
+    #  - collisions:   1724207 (46.91 %)
+    < move e7e5
     +---+---+---+---+---+---+---+---+
     | r | n | b | q | k | b | n | r |
     +---+---+---+---+---+---+---+---+
-    | p | p | p |   | p | p | p | p |
+    | p | p | p | p |   | p | p | p |
     +---+---+---+---+---+---+---+---+
     |   |   |   |   |   |   |   |   |
     +---+---+---+---+---+---+---+---+
-    |   |   |   | p |   |   |   |   |
+    |   |   |   |   | p |   |   |   |
     +---+---+---+---+---+---+---+---+
     |   |   |   |   | P |   |   |   |
     +---+---+---+---+---+---+---+---+
@@ -155,12 +168,15 @@ user interface:
     hide <feature>            Hide <feature>
     time <moves> <time>       Set clock to <moves> in <time> (in seconds)
     setboard <fen>            Set the board to <fen>
+    threads <number>          Set the <number> of threads
     perft                     Count the nodes at each depth
     perftsuite <epd>          Compare perft results to each position of <epd>
     testsuite <epd> [<time>]  Search each position of <epd> [for <time>]
     divide <depth>            Count the nodes at <depth> for each moves
+    uci                       Start UCI mode
     xboard                    Start XBoard mode
     > quit
+
 
 Test
 ----
@@ -217,9 +233,9 @@ And the usual others like `divide`, `setboard` or `testsuite`:
     r1bq2rk/pp3pbp/2p1p1pQ/7P/3P4/2PB1N2/PP3PPR/2KR4 w - - bm Qxh7+ -> Qxh7+
     5k2/6pp/p1qN4/1p1p4/3P4/2PKP2Q/PP3r2/3R4 b - - bm Qc4+ -> Qc4+
     7k/p7/1R5K/6r1/6p1/6P1/8/8 w - - bm Rb7 -> Rb7
-    rnbqkb1r/pppp1ppp/8/4P3/6n1/7P/PPPNPPP1/R1BQKBNR b KQkq - bm Ne3 -> Nxe5
+    rnbqkb1r/pppp1ppp/8/4P3/6n1/7P/PPPNPPP1/R1BQKBNR b KQkq - bm Ne3 -> Ne3
     r4q1k/p2bR1rp/2p2Q1N/5p2/5p2/2P5/PP3PPP/R5K1 w - - bm Rf7 -> Rf7
-    3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - bm Bh2+ -> f6
+    3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - bm Bh2+ -> Bh2+
     2br2k1/2q3rn/p2NppQ1/2p1P3/Pp5R/4P3/1P3PPP/3R2K1 w - - bm Rxh7 -> Rxh7
     r1b1kb1r/3q1ppp/pBp1pn2/8/Np3P2/5B2/PPP3PP/R2Q1RK1 w kq - bm Bxc6 -> Bxc6
 
@@ -230,4 +246,4 @@ it from `littlewing` if you installed it to make it run (much) faster.
 License
 -------
 
-Copyright (C) 2014-2017 Vincent Ollivier. Released under GNU GPL License v3.
+Copyright (c) 2014-2017 Vincent Ollivier. Released under GNU GPL License v3.
