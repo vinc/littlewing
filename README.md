@@ -9,9 +9,9 @@ A bitboard chess engine written in Rust.
 A work in progress since December 2014.
 
 - Board representation
+  - Bitboard with LLVM CTPOP and CTTZ
   - FEN support
   - Zobrist hashing
-  - Bitboard moves generation with De Bruijn sequence
   - Staged moves generation
   - MVV/LVA and SEE moves ordering with insertion sort
 - Search

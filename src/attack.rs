@@ -19,7 +19,7 @@ impl Attack for Game {
         if king == 0 {
             return true; // FIXME: Obviously...
         }
-        let square = king.trailing_zeros() as Square;
+        let square = king.scan() as Square;
         self.is_attacked(square, side)
     }
 

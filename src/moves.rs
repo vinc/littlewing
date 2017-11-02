@@ -263,7 +263,7 @@ impl Moves {
 
     pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: MoveType) {
         while targets != 0 {
-            let to = targets.trailing_zeros() as Square;
+            let to = targets.scan() as Square;
             debug_assert!((to as Direction) - dir >= 0);
             debug_assert!((to as Direction) - dir < 64);
             let from = ((to as Direction) - dir) as Square;
@@ -275,7 +275,7 @@ impl Moves {
 
     pub fn add_moves_from(&mut self, mut targets: Bitboard, from: Square, mt: MoveType) {
         while targets != 0 {
-            let to = targets.trailing_zeros() as Square;
+            let to = targets.scan() as Square;
             let m = Move::new(from, to, mt);
             self.add_move(m);
             targets.reset(to);

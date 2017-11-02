@@ -247,7 +247,7 @@ impl EvalExt for Game {
             // from the bitboard.
             let subset = attacks & occupied & self.bitboards[piece as usize];
             if subset > 0 {
-                return subset.trailing_zeros() as Square;
+                return subset.scan() as Square;
             }
         }
 

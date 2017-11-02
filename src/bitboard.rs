@@ -4,8 +4,11 @@ use square::*;
 pub type Bitboard = u64;
 
 pub trait BitboardExt {
-    /// Population count
+    /// Population count using LLVM `ctpop`
     fn count(&self) -> u32;
+
+    /// Bitscan using LLVM `cttz`
+    fn scan(&self) -> u32;
 
     /// Left shift positive values or right shift negative values
     fn shift(&self, x: Direction) -> Bitboard;
@@ -30,6 +33,11 @@ impl BitboardExt for Bitboard {
     #[inline]
     fn count(&self) -> u32 {
         self.count_ones()
+    }
+
+    #[inline]
+    fn scan(&self) -> u32 {
+        self.trailing_zeros()
     }
 
     #[inline]
@@ -126,7 +134,7 @@ impl BitboardIterator for Bitboard {
 
     fn next(&mut self) -> Option<Square> {
         if *self > 0 {
-            let sq = self.trailing_zeros() as Square;
+            let sq = self.scan() as Square;
 
             self.reset(sq);
 
