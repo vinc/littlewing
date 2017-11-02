@@ -8,23 +8,29 @@ A bitboard chess engine written in Rust.
 
 A work in progress since December 2014.
 
-- [x] XBoard and UCI communication protocol
-- [x] Bitboard moves generation with De Bruijn sequence
-- [x] Transpositions table
-- [x] Quiescence search
-- [x] Principal variation search
-- [x] MVV/LVA moves ordering by insertion sort
-- [x] Staged moves generation
-- [x] Static exchange evaluation
-- [x] Null move pruning
-- [x] Internal iterative deepening
-- [x] Futility pruning
-- [x] Late move reduction
-- [x] Killer heuristic
-- [x] Mobility evaluation
-- [x] Zobrist hashing
-- [x] FEN support
-- [ ] Lazy SMP
+- Board representation
+  - FEN support
+  - Zobrist hashing
+  - Bitboard moves generation with De Bruijn sequence
+  - Staged moves generation
+  - MVV/LVA and SEE moves ordering with insertion sort
+- Search
+  - Principal variation search
+  - Quiescence search
+  - Transpositions table
+  - Null move pruning
+  - Internal iterative deepening
+  - Futility pruning
+  - Late move reduction
+  - Killer heuristic
+- Evaluation
+  - Piece square table evaluation
+  - Mobility evaluation
+  - Static exchange evaluation
+- Interface
+  - CLI with play and debug commands
+  - XBoard and UCI communication protocol
+  - Public API with documented library
 
 Tested on GNU/Linux 32 and 64 bits, should run anywhere.
 
@@ -218,7 +224,7 @@ And the usual others like `divide`, `setboard` or `testsuite`:
     r1b1kb1r/3q1ppp/pBp1pn2/8/Np3P2/5B2/PPP3PP/R2Q1RK1 w kq - bm Bxc6 -> Bxc6
 
 Here we used `cargo run` to run the engine in debug mode, but you can invoke
-it from `littlewing` if you installed it to make it run faster.
+it from `littlewing` if you installed it to make it run (much) faster.
 
 
 License
