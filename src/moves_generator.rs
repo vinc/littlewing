@@ -407,10 +407,11 @@ impl MovesGenerator for Game {
 
         // Piece disambiguation or pawn capture
         if piece.kind() != PAWN || m.is_capture() {
-            let occupied = self.bitboards[piece as usize];
-            let attackers = piece_attacks(piece, m.to(), occupied) & occupied;
-            let f = m.from().file() as usize;
-            if (attackers & FILES[f]).count() > 1 || piece.kind() == PAWN {
+            let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
+            let pieces = self.bitboard(piece);
+            let attacks = piece_attacks(piece, m.to(), occupied);
+            let attackers = pieces & attacks;
+            if attackers.count() > 1 || piece.kind() == PAWN {
                 out.push(m.from().file_to_char());
             }
             // TODO: Pawn disambiguation
