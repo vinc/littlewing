@@ -53,8 +53,8 @@ Or the development version by fetching the git repository:
     $ LITTLEWING_VERSION=$(git describe) cargo build --release
     $ sudo cp target/release/littlewing /usr/local/bin
 
-Little Wing is compatible with the XBoard protocol, and has its own text-based
-user interface:
+Little Wing is compatible with XBoard and UCI communication protocols,
+in addition it has its own text-based user interface:
 
     $ littlewing --color --debug
     Little Wing v0.3.0
