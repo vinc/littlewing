@@ -18,7 +18,7 @@ fn test_wac() {
     // Test some WAC positions
     let path = Path::new("tests/wac.epd");
     let file = BufReader::new(File::open(&path).unwrap());
-    let lines = [1, 3, 4, 5, 6, 7, 8, 9, 37, 255];
+    let lines = [1, 3, 4, 5, 6, 7, 8, 9, 37, 199, 255];
     let mut l = 0;
     for line in file.lines() {
         l += 1;
