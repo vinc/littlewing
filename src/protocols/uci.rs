@@ -53,12 +53,7 @@ impl UCI {
     }
 
     fn cmd_stop(&mut self) {
-        self.game.clock.stop();
-
-        // Wait for current search to end
-        if let Some(searcher) = self.searcher.take() {
-            searcher.join().unwrap();
-        }
+        self.stop_search();
     }
 
     fn cmd_isready(&mut self) {
@@ -110,7 +105,7 @@ impl UCI {
         self.game.clock = Clock::new(moves, time);
         self.game.clock.disable_level();
         self.print_bestmove.store(true, Ordering::Relaxed);
-        self.search();
+        self.start_search();
     }
 
     fn cmd_position(&mut self, args: &[&str]) {
@@ -152,7 +147,7 @@ impl UCI {
         }
     }
 
-    fn search(&mut self) {
+    fn start_search(&mut self) {
         let n = self.max_depth;
         let mut game = self.game.clone();
         let print_bestmove = self.print_bestmove.clone();
@@ -173,8 +168,17 @@ impl UCI {
         }).unwrap());
     }
 
+    fn stop_search(&mut self) {
+        self.game.clock.stop();
+
+        // Wait for current search to end
+        if let Some(searcher) = self.searcher.take() {
+            searcher.join().unwrap();
+        }
+    }
+
     fn abort_search(&mut self) {
         self.print_bestmove.store(false, Ordering::Relaxed);
-        self.cmd_stop();
+        self.stop_search();
     }
 }
