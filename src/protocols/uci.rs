@@ -1,4 +1,5 @@
 use std::io;
+use std::thread;
 
 use color::*;
 use common::*;
@@ -12,14 +13,16 @@ use version;
 
 pub struct UCI {
     pub game: Game,
-    max_depth: Depth
+    max_depth: Depth,
+    commands: Vec<String>
 }
 
 impl UCI {
     pub fn new() -> UCI {
         UCI {
             game: Game::from_fen(DEFAULT_FEN),
-            max_depth: (MAX_PLY - 10) as Depth
+            max_depth: (MAX_PLY - 10) as Depth,
+            commands: Vec::new()
         }
     }
     pub fn run(&mut self) {
@@ -29,16 +32,21 @@ impl UCI {
         println!("id author Vincent Ollivier");
         println!("uciok");
         loop {
-            let mut line = String::new();
-            io::stdin().read_line(&mut line).unwrap();
-            let args: Vec<&str> = line.trim().split(' ').collect();
+            let mut cmd = String::new();
+            if self.commands.is_empty() {
+                io::stdin().read_line(&mut cmd).unwrap();
+            } else {
+                // For commands received while thinking
+                cmd = self.commands.pop().unwrap();
+            }
+            let args: Vec<&str> = cmd.trim().split(' ').collect();
             match args[0] {
                 "quit"       => break,
                 "isready"    => self.cmd_isready(),
                 "ucinewgame" => self.cmd_ucinewgame(),
                 "position"   => self.cmd_position(&args),
                 "go"         => self.cmd_go(&args),
-                _            => panic!("nope nope nope")
+                _            => continue, // Ignore unknown commands
             }
         }
     }
@@ -128,10 +136,51 @@ impl UCI {
     }
 
     fn think(&mut self) {
+        // Searcher thread
         let n = self.max_depth;
-        match self.game.search(1..n) {
+        let mut game = self.game.clone();
+        let builder = thread::Builder::new().
+            name(String::from("searcher")).
+            stack_size(4 << 20);
+        let searcher = builder.spawn(move || {
+            game.search(1..n)
+        }).unwrap();
+
+        // Stopper thread
+        let mut game = self.game.clone();
+        let builder = thread::Builder::new().
+            name(String::from("stopper")).
+            stack_size(4 << 20);
+        let stopper = builder.spawn(move || {
+            loop {
+                let mut cmd = String::new();
+                io::stdin().read_line(&mut cmd).unwrap();
+                match cmd.trim() {
+                    "isready" => {
+                        println!("readyok");
+                    },
+                    "stop" => {
+                        game.clock.stop();
+                        return cmd;
+                    },
+                    _ => {
+                        return cmd;
+                    }
+                }
+            }
+        }).unwrap();
+
+        let best_move = searcher.join().unwrap();
+        match best_move {
             Some(m) => println!("bestmove {}", m.to_can()),
             None    => println!("bestmove 0000")
         }
+
+        // If the stopper thread receives a `stop` command it will stop the
+        // searcher thread, otherwise it will keep listening until the next
+        // command sent to the engine, and this command must be sent back to
+        // the main input loop.
+        let cmd = stopper.join().unwrap();
+        self.commands.push(cmd);
     }
 }
