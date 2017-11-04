@@ -752,12 +752,12 @@ mod tests {
     }
 
     #[test]
-    fn test_search_root() {
+    fn test_search() {
         let fen = "2k4r/ppp3pp/8/2b2p1P/PPP2p2/N4P2/3r2K1/1q5R w - - 4 29";
         let best_move = Move::new(G2, H3, QUIET_MOVE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
-        let m = game.search_root(1..10).unwrap();
+        let m = game.search(1..10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
 
 
@@ -765,14 +765,14 @@ mod tests {
         let best_move = Move::new(H6, H7, CAPTURE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
-        let m = game.search_root(1..10).unwrap();
+        let m = game.search(1..10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
 
 
         let fen = "1n6/2rp3p/5Bpk/2p1P3/p1P2P2/5K2/PPB3P1/R6R b - - 0 1";
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 1 * 1000); // 1 seconds
-        assert_eq!(game.search_root(1..10), None);
+        assert_eq!(game.search(1..10), None);
     }
 
     #[test]
@@ -816,7 +816,7 @@ mod tests {
         game.make_move(m3);
         game.make_move(m4);
         game.clock = Clock::new(1, 1000); // 1 second
-        let m = game.search_root(1..10).unwrap();
+        let m = game.search(1..10).unwrap();
         assert!(m != m1);
     }
 
@@ -826,7 +826,7 @@ mod tests {
         let fen = "1q1k4/2Rr4/8/2Q3K1/8/8/8/8 w - - 0 1";
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5000); // 1 second
-        let m = game.search_root(1..100).unwrap();
+        let m = game.search(1..100).unwrap();
         assert_eq!(m, Move::new(G5, H6, QUIET_MOVE));
 
         // Zugzwang #2
@@ -835,7 +835,7 @@ mod tests {
         let fen = "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 0 1";
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 1000); // 1 second
-        let m = game.search_root(1..100).unwrap();
+        let m = game.search(1..100).unwrap();
         assert_eq!(m, Move::new(E1, F1, QUIET_MOVE));
         */
     }
