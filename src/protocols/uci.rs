@@ -1,5 +1,7 @@
 use std::io;
 use std::thread;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use color::*;
 use common::*;
@@ -14,7 +16,8 @@ use version;
 pub struct UCI {
     pub game: Game,
     max_depth: Depth,
-    commands: Vec<String>
+    searcher: Option<thread::JoinHandle<()>>,
+    print_bestmove: Arc<AtomicBool>,
 }
 
 impl UCI {
@@ -22,7 +25,8 @@ impl UCI {
         UCI {
             game: Game::from_fen(DEFAULT_FEN),
             max_depth: (MAX_PLY - 10) as Depth,
-            commands: Vec::new()
+            searcher: None,
+            print_bestmove: Arc::new(AtomicBool::new(false))
         }
     }
     pub fn run(&mut self) {
@@ -33,21 +37,27 @@ impl UCI {
         println!("uciok");
         loop {
             let mut cmd = String::new();
-            if self.commands.is_empty() {
-                io::stdin().read_line(&mut cmd).unwrap();
-            } else {
-                // For commands received while thinking
-                cmd = self.commands.pop().unwrap();
-            }
+            io::stdin().read_line(&mut cmd).unwrap();
             let args: Vec<&str> = cmd.trim().split(' ').collect();
             match args[0] {
                 "quit"       => break,
+                "stop"       => self.cmd_stop(),
                 "isready"    => self.cmd_isready(),
                 "ucinewgame" => self.cmd_ucinewgame(),
                 "position"   => self.cmd_position(&args),
                 "go"         => self.cmd_go(&args),
                 _            => continue, // Ignore unknown commands
             }
+        }
+        self.abort_search();
+    }
+
+    fn cmd_stop(&mut self) {
+        self.game.clock.stop();
+
+        // Wait for current search to end
+        if let Some(searcher) = self.searcher.take() {
+            searcher.join().unwrap();
         }
     }
 
@@ -56,11 +66,15 @@ impl UCI {
     }
 
     fn cmd_ucinewgame(&mut self) {
+        self.abort_search();
+
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
     }
 
     fn cmd_go(&mut self, args: &[&str]) {
+        self.abort_search();
+
         let side = self.game.positions.top().side;
         let mut is_time = false;
         let mut is_moves = false;
@@ -95,10 +109,13 @@ impl UCI {
         // FIXME: time increment is ignored
         self.game.clock = Clock::new(moves, time);
         self.game.clock.disable_level();
-        self.think();
+        self.print_bestmove.store(true, Ordering::Relaxed);
+        self.search();
     }
 
     fn cmd_position(&mut self, args: &[&str]) {
+        self.abort_search();
+
         let mut is_fen = false;
         let mut is_move = false;
         let mut fen = Vec::with_capacity(args.len());
@@ -135,52 +152,29 @@ impl UCI {
         }
     }
 
-    fn think(&mut self) {
-        // Searcher thread
+    fn search(&mut self) {
         let n = self.max_depth;
         let mut game = self.game.clone();
+        let print_bestmove = self.print_bestmove.clone();
+
         let builder = thread::Builder::new().
             name(String::from("searcher")).
             stack_size(4 << 20);
-        let searcher = builder.spawn(move || {
-            game.search(1..n)
-        }).unwrap();
 
-        // Stopper thread
-        let mut game = self.game.clone();
-        let builder = thread::Builder::new().
-            name(String::from("stopper")).
-            stack_size(4 << 20);
-        let stopper = builder.spawn(move || {
-            loop {
-                let mut cmd = String::new();
-                io::stdin().read_line(&mut cmd).unwrap();
-                match cmd.trim() {
-                    "isready" => {
-                        println!("readyok");
-                    },
-                    "stop" => {
-                        game.clock.stop();
-                        return cmd;
-                    },
-                    _ => {
-                        return cmd;
-                    }
+        self.searcher = Some(builder.spawn(move || {
+            let res = game.search(1..n);
+
+            if print_bestmove.load(Ordering::Relaxed) {
+                match res {
+                    Some(m) => println!("bestmove {}", m.to_can()),
+                    None    => println!("bestmove 0000")
                 }
             }
-        }).unwrap();
+        }).unwrap());
+    }
 
-        let best_move = searcher.join().unwrap();
-        match best_move {
-            Some(m) => println!("bestmove {}", m.to_can()),
-            None    => println!("bestmove 0000")
-        }
-
-        // If the stopper thread receives a `stop` command it will stop the
-        // searcher thread, otherwise it will keep listening until the next
-        // command sent to the engine, and this command must be sent back to
-        // the main input loop.
-        let cmd = stopper.join().unwrap();
-        self.commands.push(cmd);
+    fn abort_search(&mut self) {
+        self.print_bestmove.store(false, Ordering::Relaxed);
+        self.cmd_stop();
     }
 }
