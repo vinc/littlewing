@@ -539,7 +539,7 @@ impl SearchExt for Game {
 
         match self.protocol {
             Protocol::UCI => {
-                println!("info depth {} score {} time {} nodes {} pv {}", depth, score, time, nodes, pv);
+                println!("info depth {} score cp {} time {} nodes {} pv {}", depth, score, time, nodes, pv);
             },
             Protocol::XBoard | Protocol::CLI => {
                 if self.positions.top().side == BLACK {
