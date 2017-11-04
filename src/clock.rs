@@ -1,5 +1,8 @@
 extern crate time;
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
 #[derive(Clone)]
 pub struct Clock {
     moves_level: u16,
@@ -11,7 +14,7 @@ pub struct Clock {
     pub started_at: u64,
     pub polling_nodes_count: u64,
     last_nodes_count: u64,
-    is_finished: bool,
+    is_finished: Arc<AtomicBool>,
     is_level: bool // TODO: find a better name
 }
 
@@ -25,13 +28,13 @@ impl Clock {
             started_at: 0,
             polling_nodes_count: 100,
             last_nodes_count: 0,
-            is_finished: false,
+            is_finished: Arc::new(AtomicBool::new(false)),
             is_level: true
         }
     }
 
     pub fn start(&mut self, ply: usize) {
-        self.is_finished = false;
+        self.is_finished.store(false, Ordering::Relaxed);
         self.last_nodes_count = 0;
         self.started_at = (time::precise_time_s() * 1000.0) as u64;
 
@@ -43,6 +46,10 @@ impl Clock {
             let moves_done = (((ply - 1) / 2) as u16) % self.moves_level;
             self.moves_remaining = self.moves_level - moves_done;
         }
+    }
+
+    pub fn stop(&mut self) {
+        self.is_finished.store(true, Ordering::Relaxed);
     }
 
     pub fn disable_level(&mut self) {
@@ -75,9 +82,11 @@ impl Clock {
             let time_to_play = 25;
             let delta = time_between_polls + time_to_play;
 
-            self.is_finished = delta + self.elapsed_time() > self.allocated_time();
+            if delta + self.elapsed_time() > self.allocated_time() {
+                self.is_finished.store(true, Ordering::Relaxed);
+            }
         }
 
-        self.is_finished
+        self.is_finished.load(Ordering::Relaxed)
     }
 }
