@@ -31,8 +31,14 @@ pub struct CLI {
 
 impl CLI {
     pub fn new() -> CLI {
+        // Load startup position
+        let mut game = Game::from_fen(DEFAULT_FEN);
+
+        // Set default clock to 40 moves in 5 minutes
+        game.clock = Clock::new(40, 5 * 60 * 1000);
+
         CLI {
-            game: Game::from_fen(DEFAULT_FEN),
+            game,
             max_depth: (MAX_PLY - 10) as Depth,
             show_board: false
         }
