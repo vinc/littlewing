@@ -88,18 +88,12 @@ impl fmt::Display for Game {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut lines = vec![];
 
-        let mut sep = "+---".repeat(8) + "+";
-        if self.show_coordinates {
-            sep = format!("   {}", sep);
-        }
+        let sep = "+---".repeat(8) + "+";
+
         lines.push(sep.clone());
 
         for rank in 0..8 {
-            let mut line = if self.show_coordinates {
-                format!(" {} ", 8 - rank)
-            } else {
-                format!("")
-            };
+            let mut line = String::new();
 
             for file in 0..8 {
                 let p = self.board[8 * (7 - rank) + file];
@@ -114,13 +108,21 @@ impl fmt::Display for Game {
                 let s = format!("| {} ", s);
                 line.push_str(&s);
             }
-            line.push('|');
+
+            // Right border of the board
+            let s = if self.show_coordinates {
+                format!("| {}", 8 - rank)
+            } else {
+                format!("|")
+            };
+            line.push_str(&s);
+
             lines.push(line);
             lines.push(sep.clone());
         }
 
         if self.show_coordinates {
-            let line = " abcdefgh".chars().map(|c| format!(" {}  ", c)).collect();
+            let line = "abcdefgh".chars().map(|c| format!("  {} ", c)).collect();
             lines.push(line);
         }
 
