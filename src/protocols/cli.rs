@@ -68,6 +68,7 @@ impl CLI {
                         "hide"              => { self.cmd_config(false, &args) },
                         "load" | "setboard" => { self.cmd_setboard(&args) },
                         "core" | "threads"  => { self.cmd_threads(&args) },
+                        "hash" | "memory"   => { self.cmd_memory(&args) },
                         "perft"             => { self.cmd_perft() },
                         "perftsuite"        => { self.cmd_perftsuite(&args) },
                         "testsuite"         => { self.cmd_testsuite(&args) },
@@ -94,6 +95,7 @@ impl CLI {
         println!("  show <feature>            Show <feature>");
         println!("  hide <feature>            Hide <feature>");
         println!("  time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
+        println!("  hash <size>               Set the <size> of the memory (in MB)");
         println!("  core <number>             Set the <number> of threads");
         println!("");
         println!("  perft                     Count the nodes at each depth");
@@ -317,6 +319,11 @@ impl CLI {
 
     fn cmd_threads(&mut self, args: &[&str]) {
         self.game.threads_count = args[1].parse::<usize>().unwrap();
+    }
+
+    fn cmd_memory(&mut self, args: &[&str]) {
+        let memory = args[1].parse::<usize>().unwrap(); // In MB
+        self.game.tt_resize(memory << 20);
     }
 
     fn cmd_perft(&mut self) {
