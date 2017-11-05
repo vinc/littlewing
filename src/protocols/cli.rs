@@ -56,25 +56,25 @@ impl CLI {
 
                     let args: Vec<&str> = line.trim().split(' ').collect();
                     match args[0] {
-                        "quit"       => { break },
-                        "help"       => { self.cmd_usage() },
-                        "play"       => { self.cmd_play() },
-                        "eval"       => { self.cmd_eval() },
-                        "undo"       => { self.cmd_undo() },
-                        "move"       => { self.cmd_move(&args) },
-                        "time"       => { self.cmd_time(&args) },
-                        "show"       => { self.cmd_config(true, &args) },
-                        "hide"       => { self.cmd_config(false, &args) },
-                        "load"       => { self.cmd_setboard(&args) },
-                        "setboard"   => { self.cmd_setboard(&args) },
-                        "threads"    => { self.cmd_threads(&args) },
-                        "perft"      => { self.cmd_perft() },
-                        "perftsuite" => { self.cmd_perftsuite(&args) },
-                        "testsuite"  => { self.cmd_testsuite(&args) },
-                        "divide"     => { self.cmd_divide(&args) },
-                        "uci"        => { self.cmd_uci(); break },
-                        "xboard"     => { self.cmd_xboard(); break },
-                        _            => { self.cmd_error(&args); self.cmd_usage() }
+                        ""                  => (),
+                        "quit" | "exit"     => { break },
+                        "help"              => { self.cmd_usage() },
+                        "play" | "go"       => { self.cmd_play() },
+                        "eval"              => { self.cmd_eval() },
+                        "undo"              => { self.cmd_undo() },
+                        "move"              => { self.cmd_move(&args) },
+                        "time" | "level"    => { self.cmd_time(&args) },
+                        "show"              => { self.cmd_config(true, &args) },
+                        "hide"              => { self.cmd_config(false, &args) },
+                        "load" | "setboard" => { self.cmd_setboard(&args) },
+                        "core" | "threads"  => { self.cmd_threads(&args) },
+                        "perft"             => { self.cmd_perft() },
+                        "perftsuite"        => { self.cmd_perftsuite(&args) },
+                        "testsuite"         => { self.cmd_testsuite(&args) },
+                        "divide"            => { self.cmd_divide(&args) },
+                        "uci"               => { self.cmd_uci(); break },
+                        "xboard"            => { self.cmd_xboard(); break },
+                        _                   => { self.cmd_error(&args); self.cmd_usage() }
                     }
                 },
                 Err(_) => { break }
@@ -83,22 +83,50 @@ impl CLI {
     }
 
     fn cmd_usage(&self) {
-        println!("quit                      Exit this program");
-        println!("help                      Display this screen");
-        println!("play                      Search and play a move");
-        println!("undo                      Undo the last move");
-        println!("move <move>               Play <move> on the board");
-        println!("show <feature>            Show <feature>");
-        println!("hide <feature>            Hide <feature>");
-        println!("time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
-        println!("setboard <fen>            Set the board to <fen>");
-        println!("threads <number>          Set the <number> of threads");
-        println!("perft                     Count the nodes at each depth");
-        println!("perftsuite <epd>          Compare perft results to each position of <epd>");
-        println!("testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
-        println!("divide <depth>            Count the nodes at <depth> for each moves");
-        println!("uci                       Start UCI mode");
-        println!("xboard                    Start XBoard mode");
+        println!("Commands:");
+        println!("  quit                      Exit this program");
+        println!("  help                      Display this screen");
+        println!("  play                      Search and play a move");
+        println!("  undo                      Undo the last move");
+        println!("  move <move>               Play <move> on the board");
+        println!("  load <fen>                Set the board to <fen>");
+        println!("");
+        println!("  show <feature>            Show <feature>");
+        println!("  hide <feature>            Hide <feature>");
+        println!("  time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
+        println!("  core <number>             Set the <number> of threads");
+        println!("");
+        println!("  perft                     Count the nodes at each depth");
+        println!("  perftsuite <epd>          Compare perft results to each position of <epd>");
+        println!("  testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
+        println!("  divide <depth>            Count the nodes at <depth> for each moves");
+        println!("");
+        println!("  uci                       Start UCI mode");
+        println!("  xboard                    Start XBoard mode");
+        println!("");
+        println!("Made with <3 in 2014-2017 by Vincent Ollivier <v@vinc.cc>");
+        println!("");
+        println!("Report bugs to https://github.com/vinc/littlewing/issues");
+    }
+
+    fn cmd_config_usage(&self, value: bool) {
+        println!("Commands:");
+
+        let cmds = [
+            ["board", "board"],
+            ["color", "terminal colors"],
+            ["coord", "board coordinates"],
+            ["debug", "debug output"],
+            ["think", "search output"]
+        ];
+
+        for args in &cmds {
+            if value {
+                println!("  show {}     Show {}", args[0], args[1]);
+            } else {
+                println!("  hide {}     Hide {}", args[0], args[1]);
+            }
+        }
     }
 
     fn cmd_uci(&self) {
@@ -130,6 +158,8 @@ impl CLI {
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
             self.print_error(format!("no subcommand given"));
+            println!("");
+            self.cmd_config_usage(value);
             return;
         }
 
@@ -140,20 +170,25 @@ impl CLI {
                     println!("{}", self.game.to_string());
                 }
             }
-            "color" => {
+            "color" | "colors" => {
                 self.game.is_colored = value;
             }
             "debug" => {
                 self.game.is_debug = value;
             }
-            "think" => {
+            "think" | "thinking" => {
                 self.game.is_search_verbose = value;
             }
-            "coords" => {
+            "coord" | "coords" | "coordinates" => {
                 self.game.show_coordinates = value;
+            }
+            "help" => {
+                self.cmd_config_usage(value);
             }
             _ => {
                 self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                println!("");
+                self.cmd_config_usage(value);
             }
         }
     }
