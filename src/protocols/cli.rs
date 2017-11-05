@@ -26,6 +26,7 @@ use search::Search;
 pub struct CLI {
     pub game: Game,
     max_depth: Depth,
+    play_side: Option<Color>,
     show_board: bool
 }
 
@@ -40,6 +41,7 @@ impl CLI {
         CLI {
             game,
             max_depth: (MAX_PLY - 10) as Depth,
+            play_side: None,
             show_board: false
         }
     }
@@ -59,7 +61,8 @@ impl CLI {
                         ""                  => (),
                         "quit" | "exit"     => { break },
                         "help"              => { self.cmd_usage() },
-                        "play" | "go"       => { self.cmd_play() },
+                        "play" | "go"       => { self.cmd_play(&args) },
+                        "hint"              => { self.cmd_hint() },
                         "eval"              => { self.cmd_eval() },
                         "undo"              => { self.cmd_undo() },
                         "move"              => { self.cmd_move(&args) },
@@ -87,7 +90,8 @@ impl CLI {
         println!("Commands:");
         println!("  quit                      Exit this program");
         println!("  help                      Display this screen");
-        println!("  play                      Search and play a move");
+        println!("  hint                      Search the best move");
+        println!("  play [<color>]            Search and play [<color>] move[s]");
         println!("  undo                      Undo the last move");
         println!("  move <move>               Play <move> on the board");
         println!("  load <fen>                Set the board to <fen>");
@@ -195,28 +199,51 @@ impl CLI {
         }
     }
 
-    fn cmd_play(&mut self) {
+    fn cmd_play(&mut self, args: &[&str]) {
+        if args.len() > 1 {
+            self.play_side = match args[1] {
+                "white" => Some(WHITE),
+                "black" => Some(BLACK),
+                _       => None
+            };
+
+            if self.play_side != Some(self.game.positions.top().side) {
+                return;
+            }
+        }
+
+        self.think(true);
+    }
+
+    fn cmd_hint(&mut self) {
+        self.think(false);
+    }
+
+    fn think(&mut self, play: bool) {
+        let c = if play { "<" } else { "#" };
         let n = self.max_depth;
         match self.game.search(1..n) {
             None => {
                 if self.game.is_check(WHITE) {
-                    println!("< black mates");
+                    println!("{} black mates", c);
                 } else if self.game.is_check(BLACK) {
-                    println!("< white mates");
+                    println!("{} white mates", c);
                 } else {
-                    println!("< draw");
+                    println!("{} draw", c);
                 }
             },
             Some(m) => {
-                self.game.make_move(m);
-                self.game.history.push(m);
+                println!("{} move {}", c, m.to_can());
 
-                println!("< move {}", m.to_can());
+                if play {
+                    self.game.make_move(m);
+                    self.game.history.push(m);
+
+                    if self.show_board {
+                        println!("{}", self.game.to_string());
+                    }
+                }
             }
-        }
-
-        if self.show_board {
-            println!("{}", self.game.to_string());
         }
     }
 
@@ -274,6 +301,10 @@ impl CLI {
 
         if self.show_board {
             println!("{}", self.game.to_string());
+        }
+
+        if self.play_side == Some(self.game.positions.top().side) {
+            self.think(true);
         }
     }
 
