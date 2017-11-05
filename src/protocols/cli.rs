@@ -499,12 +499,12 @@ mod tests {
         let mut cli = CLI::new();
 
         // Undo 1 move
-        cli.cmd_play();
+        cli.cmd_play(&[]);
         cli.cmd_undo();
 
         // Undo 2 moves
-        cli.cmd_play();
-        cli.cmd_play();
+        cli.cmd_play(&[]);
+        cli.cmd_play(&[]);
         cli.cmd_undo();
         cli.cmd_undo();
 
