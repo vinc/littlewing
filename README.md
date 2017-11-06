@@ -8,6 +8,8 @@ A bitboard chess engine written in Rust.
 
 A work in progress since December 2014.
 
+[![asciicast](https://asciinema.org/a/146112.png)](https://asciinema.org/a/146112)
+
 - Board representation
   - Bitboard with LLVM CTPOP and CTTZ
   - FEN support
