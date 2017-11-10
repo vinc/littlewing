@@ -73,7 +73,7 @@ impl UCI {
         let side = self.game.positions.top().side;
         let mut is_time = false;
         let mut is_moves = false;
-        let mut time = 100000000; // Infinity
+        let mut time = u64::max_value(); // Infinite time
         let mut moves = 1;
         for &arg in args {
             match arg {
