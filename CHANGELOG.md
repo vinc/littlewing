@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.4.0] - 2017-11-20
 
 ### Added
 - Add library with public API and documentation
@@ -15,8 +15,9 @@
 - Add very basic parallel search in threads with shared transposition table
 
 ### Changed
-- Refactor many parts of the code
+- Improve CLI
 - Improve statistics debug output
+- Refactor many parts of the code
 - Allow NMP, IID, and LMR at shallower depth
 - Set NMP R to 3
 
