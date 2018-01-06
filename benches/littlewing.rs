@@ -9,7 +9,7 @@ use littlewing::color;
 use littlewing::eval::Eval;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
-use littlewing::moves_generator::MovesGenerator;
+use littlewing::moves_generator::PieceMoveGenerator;
 use littlewing::search::Search;
 
 #[bench]

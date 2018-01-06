@@ -8,7 +8,7 @@ use common::*;
 use clock::Clock;
 use fen::FEN;
 use game::Game;
-use moves_generator::MovesGenerator;
+use piece_move_generator::PieceMoveGenerator;
 use search::Search;
 use protocols::Protocol;
 use version;

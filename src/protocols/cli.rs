@@ -17,7 +17,7 @@ use clock::Clock;
 use eval::Eval;
 use fen::FEN;
 use game::Game;
-use moves_generator::MovesGenerator;
+use piece_move_generator::PieceMoveGenerator;
 use protocols::xboard::XBoard;
 use protocols::uci::UCI;
 use search::Search;
@@ -344,7 +344,7 @@ impl CLI {
         }
 
         println!("");
-        println!("Moves: {}", moves_count);
+        println!("PieceMoveList: {}", moves_count);
         println!("Nodes: {}", nodes_count);
     }
 

@@ -13,7 +13,7 @@
 //! use littlewing::fen::FEN;
 //! use littlewing::clock::Clock;
 //! use littlewing::search::Search;
-//! use littlewing::moves_generator::MovesGenerator;
+//! use littlewing::piece_move_generator::PieceMoveGenerator;
 //!
 //! // Byrne vs Fischer (1956)
 //! let fen = "r3r1k1/pp3pbp/1Bp1b1p1/8/2BP4/Q1n2N2/P4PPP/3R1K1R b - - 0 18";
@@ -44,7 +44,8 @@ extern crate rustyline;
 
 mod attack;
 mod common;
-mod moves;
+mod piece_move;
+mod piece_move_list;
 mod positions;
 mod pst;
 mod transpositions;
@@ -68,8 +69,8 @@ pub mod fen;
 /// Game engine
 pub mod game;
 
-/// Moves generator
-pub mod moves_generator;
+/// PieceMoveList generator
+pub mod piece_move_generator;
 
 /// Piece type
 pub mod piece;

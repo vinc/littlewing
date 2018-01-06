@@ -6,7 +6,8 @@ use attack::Attack;
 use attack::piece_attacks;
 use bitboard::BitboardExt;
 use game::Game;
-use moves::*;
+use piece_move::*;
+use piece_move_list::PieceMoveListStage;
 use piece::{PieceAttr, PieceChar};
 use square::SquareExt;
 use eval::Eval;
@@ -32,8 +33,8 @@ lazy_static! {
     };
 }
 
-/// Moves generator
-pub trait MovesGenerator {
+/// PieceMoveList generator
+pub trait PieceMoveGenerator {
     /// Generate the list of moves from the current game position
     fn generate_moves(&mut self);
 
@@ -41,36 +42,36 @@ pub trait MovesGenerator {
     fn sort_moves(&mut self);
 
     /// Get the next capture from the moves list (for quiescence search)
-    fn next_capture(&mut self) -> Option<Move>;
+    fn next_capture(&mut self) -> Option<PieceMove>;
 
     /// Get the next move from the moves list (for regular search)
-    fn next_move(&mut self) -> Option<Move>;
+    fn next_move(&mut self) -> Option<PieceMove>;
 
     /// Make the given move and update the game state
-    fn make_move(&mut self, m: Move);
+    fn make_move(&mut self, m: PieceMove);
 
     /// Undo the given move and update the game state
-    fn undo_move(&mut self, m: Move);
+    fn undo_move(&mut self, m: PieceMove);
 
     /// Get move from the given SAN string
-    fn move_from_can(&mut self, s: &str) -> Move;
+    fn move_from_can(&mut self, s: &str) -> PieceMove;
 
     /// Get SAN string from the given move
-    fn move_to_san(&mut self, m: Move) -> String;
+    fn move_to_san(&mut self, m: PieceMove) -> String;
 }
 
-trait MovesGeneratorExt {
-    fn is_legal_move(&mut self, m: Move) -> bool;
-    fn mvv_lva(&self, m: Move) -> u8;
+trait PieceMoveGeneratorExt {
+    fn is_legal_move(&mut self, m: PieceMove) -> bool;
+    fn mvv_lva(&self, m: PieceMove) -> u8;
     fn can_king_castle(&mut self, side: Color) -> bool;
     fn can_queen_castle(&mut self, side: Color) -> bool;
     fn can_castle_on(&mut self, side: Color, wing: Piece) -> bool;
 }
 
-impl MovesGenerator for Game {
+impl PieceMoveGenerator for Game {
     fn generate_moves(&mut self) {
         match self.moves.stage() {
-            MovesStage::KillerMove => {
+            PieceMoveListStage::KillerPieceMove => {
                 if !self.moves.skip_killers {
                     for i in 0..MAX_KILLERS {
                         let m = self.moves.get_killer_move(i);
@@ -80,7 +81,7 @@ impl MovesGenerator for Game {
                     }
                 }
             },
-            MovesStage::Capture | MovesStage::QuietMove => {
+            PieceMoveListStage::Capture | PieceMoveListStage::QuietPieceMove => {
                 let &position = self.positions.top();
                 let side = position.side;
                 let ep = position.en_passant;
@@ -92,7 +93,7 @@ impl MovesGenerator for Game {
                 self.moves.add_rooks_moves(&self.bitboards, side);
                 self.moves.add_queens_moves(&self.bitboards, side);
 
-                if self.moves.stage() == MovesStage::Capture {
+                if self.moves.stage() == PieceMoveListStage::Capture {
                     if !self.moves.skip_ordering {
                         self.sort_moves();
                     }
@@ -105,7 +106,7 @@ impl MovesGenerator for Game {
                     }
                 }
             },
-            _ => () // Nothing to do in `BestMove` or `Done` stages
+            _ => () // Nothing to do in `BestPieceMove` or `Done` stages
         }
     }
 
@@ -129,7 +130,7 @@ impl MovesGenerator for Game {
         }
     }
 
-    fn next_move(&mut self) -> Option<Move> {
+    fn next_move(&mut self) -> Option<PieceMove> {
         let mut next_move = self.moves.next();
 
         // Staged moves generation
@@ -143,11 +144,11 @@ impl MovesGenerator for Game {
     }
 
     // Specialized version of `next_move` for quiescence search.
-    fn next_capture(&mut self) -> Option<Move> {
-        if self.moves.stage() == MovesStage::BestMove {
+    fn next_capture(&mut self) -> Option<PieceMove> {
+        if self.moves.stage() == PieceMoveListStage::BestPieceMove {
             self.moves.next_stage();
             self.generate_moves();
-            debug_assert_eq!(self.moves.stage(), MovesStage::Capture);
+            debug_assert_eq!(self.moves.stage(), PieceMoveListStage::Capture);
         }
 
         // Skip bad captures
@@ -162,7 +163,7 @@ impl MovesGenerator for Game {
         self.moves.next()
     }
 
-    fn make_move(&mut self, m: Move) {
+    fn make_move(&mut self, m: PieceMove) {
         let &old_position = self.positions.top();
         let mut new_position = old_position;
         let side = old_position.side;
@@ -285,7 +286,7 @@ impl MovesGenerator for Game {
         self.moves.inc();
     }
 
-    fn undo_move(&mut self, m: Move) {
+    fn undo_move(&mut self, m: PieceMove) {
         let piece = self.board[m.to() as usize];
         let capture = self.positions.top().capture;
 
@@ -343,7 +344,7 @@ impl MovesGenerator for Game {
         }
     }
 
-    fn move_from_can(&mut self, s: &str) -> Move {
+    fn move_from_can(&mut self, s: &str) -> PieceMove {
         debug_assert!(s.len() == 4 || s.len() == 5);
 
         let side = self.positions.top().side;
@@ -383,11 +384,11 @@ impl MovesGenerator for Game {
             CAPTURE
         };
 
-        Move::new(from, to, mt)
+        PieceMove::new(from, to, mt)
     }
 
     // NOTE: this function assumes that the move has not been played yet
-    fn move_to_san(&mut self, m: Move) -> String {
+    fn move_to_san(&mut self, m: PieceMove) -> String {
         let piece = self.board[m.from() as usize];
 
         let mut out = String::new();
@@ -432,7 +433,7 @@ impl MovesGenerator for Game {
     }
 }
 
-impl MovesGeneratorExt for Game {
+impl PieceMoveGeneratorExt for Game {
     fn can_castle_on(&mut self, side: Color, wing: Piece) -> bool {
         match wing {
             QUEEN => self.can_queen_castle(side),
@@ -470,7 +471,7 @@ impl MovesGeneratorExt for Game {
     }
 
     // Pseudo legal move checker (limited to moves generated by the engine)
-    fn is_legal_move(&mut self, m: Move) -> bool {
+    fn is_legal_move(&mut self, m: PieceMove) -> bool {
         if m.is_null() {
             return false;
         }
@@ -548,7 +549,7 @@ impl MovesGeneratorExt for Game {
         }
     }
 
-    fn mvv_lva(&self, m: Move) -> u8 {
+    fn mvv_lva(&self, m: PieceMove) -> u8 {
         let a = self.board[m.from() as usize].kind();
         let v = if m.is_en_passant() {
             PAWN
@@ -565,7 +566,7 @@ mod tests {
     use color::*;
     use piece::*;
     use common::*;
-    use moves::Move;
+    use piece_move::PieceMove;
     use fen::FEN;
     use game::Game;
     use super::*;
@@ -576,7 +577,7 @@ mod tests {
         game.moves.next_stage();
         game.generate_moves(); // Captures
 
-        game.moves.next_stage(); // Killer Moves
+        game.moves.next_stage(); // Killer PieceMoveList
 
         game.moves.next_stage();
         game.generate_moves(); // Quiet moves
@@ -618,7 +619,7 @@ mod tests {
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
         ];
-        let m = Move::new(E2, E3, QUIET_MOVE);
+        let m = PieceMove::new(E2, E3, QUIET_MOVE);
 
         let mut game = Game::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_str(), fens[0]);
@@ -633,7 +634,7 @@ mod tests {
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
         ];
-        let m = Move::new(E2, E3, QUIET_MOVE);
+        let m = PieceMove::new(E2, E3, QUIET_MOVE);
 
         let mut game = Game::from_fen(fens[0]);
 
@@ -650,7 +651,7 @@ mod tests {
             "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1",
             "r1bqkbnr/1ppp1ppp/p1B5/4p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1"
         ];
-        let m = Move::new(B5, C6, CAPTURE);
+        let m = PieceMove::new(B5, C6, CAPTURE);
 
         let mut game = Game::from_fen(fens[0]);
         assert_eq!(game.to_fen().as_str(), fens[0]);
@@ -680,11 +681,11 @@ mod tests {
     fn test_mvv_lva() {
         let mut game = Game::from_fen("8/8/8/8/8/1Qn5/1PpK1k2/8 w - - 0 1");
 
-        assert_eq!(game.mvv_lva(Move::new(B2, C3, CAPTURE)), 15); // PxN
-        assert_eq!(game.mvv_lva(Move::new(B3, C3, CAPTURE)), 11); // QxN
-        assert_eq!(game.mvv_lva(Move::new(D2, C3, CAPTURE)), 10); // KxN
-        assert_eq!(game.mvv_lva(Move::new(B3, C2, CAPTURE)),  3); // QxP
-        assert_eq!(game.mvv_lva(Move::new(D2, C2, CAPTURE)),  2); // KxP
+        assert_eq!(game.mvv_lva(PieceMove::new(B2, C3, CAPTURE)), 15); // PxN
+        assert_eq!(game.mvv_lva(PieceMove::new(B3, C3, CAPTURE)), 11); // QxN
+        assert_eq!(game.mvv_lva(PieceMove::new(D2, C3, CAPTURE)), 10); // KxN
+        assert_eq!(game.mvv_lva(PieceMove::new(B3, C2, CAPTURE)),  3); // QxP
+        assert_eq!(game.mvv_lva(PieceMove::new(D2, C2, CAPTURE)),  2); // KxP
 
         game.moves.next_stage(); // Captures
         game.generate_moves();
@@ -692,11 +693,11 @@ mod tests {
         game.moves.next_stage(); // Quiet moves
         game.generate_moves();
 
-        assert_eq!(game.moves.next(), Some(Move::new(B2, C3, CAPTURE)));
-        assert_eq!(game.moves.next(), Some(Move::new(B3, C3, CAPTURE)));
-        assert_eq!(game.moves.next(), Some(Move::new(D2, C3, CAPTURE)));
-        assert_eq!(game.moves.next(), Some(Move::new(B3, C2, CAPTURE)));
-        assert_eq!(game.moves.next(), Some(Move::new(D2, C2, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(PieceMove::new(B2, C3, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(PieceMove::new(B3, C3, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(PieceMove::new(D2, C3, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(PieceMove::new(B3, C2, CAPTURE)));
+        assert_eq!(game.moves.next(), Some(PieceMove::new(D2, C2, CAPTURE)));
 
         assert!(!game.moves.next().unwrap().is_capture());
     }
@@ -706,10 +707,10 @@ mod tests {
         let mut game = Game::from_fen(DEFAULT_FEN);
 
         let m = game.move_from_can("e2e4");
-        assert_eq!(m, Move::new(E2, E4, DOUBLE_PAWN_PUSH));
+        assert_eq!(m, PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
 
         let m = game.move_from_can("g1f3");
-        assert_eq!(m, Move::new(G1, F3, QUIET_MOVE));
+        assert_eq!(m, PieceMove::new(G1, F3, QUIET_MOVE));
     }
 
     #[test]
@@ -719,13 +720,13 @@ mod tests {
 
         assert_eq!(game.positions.top().halfmoves_count, 25);
 
-        game.make_move(Move::new(F2, G1, QUIET_MOVE));
+        game.make_move(PieceMove::new(F2, G1, QUIET_MOVE));
         assert_eq!(game.positions.top().halfmoves_count, 26);
 
-        game.make_move(Move::new(A7, B7, QUIET_MOVE));
+        game.make_move(PieceMove::new(A7, B7, QUIET_MOVE));
         assert_eq!(game.positions.top().halfmoves_count, 27);
 
-        game.make_move(Move::new(F4, H6, CAPTURE));
+        game.make_move(PieceMove::new(F4, H6, CAPTURE));
         assert_eq!(game.positions.top().halfmoves_count, 0);
     }
 
@@ -736,7 +737,7 @@ mod tests {
 
         // NOTE: this move should really end with `#`, but this is done
         // in `search::get_pv()`.
-        assert_eq!(game.move_to_san(Move::new(F6, G7, CAPTURE)), "Qxg7");
+        assert_eq!(game.move_to_san(PieceMove::new(F6, G7, CAPTURE)), "Qxg7");
     }
 
     #[test]
@@ -744,17 +745,17 @@ mod tests {
         let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
         let mut game = Game::from_fen(fen);
 
-        game.moves.add_move(Move::new(C2, C3, QUIET_MOVE)); // Best move
+        game.moves.add_move(PieceMove::new(C2, C3, QUIET_MOVE)); // Best move
 
-        assert_eq!(game.next_move(), Some(Move::new(C2, C3, QUIET_MOVE)));
-        assert_eq!(game.next_move(), Some(Move::new(C2, B3, CAPTURE)));
-        assert_eq!(game.next_move(), Some(Move::new(A1, B3, CAPTURE)));
-        assert_eq!(game.next_move(), Some(Move::new(C2, C4, DOUBLE_PAWN_PUSH)));
-        assert_eq!(game.next_move(), Some(Move::new(C8, B7, QUIET_MOVE))); // Illegal
-        assert_eq!(game.next_move(), Some(Move::new(C8, C7, QUIET_MOVE)));
-        assert_eq!(game.next_move(), Some(Move::new(C8, D7, QUIET_MOVE)));
-        assert_eq!(game.next_move(), Some(Move::new(C8, B8, QUIET_MOVE))); // Illegal
-        assert_eq!(game.next_move(), Some(Move::new(C8, D8, QUIET_MOVE)));
+        assert_eq!(game.next_move(), Some(PieceMove::new(C2, C3, QUIET_MOVE)));
+        assert_eq!(game.next_move(), Some(PieceMove::new(C2, B3, CAPTURE)));
+        assert_eq!(game.next_move(), Some(PieceMove::new(A1, B3, CAPTURE)));
+        assert_eq!(game.next_move(), Some(PieceMove::new(C2, C4, DOUBLE_PAWN_PUSH)));
+        assert_eq!(game.next_move(), Some(PieceMove::new(C8, B7, QUIET_MOVE))); // Illegal
+        assert_eq!(game.next_move(), Some(PieceMove::new(C8, C7, QUIET_MOVE)));
+        assert_eq!(game.next_move(), Some(PieceMove::new(C8, D7, QUIET_MOVE)));
+        assert_eq!(game.next_move(), Some(PieceMove::new(C8, B8, QUIET_MOVE))); // Illegal
+        assert_eq!(game.next_move(), Some(PieceMove::new(C8, D8, QUIET_MOVE)));
         assert_eq!(game.next_move(), None);
     }
 
@@ -763,19 +764,19 @@ mod tests {
         let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
         let mut game = Game::from_fen(fen);
 
-        assert_eq!(game.next_capture(), Some(Move::new(C2, B3, CAPTURE)));
-        assert_eq!(game.next_capture(), Some(Move::new(A1, B3, CAPTURE)));
+        assert_eq!(game.next_capture(), Some(PieceMove::new(C2, B3, CAPTURE)));
+        assert_eq!(game.next_capture(), Some(PieceMove::new(A1, B3, CAPTURE)));
         assert_eq!(game.next_capture(), None);
 
         let fen = "k1K5/8/2p1N3/1p6/2rp1n2/1P2P3/3Q4/8 w - - 0 1";
         let mut game = Game::from_fen(fen);
 
-        let b3c4 = Move::new(B3, C4, CAPTURE);
-        let e3f4 = Move::new(E3, F4, CAPTURE);
-        let e6f4 = Move::new(E6, F4, CAPTURE);
-        let e3d4 = Move::new(E3, D4, CAPTURE);
-        let e6d4 = Move::new(E6, D4, CAPTURE);
-        let d2d4 = Move::new(D2, D4, CAPTURE);
+        let b3c4 = PieceMove::new(B3, C4, CAPTURE);
+        let e3f4 = PieceMove::new(E3, F4, CAPTURE);
+        let e6f4 = PieceMove::new(E6, F4, CAPTURE);
+        let e3d4 = PieceMove::new(E3, D4, CAPTURE);
+        let e6d4 = PieceMove::new(E6, D4, CAPTURE);
+        let d2d4 = PieceMove::new(D2, D4, CAPTURE);
         println!("{}: {}", b3c4, game.see(b3c4));
         println!("{}: {}", e3f4, game.see(e3f4));
         println!("{}: {}", e6f4, game.see(e6f4));
@@ -796,21 +797,21 @@ mod tests {
         let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
         let mut game = Game::from_fen(fen);
 
-        assert!(game.is_legal_move(Move::new(C2, C3, QUIET_MOVE)));
-        assert!(game.is_legal_move(Move::new(C2, B3, CAPTURE)));
-        assert!(game.is_legal_move(Move::new(A1, B3, CAPTURE)));
-        assert!(game.is_legal_move(Move::new(C2, C4, DOUBLE_PAWN_PUSH)));
-        assert!(game.is_legal_move(Move::new(C8, C7, QUIET_MOVE)));
-        assert!(game.is_legal_move(Move::new(C8, D7, QUIET_MOVE)));
-        assert!(game.is_legal_move(Move::new(C8, D8, QUIET_MOVE)));
+        assert!(game.is_legal_move(PieceMove::new(C2, C3, QUIET_MOVE)));
+        assert!(game.is_legal_move(PieceMove::new(C2, B3, CAPTURE)));
+        assert!(game.is_legal_move(PieceMove::new(A1, B3, CAPTURE)));
+        assert!(game.is_legal_move(PieceMove::new(C2, C4, DOUBLE_PAWN_PUSH)));
+        assert!(game.is_legal_move(PieceMove::new(C8, C7, QUIET_MOVE)));
+        assert!(game.is_legal_move(PieceMove::new(C8, D7, QUIET_MOVE)));
+        assert!(game.is_legal_move(PieceMove::new(C8, D8, QUIET_MOVE)));
 
-        assert!(!game.is_legal_move(Move::new_null()));
+        assert!(!game.is_legal_move(PieceMove::new_null()));
 
-        assert!(!game.is_legal_move(Move::new(H1, H5, QUIET_MOVE)));
+        assert!(!game.is_legal_move(PieceMove::new(H1, H5, QUIET_MOVE)));
 
         // Cannot be done with pseudo legal move checking
-        //assert!(!game.is_legal_move(Move::new(C8, B8, QUIET_MOVE))); // Illegal
-        //assert!(!game.is_legal_move(Move::new(C8, B7, QUIET_MOVE))); // Illegal
+        //assert!(!game.is_legal_move(PieceMove::new(C8, B8, QUIET_MOVE))); // Illegal
+        //assert!(!game.is_legal_move(PieceMove::new(C8, B7, QUIET_MOVE))); // Illegal
     }
 
     #[test]

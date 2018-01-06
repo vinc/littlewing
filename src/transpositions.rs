@@ -3,7 +3,7 @@ use std::cell::UnsafeCell;
 use std::sync::Arc;
 
 use common::*;
-use moves::Move;
+use piece_move::PieceMove;
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -16,7 +16,7 @@ pub enum Bound {
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Transposition {
     hash: u64,       // 64 bits => 8 bytes
-    best_move: Move, // 16 bits => 2 bytes
+    best_move: PieceMove, // 16 bits => 2 bytes
     score: Score,    // 16 bits => 2 bytes
     depth: Depth,    //  8 bits => 1 bytes
     bound: Bound,    //  8 bits => 1 bytes
@@ -32,7 +32,7 @@ pub struct Transposition {
 }
 
 impl Transposition {
-    pub fn new(hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound, age: u8) -> Transposition {
+    pub fn new(hash: u64, depth: Depth, score: Score, best_move: PieceMove, bound: Bound, age: u8) -> Transposition {
         Transposition {
             hash: hash,
             depth: depth,
@@ -44,7 +44,7 @@ impl Transposition {
     }
 
     pub fn new_null() -> Transposition {
-        Transposition::new(0, 0, 0, Move::new_null(), Bound::Exact, 0)
+        Transposition::new(0, 0, 0, PieceMove::new_null(), Bound::Exact, 0)
     }
 
     pub fn depth(&self) -> Depth {
@@ -55,7 +55,7 @@ impl Transposition {
         self.score
     }
 
-    pub fn best_move(&self) -> Move {
+    pub fn best_move(&self) -> PieceMove {
         self.best_move
     }
 
@@ -123,7 +123,7 @@ impl Transpositions {
         }
     }
 
-    pub fn set(&mut self, hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound) {
+    pub fn set(&mut self, hash: u64, depth: Depth, score: Score, best_move: PieceMove, bound: Bound) {
         let age = self.age;
         let h = self.entries.get();
         let n = self.len() as u64;
@@ -234,13 +234,13 @@ mod tests {
 
     use super::*;
     use square::*;
-    use moves::Move;
+    use piece_move::PieceMove;
 
     #[test]
     fn test_size_of_transposition() {
         assert_eq!(mem::size_of::<u64>(),   8); // Hash
         assert_eq!(mem::size_of::<Score>(), 2); // Score
-        assert_eq!(mem::size_of::<Move>(),  2); // Move
+        assert_eq!(mem::size_of::<PieceMove>(),  2); // PieceMove
         assert_eq!(mem::size_of::<u8>(),    1); // Depth
 
         assert_eq!(mem::size_of::<Transposition>(), 16);
@@ -263,7 +263,7 @@ mod tests {
         let mut tt = Transpositions::with_capacity(1 << 20); // 1 M entries
         
         let h = 42;
-        let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
+        let m = PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH);
         let s = 100;
         let d = 8;
         let b = Bound::Exact;
@@ -286,7 +286,7 @@ mod tests {
     fn test_transpositions_in_threads() {
         // Transposition content
         let h = 42;
-        let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
+        let m = PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH);
         let s = 100;
         let d = 8;
         let b = Bound::Exact;

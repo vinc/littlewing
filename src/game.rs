@@ -5,7 +5,8 @@ use piece::*;
 use common::*;
 use bitboard::Bitboard;
 use clock::Clock;
-use moves::{Move, Moves};
+use piece_move::PieceMove;
+use piece_move_list::PieceMoveList;
 use positions::Positions;
 use protocols::Protocol;
 use transpositions::Transpositions;
@@ -26,10 +27,10 @@ pub struct Game {
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
-    pub moves: Moves,
+    pub moves: PieceMoveList,
     pub positions: Positions,
     pub zobrist: Zobrist,
-    pub history: Vec<Move>,
+    pub history: Vec<PieceMove>,
     pub tt: Transpositions
 }
 
@@ -48,7 +49,7 @@ impl Game {
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
             board: [EMPTY; 64],
-            moves: Moves::new(),
+            moves: PieceMoveList::new(),
             positions: Positions::new(),
             zobrist: Zobrist::new(),
             history: Vec::new(),
