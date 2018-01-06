@@ -10,10 +10,11 @@ use bitboard::BitboardExt;
 use eval::Eval;
 use fen::FEN;
 use game::Game;
-use moves::Move;
-use moves_generator::MovesGenerator;
+use piece_move::PieceMove;
+use piece_move_generator::PieceMoveGenerator;
+use piece_move_notation::PieceMoveNotation;
 use protocols::Protocol;
-use transpositions::Bound;
+use transposition::Bound;
 
 /// Search the game
 pub trait Search {
@@ -21,10 +22,10 @@ pub trait Search {
     fn perft(&mut self, depth: Depth) -> u64;
 
     /// Searh the best move at the given depth range
-    fn search(&mut self, depths: Range<Depth>) -> Option<Move>;
+    fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove>;
 
     /// Searh the best move from the root position at the given depth range
-    fn search_root(&mut self, depths: Range<Depth>) -> Option<Move>;
+    fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove>;
 
     /// Searh the best score between alpha and beta from a node position at the given depth
     fn search_node(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
@@ -35,7 +36,7 @@ pub trait Search {
 
 trait SearchExt {
     fn print_thinking_header(&self);
-    fn print_thinking(&mut self, depth: Depth, score: Score, m: Move);
+    fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
     fn get_pv(&mut self, depth: Depth) -> String;
 }
 
@@ -58,7 +59,7 @@ impl Search for Game {
         }
     }
 
-    fn search(&mut self, depths: Range<Depth>) -> Option<Move> {
+    fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         self.nodes_count = 0;
         self.tt.reset();
 
@@ -113,7 +114,7 @@ impl Search for Game {
         res[0] // best move found by the first thread
     }
 
-    fn search_root(&mut self, depths: Range<Depth>) -> Option<Move> {
+    fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
         let ply = 0;
@@ -130,11 +131,11 @@ impl Search for Game {
         }
 
         // Current best move
-        let mut best_move = Move::new_null();
+        let mut best_move = PieceMove::new_null();
         let mut best_score = 0;
 
         // Keep track of previous values at shallower depths
-        let mut best_moves = [Move::new_null(); MAX_PLY];
+        let mut best_moves = [PieceMove::new_null(); MAX_PLY];
         let mut best_scores = [0; MAX_PLY];
 
         debug_assert!(depths.start > 0);
@@ -247,11 +248,11 @@ impl Search for Game {
         let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
 
-        let mut best_move = Move::new_null();
+        let mut best_move = PieceMove::new_null();
         let mut best_score = alpha;
         let old_alpha = alpha; // To test if best score raise initial alpha
 
-        // Try to get the best move from transpositions table
+        // Try to get the best move from transposition_table table
         if let Some(t) = self.tt.get(&hash) {
             if t.depth() >= depth { // This node has already been searched
                 match t.bound() {
@@ -279,7 +280,7 @@ impl Search for Game {
 
         let is_in_check = self.is_check(side);
 
-        // Null Move Pruning (NMP)
+        // Null PieceMove Pruning (NMP)
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
@@ -292,7 +293,7 @@ impl Search for Game {
 
         if nmp_allowed {
             let r = cmp::min(depth - 1, 3);
-            let m = Move::new_null();
+            let m = PieceMove::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
             let score = -self.search_node(-beta, -beta + 1, depth - r - 1, ply + 1);
@@ -306,7 +307,7 @@ impl Search for Game {
 
         // Internal Iterative Deepening (IID)
         //
-        // If we didn't get a best move from the transpositions table,
+        // If we didn't get a best move from the transposition_table table,
         // get it by searching the position at a reduced depth.
         let iid_allowed = is_pv && best_move.is_null();
 
@@ -456,7 +457,7 @@ impl Search for Game {
         let hash = self.positions.top().hash;
         let side = self.positions.top().side;
         let old_alpha = alpha;
-        let mut best_move = Move::new_null();
+        let mut best_move = PieceMove::new_null();
 
         if let Some(t) = self.tt.get(&hash) {
             if t.depth() >= depth { // This node has already been searched
@@ -530,7 +531,7 @@ impl SearchExt for Game {
         }
     }
 
-    fn print_thinking(&mut self, depth: Depth, score: Score, m: Move) {
+    fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove) {
         self.undo_move(m);
 
         let time = self.clock.elapsed_time();
@@ -561,7 +562,7 @@ impl SearchExt for Game {
         }
 
         let mut res = vec![];
-        let mut m = Move::new_null();
+        let mut m = PieceMove::new_null();
 
         let side = self.positions.top().side;
         let hash = self.positions.top().hash;
@@ -614,8 +615,9 @@ mod tests {
     use eval;
     use fen::FEN;
     use game::Game;
-    use moves::Move;
-    use moves_generator::MovesGenerator;
+    use piece_move::PieceMove;
+    use piece_move_generator::PieceMoveGenerator;
+    use piece_move_notation::PieceMoveNotation;
     use search::Search;
 
     #[test]
@@ -754,7 +756,7 @@ mod tests {
     #[test]
     fn test_search() {
         let fen = "2k4r/ppp3pp/8/2b2p1P/PPP2p2/N4P2/3r2K1/1q5R w - - 4 29";
-        let best_move = Move::new(G2, H3, QUIET_MOVE);
+        let best_move = PieceMove::new(G2, H3, QUIET_MOVE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         let m = game.search(1..10).unwrap();
@@ -762,7 +764,7 @@ mod tests {
 
 
         let fen = "r1bq2rk/pp3pbp/2p1p1pQ/7P/3P4/2PB1N2/PP3PPR/2KR4 w - -";
-        let best_move = Move::new(H6, H7, CAPTURE);
+        let best_move = PieceMove::new(H6, H7, CAPTURE);
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         let m = game.search(1..10).unwrap();
@@ -780,7 +782,7 @@ mod tests {
         let fen = "5n2/1k4P1/8/8/8/8/6K1/8 w - - 0 1";
         let mut game = Game::from_fen(fen);
 
-        let m = Move::new(G7, G8, KNIGHT_PROMOTION);
+        let m = PieceMove::new(G7, G8, KNIGHT_PROMOTION);
         game.make_move(m);
         //assert!(!game.bitboards[WHITE as usize].get(G7));
         game.bitboards[(WHITE | PAWN) as usize].debug();
@@ -789,7 +791,7 @@ mod tests {
         game.bitboards[(WHITE | PAWN) as usize].debug();
         assert!(!game.bitboards[(WHITE | PAWN) as usize].get(G8));
 
-        let m = Move::new(G7, F8, KNIGHT_PROMOTION_CAPTURE);
+        let m = PieceMove::new(G7, F8, KNIGHT_PROMOTION_CAPTURE);
         game.make_move(m);
         game.bitboards[(WHITE | PAWN) as usize].debug();
         assert!(!game.bitboards[(WHITE | PAWN) as usize].get(F8));
@@ -803,10 +805,10 @@ mod tests {
         let fen = "7r/k7/7p/r2p3P/p2PqB2/2R3P1/5K2/3Q3R w - - 25 45";
         let mut game = Game::from_fen(fen);
 
-        let m1 = Move::new(F2, G1, QUIET_MOVE);
-        let m2 = Move::new(A7, B7, QUIET_MOVE);
-        let m3 = Move::new(G1, F2, QUIET_MOVE);
-        let m4 = Move::new(B7, A7, QUIET_MOVE);
+        let m1 = PieceMove::new(F2, G1, QUIET_MOVE);
+        let m2 = PieceMove::new(A7, B7, QUIET_MOVE);
+        let m3 = PieceMove::new(G1, F2, QUIET_MOVE);
+        let m4 = PieceMove::new(B7, A7, QUIET_MOVE);
         game.make_move(m1);
         game.make_move(m2);
         game.make_move(m3);
@@ -827,7 +829,7 @@ mod tests {
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 5000); // 1 second
         let m = game.search(1..100).unwrap();
-        assert_eq!(m, Move::new(G5, H6, QUIET_MOVE));
+        assert_eq!(m, PieceMove::new(G5, H6, QUIET_MOVE));
 
         // Zugzwang #2
         /*
@@ -836,7 +838,7 @@ mod tests {
         let mut game = Game::from_fen(fen);
         game.clock = Clock::new(1, 1000); // 1 second
         let m = game.search(1..100).unwrap();
-        assert_eq!(m, Move::new(E1, F1, QUIET_MOVE));
+        assert_eq!(m, PieceMove::new(E1, F1, QUIET_MOVE));
         */
     }
 }

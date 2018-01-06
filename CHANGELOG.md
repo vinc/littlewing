@@ -42,7 +42,7 @@
 
 ### Added
 - Add basic quiescence search
-- Add basic transpositions table
+- Add basic transposition table
 - Add MVV/LVA moves ordering by insertion sort
 - Add staged moves generation
 - Add fullmoves and halfmoves counting

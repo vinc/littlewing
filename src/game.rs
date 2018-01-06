@@ -5,10 +5,11 @@ use piece::*;
 use common::*;
 use bitboard::Bitboard;
 use clock::Clock;
-use moves::{Move, Moves};
+use piece_move::PieceMove;
+use piece_move_list::PieceMoveList;
 use positions::Positions;
 use protocols::Protocol;
-use transpositions::Transpositions;
+use transposition_table::TranspositionTable;
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
@@ -26,11 +27,11 @@ pub struct Game {
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
-    pub moves: Moves,
+    pub moves: PieceMoveList,
     pub positions: Positions,
     pub zobrist: Zobrist,
-    pub history: Vec<Move>,
-    pub tt: Transpositions
+    pub history: Vec<PieceMove>,
+    pub tt: TranspositionTable
 }
 
 impl Game {
@@ -48,11 +49,11 @@ impl Game {
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
             board: [EMPTY; 64],
-            moves: Moves::new(),
+            moves: PieceMoveList::new(),
             positions: Positions::new(),
             zobrist: Zobrist::new(),
             history: Vec::new(),
-            tt: Transpositions::with_memory(TT_SIZE)
+            tt: TranspositionTable::with_memory(TT_SIZE)
         }
     }
 
@@ -64,7 +65,7 @@ impl Game {
     /// Resize the transposition table at the given size in byte or the next
     /// power of two
     pub fn tt_resize(&mut self, memory: usize) {
-        self.tt = Transpositions::with_memory(memory);
+        self.tt = TranspositionTable::with_memory(memory);
     }
 
     /// Clear the current game state

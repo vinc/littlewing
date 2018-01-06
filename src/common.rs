@@ -5,7 +5,7 @@ use square::*;
 use bitboard::Bitboard;
 
 pub type Direction = i8;
-pub type MoveType = u8;
+pub type PieceMoveType = u8;
 pub type Score = i16;
 pub type Depth = i8;
 
@@ -46,27 +46,27 @@ pub const FILES: [Bitboard; 8] = [
     FILE_H,
 ];
 
-pub const QUIET_MOVE:               MoveType = 0b0000; // 0
-pub const DOUBLE_PAWN_PUSH:         MoveType = 0b0001; // 1
-pub const KING_CASTLE:              MoveType = 0b0010; // 2
-pub const QUEEN_CASTLE:             MoveType = 0b0011; // 3
-pub const CAPTURE:                  MoveType = 0b0100; // 4
-pub const EN_PASSANT:               MoveType = 0b0101; // 5
-pub const NULL_MOVE:                MoveType = 0b0110; // 6
-pub const KNIGHT_PROMOTION:         MoveType = 0b1000; // 8
-pub const BISHOP_PROMOTION:         MoveType = 0b1001; // 9
-pub const ROOK_PROMOTION:           MoveType = 0b1010; // 10
-pub const QUEEN_PROMOTION:          MoveType = 0b1011; // 11
-pub const KNIGHT_PROMOTION_CAPTURE: MoveType = 0b1100; // 12
-pub const BISHOP_PROMOTION_CAPTURE: MoveType = 0b1101; // 13
-pub const ROOK_PROMOTION_CAPTURE:   MoveType = 0b1110; // 14
-pub const QUEEN_PROMOTION_CAPTURE:  MoveType = 0b1111; // 15
+pub const QUIET_MOVE:               PieceMoveType = 0b0000; // 0
+pub const DOUBLE_PAWN_PUSH:         PieceMoveType = 0b0001; // 1
+pub const KING_CASTLE:              PieceMoveType = 0b0010; // 2
+pub const QUEEN_CASTLE:             PieceMoveType = 0b0011; // 3
+pub const CAPTURE:                  PieceMoveType = 0b0100; // 4
+pub const EN_PASSANT:               PieceMoveType = 0b0101; // 5
+pub const NULL_MOVE:                PieceMoveType = 0b0110; // 6
+pub const KNIGHT_PROMOTION:         PieceMoveType = 0b1000; // 8
+pub const BISHOP_PROMOTION:         PieceMoveType = 0b1001; // 9
+pub const ROOK_PROMOTION:           PieceMoveType = 0b1010; // 10
+pub const QUEEN_PROMOTION:          PieceMoveType = 0b1011; // 11
+pub const KNIGHT_PROMOTION_CAPTURE: PieceMoveType = 0b1100; // 12
+pub const BISHOP_PROMOTION_CAPTURE: PieceMoveType = 0b1101; // 13
+pub const ROOK_PROMOTION_CAPTURE:   PieceMoveType = 0b1110; // 14
+pub const QUEEN_PROMOTION_CAPTURE:  PieceMoveType = 0b1111; // 15
 
-pub const BEST_MOVE:                MoveType = 0b00010000; // 16
-pub const KILLER_MOVE:              MoveType = 0b00010001; // 17
+pub const BEST_MOVE:                PieceMoveType = 0b00010000; // 16
+pub const KILLER_MOVE:              PieceMoveType = 0b00010001; // 17
 
-pub const PROMOTION_MASK:           MoveType = 0b1000;
-pub const PROMOTION_KIND_MASK:      MoveType = 0b1100;
+pub const PROMOTION_MASK:           PieceMoveType = 0b1000;
+pub const PROMOTION_KIND_MASK:      PieceMoveType = 0b1100;
 
 pub const PROMOTION_KINDS: [Piece; 4] = [KNIGHT, BISHOP, ROOK, QUEEN];
 

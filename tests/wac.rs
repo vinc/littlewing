@@ -8,7 +8,7 @@ use std::path::Path;
 use littlewing::clock::Clock;
 use littlewing::fen::FEN;
 use littlewing::game::Game;
-use littlewing::moves_generator::MovesGenerator;
+use littlewing::piece_move_notation::PieceMoveNotation;
 use littlewing::search::Search;
 
 #[test]

@@ -97,18 +97,18 @@ mod tests {
 
     #[test]
     fn test_piece() {
-        assert_eq!(LEAPER & PAWN,   LEAPER);        
-        assert_eq!(LEAPER & KNIGHT, LEAPER);        
-        assert_eq!(LEAPER & KING,   LEAPER);        
-        assert_eq!(LEAPER & BISHOP, EMPTY);        
-        assert_eq!(LEAPER & ROOK,   EMPTY);        
-        assert_eq!(LEAPER & QUEEN,  EMPTY);        
+        assert_eq!(LEAPER & PAWN,   LEAPER);
+        assert_eq!(LEAPER & KNIGHT, LEAPER);
+        assert_eq!(LEAPER & KING,   LEAPER);
+        assert_eq!(LEAPER & BISHOP, EMPTY);
+        assert_eq!(LEAPER & ROOK,   EMPTY);
+        assert_eq!(LEAPER & QUEEN,  EMPTY);
 
-        assert_eq!(SLIDER & PAWN,   EMPTY);        
-        assert_eq!(SLIDER & KNIGHT, EMPTY);        
-        assert_eq!(SLIDER & KING,   EMPTY);        
-        assert_eq!(SLIDER & BISHOP, SLIDER);        
-        assert_eq!(SLIDER & ROOK,   SLIDER);        
-        assert_eq!(SLIDER & QUEEN,  SLIDER);        
+        assert_eq!(SLIDER & PAWN,   EMPTY);
+        assert_eq!(SLIDER & KNIGHT, EMPTY);
+        assert_eq!(SLIDER & KING,   EMPTY);
+        assert_eq!(SLIDER & BISHOP, SLIDER);
+        assert_eq!(SLIDER & ROOK,   SLIDER);
+        assert_eq!(SLIDER & QUEEN,  SLIDER);
     }
 }

@@ -3,73 +3,11 @@ use std::cell::UnsafeCell;
 use std::sync::Arc;
 
 use common::*;
-use moves::Move;
-
-#[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
-pub enum Bound {
-    Exact,
-    Lower,
-    Upper
-}
-
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub struct Transposition {
-    hash: u64,       // 64 bits => 8 bytes
-    best_move: Move, // 16 bits => 2 bytes
-    score: Score,    // 16 bits => 2 bytes
-    depth: Depth,    //  8 bits => 1 bytes
-    bound: Bound,    //  8 bits => 1 bytes
-    age: u8,         //  8 bits => 1 bytes
-
-    // Total: 16 bytes
-    //
-    // NOTE: `depth` will never go above MAX_PLY, which is 128 so we can store
-    // it as `i8`.
-    //
-    // TODO: we don't need to store the whole hash as the first part is the
-    // index of the entry: `entries[hash % size]`
-}
-
-impl Transposition {
-    pub fn new(hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound, age: u8) -> Transposition {
-        Transposition {
-            hash: hash,
-            depth: depth,
-            score: score,
-            best_move: best_move,
-            bound: bound,
-            age: age
-        }
-    }
-
-    pub fn new_null() -> Transposition {
-        Transposition::new(0, 0, 0, Move::new_null(), Bound::Exact, 0)
-    }
-
-    pub fn depth(&self) -> Depth {
-        self.depth
-    }
-
-    pub fn score(&self) -> Score {
-        self.score
-    }
-
-    pub fn best_move(&self) -> Move {
-        self.best_move
-    }
-
-    pub fn bound(&self) -> Bound {
-        self.bound
-    }
-
-    pub fn age(&self) -> u8 {
-        self.age
-    }
-}
+use piece_move::PieceMove;
+use transposition::{Transposition, Bound};
 
 #[derive(Clone)]
-pub struct Transpositions {
+pub struct TranspositionTable {
     entries: Arc<SharedTable>,
     age: u8,
     stats_lookups: u64,
@@ -78,15 +16,15 @@ pub struct Transpositions {
     stats_collisions: u64
 }
 
-impl Transpositions {
-    pub fn with_capacity(capacity: usize) -> Transpositions {
+impl TranspositionTable {
+    pub fn with_capacity(capacity: usize) -> TranspositionTable {
         let n = if capacity.is_power_of_two() {
             capacity
         } else {
             capacity.next_power_of_two()
         };
 
-        Transpositions {
+        TranspositionTable {
             entries: Arc::new(SharedTable::with_capacity(n)),
             age: 0,
             stats_lookups: 0,
@@ -96,10 +34,10 @@ impl Transpositions {
         }
     }
 
-    pub fn with_memory(memory: usize) -> Transpositions {
+    pub fn with_memory(memory: usize) -> TranspositionTable {
         let capacity = memory / mem::size_of::<Transposition>();
 
-        Transpositions::with_capacity(capacity)
+        TranspositionTable::with_capacity(capacity)
     }
 
     pub fn get(&mut self, hash: &u64) -> Option<&Transposition> {
@@ -113,17 +51,17 @@ impl Transpositions {
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
             None
-        } else if &t.hash != hash {
+        } else if &t.hash() != hash {
             self.stats_collisions += 1;
             None
         } else {
-            debug_assert_eq!(&t.hash, hash);
+            debug_assert_eq!(&t.hash(), hash);
             self.stats_hits += 1;
             Some(t)
         }
     }
 
-    pub fn set(&mut self, hash: u64, depth: Depth, score: Score, best_move: Move, bound: Bound) {
+    pub fn set(&mut self, hash: u64, depth: Depth, score: Score, best_move: PieceMove, bound: Bound) {
         let age = self.age;
         let h = self.entries.get();
         let n = self.len() as u64;
@@ -131,7 +69,7 @@ impl Transpositions {
 
         // Always replace entries from previous searches (entry.age < age)
         // but use depth preferred replacement strategy for the current search.
-        if age > h[k].age || (age == 0 && h[k].age > 0) || depth >= h[k].depth() {
+        if age > h[k].age() || (age == 0 && h[k].age() > 0) || depth >= h[k].depth() {
             let t = Transposition::new(hash, depth, score, best_move, bound, age);
             h[k] = t;
             self.stats_inserts += 1;
@@ -228,42 +166,31 @@ impl SharedTable {
 
 #[cfg(test)]
 mod tests {
-    use std::mem;
     use std::sync::{Arc, Barrier};
     use std::thread;
 
     use super::*;
     use square::*;
-    use moves::Move;
+    use piece_move::PieceMove;
 
     #[test]
-    fn test_size_of_transposition() {
-        assert_eq!(mem::size_of::<u64>(),   8); // Hash
-        assert_eq!(mem::size_of::<Score>(), 2); // Score
-        assert_eq!(mem::size_of::<Move>(),  2); // Move
-        assert_eq!(mem::size_of::<u8>(),    1); // Depth
-
-        assert_eq!(mem::size_of::<Transposition>(), 16);
-    }
-
-    #[test]
-    fn test_transpositions_size() {
-        assert_eq!(Transpositions::with_memory(512).len(), 32); // 32 == 512 / 16
-        assert_eq!(Transpositions::with_capacity(32).len(), 32);
+    fn test_transposition_table_size() {
+        assert_eq!(TranspositionTable::with_memory(512).len(), 32); // 32 == 512 / 16
+        assert_eq!(TranspositionTable::with_capacity(32).len(), 32);
 
         // Size should be a power of two for efficient lookups
-        assert_eq!(Transpositions::with_capacity(24).len(), 32);
+        assert_eq!(TranspositionTable::with_capacity(24).len(), 32);
 
         // Large table of 1 M entries using 16 MB of memory
-        assert_eq!(Transpositions::with_memory(16 << 20).len(), 1048576);
+        assert_eq!(TranspositionTable::with_memory(16 << 20).len(), 1048576);
     }
 
     #[test]
-    fn test_transpositions() {
-        let mut tt = Transpositions::with_capacity(1 << 20); // 1 M entries
-        
+    fn test_transposition_table() {
+        let mut tt = TranspositionTable::with_capacity(1 << 20); // 1 M entries
+
         let h = 42;
-        let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
+        let m = PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH);
         let s = 100;
         let d = 8;
         let b = Bound::Exact;
@@ -283,17 +210,17 @@ mod tests {
     }
 
     #[test]
-    fn test_transpositions_in_threads() {
+    fn test_transposition_table_in_threads() {
         // Transposition content
         let h = 42;
-        let m = Move::new(E2, E4, DOUBLE_PAWN_PUSH);
+        let m = PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH);
         let s = 100;
         let d = 8;
         let b = Bound::Exact;
 
         let n = 4;
         let mut children = Vec::with_capacity(n);
-        let shared_tt = Transpositions::with_memory(1 << 20);
+        let shared_tt = TranspositionTable::with_memory(1 << 20);
         let barrier = Arc::new(Barrier::new(n));
         for i in 0..n {
             let mut tt = shared_tt.clone();
