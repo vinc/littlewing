@@ -166,7 +166,6 @@ impl SharedTable {
 
 #[cfg(test)]
 mod tests {
-    use std::mem;
     use std::sync::{Arc, Barrier};
     use std::thread;
 

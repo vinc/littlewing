@@ -10,7 +10,7 @@ use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use bitboard::filefill;
 use game::Game;
 use piece_move::PieceMove;
-use pst::PST;
+use piece_square_table::PST;
 
 pub const PAWN_VALUE:       Score =   100;
 pub const KNIGHT_VALUE:     Score =   350;

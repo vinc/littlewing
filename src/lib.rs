@@ -47,7 +47,7 @@ mod common;
 mod piece_move;
 mod piece_move_list;
 mod positions;
-mod pst;
+mod piece_square_table;
 mod transposition;
 mod transposition_table;
 mod zobrist;
