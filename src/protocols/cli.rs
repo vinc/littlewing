@@ -111,7 +111,7 @@ impl CLI {
         println!("  uci                       Start UCI mode");
         println!("  xboard                    Start XBoard mode");
         println!("");
-        println!("Made with <3 in 2014-2017 by Vincent Ollivier <v@vinc.cc>");
+        println!("Made with <3 in 2014-2018 by Vincent Ollivier <v@vinc.cc>");
         println!("");
         println!("Report bugs to https://github.com/vinc/littlewing/issues");
     }

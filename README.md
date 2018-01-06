@@ -167,7 +167,7 @@ in addition it has its own text-based user interface:
       uci                       Start UCI mode
       xboard                    Start XBoard mode
 
-    Made with <3 in 2014-2017 by Vincent Ollivier <v@vinc.cc>
+    Made with <3 in 2014-2018 by Vincent Ollivier <v@vinc.cc>
 
     Report bugs to https://github.com/vinc/littlewing/issues
     > quit
@@ -240,4 +240,4 @@ it from `littlewing` if you installed it to make it run (much) faster.
 License
 -------
 
-Copyright (c) 2014-2017 Vincent Ollivier. Released under GNU GPL License v3.
+Copyright (c) 2014-2018 Vincent Ollivier. Released under GNU GPL License v3.
