@@ -261,7 +261,7 @@ mod tests {
     #[test]
     fn test_transpositions() {
         let mut tt = Transpositions::with_capacity(1 << 20); // 1 M entries
-        
+
         let h = 42;
         let m = PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH);
         let s = 100;

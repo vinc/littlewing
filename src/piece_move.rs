@@ -82,7 +82,7 @@ impl fmt::Display for PieceMove {
         out.push_str(self.from().to_coord().as_str());
         out.push_str(self.to().to_coord().as_str());
         if self.is_promotion() {
-            out.push((BLACK | self.promotion_kind()).to_char());        
+            out.push((BLACK | self.promotion_kind()).to_char());
         }
         write!(f, "{}", out)
     }
