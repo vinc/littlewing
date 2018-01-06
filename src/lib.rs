@@ -14,6 +14,7 @@
 //! use littlewing::clock::Clock;
 //! use littlewing::search::Search;
 //! use littlewing::piece_move_generator::PieceMoveGenerator;
+//! use littlewing::piece_move_notation::PieceMoveNotation;
 //!
 //! // Byrne vs Fischer (1956)
 //! let fen = "r3r1k1/pp3pbp/1Bp1b1p1/8/2BP4/Q1n2N2/P4PPP/3R1K1R b - - 0 18";
@@ -70,8 +71,11 @@ pub mod fen;
 /// Game engine
 pub mod game;
 
-/// PieceMoveList generator
+/// Piece move generator
 pub mod piece_move_generator;
+
+/// Piece move notation
+pub mod piece_move_notation;
 
 /// Piece type
 pub mod piece;

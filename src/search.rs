@@ -12,6 +12,7 @@ use fen::FEN;
 use game::Game;
 use piece_move::PieceMove;
 use piece_move_generator::PieceMoveGenerator;
+use piece_move_notation::PieceMoveNotation;
 use protocols::Protocol;
 use transposition::Bound;
 
@@ -616,6 +617,7 @@ mod tests {
     use game::Game;
     use piece_move::PieceMove;
     use piece_move_generator::PieceMoveGenerator;
+    use piece_move_notation::PieceMoveNotation;
     use search::Search;
 
     #[test]

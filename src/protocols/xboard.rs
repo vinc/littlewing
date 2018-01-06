@@ -8,6 +8,7 @@ use clock::Clock;
 use fen::FEN;
 use game::Game;
 use piece_move_generator::PieceMoveGenerator;
+use piece_move_notation::PieceMoveNotation;
 use search::Search;
 use protocols::Protocol;
 use version;

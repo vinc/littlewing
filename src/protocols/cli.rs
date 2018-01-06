@@ -18,6 +18,7 @@ use eval::Eval;
 use fen::FEN;
 use game::Game;
 use piece_move_generator::PieceMoveGenerator;
+use piece_move_notation::PieceMoveNotation;
 use protocols::xboard::XBoard;
 use protocols::uci::UCI;
 use search::Search;
