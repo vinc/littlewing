@@ -368,7 +368,7 @@ impl Search for Game {
                     }
                 }
 
-                // Late PieceMove Reduction (LMR)
+                // Late Move Reduction (LMR)
                 let lmr_allowed =
                     !is_pv &&
                     !is_in_check &&

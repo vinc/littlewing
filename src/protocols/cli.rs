@@ -345,7 +345,7 @@ impl CLI {
         }
 
         println!("");
-        println!("PieceMoveList: {}", moves_count);
+        println!("Moves: {}", moves_count);
         println!("Nodes: {}", nodes_count);
     }
 
