@@ -13,7 +13,7 @@ use game::Game;
 use piece_move::PieceMove;
 use piece_move_generator::PieceMoveGenerator;
 use protocols::Protocol;
-use transpositions::Bound;
+use transposition::Bound;
 
 /// Search the game
 pub trait Search {
@@ -251,7 +251,7 @@ impl Search for Game {
         let mut best_score = alpha;
         let old_alpha = alpha; // To test if best score raise initial alpha
 
-        // Try to get the best move from transpositions table
+        // Try to get the best move from transposition_table table
         if let Some(t) = self.tt.get(&hash) {
             if t.depth() >= depth { // This node has already been searched
                 match t.bound() {
@@ -306,7 +306,7 @@ impl Search for Game {
 
         // Internal Iterative Deepening (IID)
         //
-        // If we didn't get a best move from the transpositions table,
+        // If we didn't get a best move from the transposition_table table,
         // get it by searching the position at a reduced depth.
         let iid_allowed = is_pv && best_move.is_null();
 

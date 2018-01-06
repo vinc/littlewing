@@ -48,7 +48,8 @@ mod piece_move;
 mod piece_move_list;
 mod positions;
 mod pst;
-mod transpositions;
+mod transposition;
+mod transposition_table;
 mod zobrist;
 
 /// Bitboard type

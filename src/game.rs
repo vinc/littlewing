@@ -9,7 +9,7 @@ use piece_move::PieceMove;
 use piece_move_list::PieceMoveList;
 use positions::Positions;
 use protocols::Protocol;
-use transpositions::Transpositions;
+use transposition_table::TranspositionTable;
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
 
@@ -31,7 +31,7 @@ pub struct Game {
     pub positions: Positions,
     pub zobrist: Zobrist,
     pub history: Vec<PieceMove>,
-    pub tt: Transpositions
+    pub tt: TranspositionTable
 }
 
 impl Game {
@@ -53,7 +53,7 @@ impl Game {
             positions: Positions::new(),
             zobrist: Zobrist::new(),
             history: Vec::new(),
-            tt: Transpositions::with_memory(TT_SIZE)
+            tt: TranspositionTable::with_memory(TT_SIZE)
         }
     }
 
@@ -65,7 +65,7 @@ impl Game {
     /// Resize the transposition table at the given size in byte or the next
     /// power of two
     pub fn tt_resize(&mut self, memory: usize) {
-        self.tt = Transpositions::with_memory(memory);
+        self.tt = TranspositionTable::with_memory(memory);
     }
 
     /// Clear the current game state
