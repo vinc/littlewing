@@ -434,26 +434,26 @@ impl Search for Game {
         }
 
         // Static evaluation
-        let stand_pat = self.eval();
+        let eval = self.eval();
 
         // Maximum depth abort
         if ply >= MAX_PLY {
-            return stand_pat;
-        }
-
-        // Stand pat pruning
-        if stand_pat >= beta {
-            return stand_pat;
+            return eval;
         }
 
         // Delta pruning
         let delta = 1000; // Queen value
-        if stand_pat < alpha - delta {
+        if eval < alpha - delta {
             return alpha;
         }
 
-        if alpha < stand_pat {
-            alpha = stand_pat;
+        // Stand pat pruning
+        if eval > alpha {
+            if eval >= beta {
+                return eval;
+            }
+
+            alpha = eval;
         }
 
         let hash = self.positions.top().hash;

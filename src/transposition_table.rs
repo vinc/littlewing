@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_transposition_table_size() {
-        assert_eq!(TranspositionTable::with_memory(512).len(), 32); // 32 == 512 / 16
+        assert_eq!(TranspositionTable::with_memory(512).len(), 32); // 512 / 16 == 32
         assert_eq!(TranspositionTable::with_capacity(32).len(), 32);
 
         // Size should be a power of two for efficient lookups
