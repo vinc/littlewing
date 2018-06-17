@@ -391,15 +391,15 @@ impl Search for Game {
 
             self.undo_move(m);
 
-            if score >= beta {
-                if !m.is_capture() {
-                    self.moves.add_killer_move(m);
-                }
-                self.tt.set(hash, depth, score, m, Bound::Lower);
-                return score;
-            }
-
             if score > alpha {
+                if score >= beta {
+                    if !m.is_capture() {
+                        self.moves.add_killer_move(m);
+                    }
+                    self.tt.set(hash, depth, score, m, Bound::Lower);
+                    return score;
+                }
+
                 alpha = score;
                 best_score = score;
                 best_move = m;
@@ -503,11 +503,11 @@ impl Search for Game {
 
             self.undo_move(m);
 
-            if score >= beta {
-                self.tt.set(hash, depth, score, m, Bound::Lower);
-                return score;
-            }
             if score > alpha {
+                if score >= beta {
+                    self.tt.set(hash, depth, score, m, Bound::Lower);
+                    return score;
+                }
                 alpha = score;
                 best_move = m;
             }
