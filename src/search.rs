@@ -395,10 +395,8 @@ impl Search for Game {
                 if !m.is_capture() {
                     self.moves.add_killer_move(m);
                 }
-
                 self.tt.set(hash, depth, score, m, Bound::Lower);
-
-                return beta;
+                return score;
             }
 
             if score > alpha {
@@ -430,28 +428,32 @@ impl Search for Game {
     }
 
     fn quiescence(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
+        // Time limit abort
         if self.clock.poll(self.nodes_count) {
             return 0;
         }
 
-        let stand_path = self.eval();
+        // Static evaluation
+        let stand_pat = self.eval();
 
+        // Maximum depth abort
         if ply >= MAX_PLY {
-            return stand_path;
+            return stand_pat;
         }
 
-        if stand_path >= beta {
-            return beta;
+        // Stand pat pruning
+        if stand_pat >= beta {
+            return stand_pat;
         }
 
         // Delta pruning
         let delta = 1000; // Queen value
-        if stand_path < alpha - delta {
+        if stand_pat < alpha - delta {
             return alpha;
         }
 
-        if alpha < stand_path {
-            alpha = stand_path;
+        if alpha < stand_pat {
+            alpha = stand_pat;
         }
 
         let hash = self.positions.top().hash;
@@ -503,7 +505,7 @@ impl Search for Game {
 
             if score >= beta {
                 self.tt.set(hash, depth, score, m, Bound::Lower);
-                return beta;
+                return score;
             }
             if score > alpha {
                 alpha = score;
