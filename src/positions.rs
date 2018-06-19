@@ -112,12 +112,16 @@ impl Positions {
         }
 
         // Threefold repetitions
+        let mut repetitions_count = 0;
         let hash = self.top().hash;
         let mut i = self.len() - 1;
         while i >= 2 {
             i -= 2;
             if self[i].hash == hash {
-                return true;
+                repetitions_count += 1;
+                if repetitions_count > 0 {
+                    return true;
+                }
             }
             if self[i].halfmoves_count == 0 {
                 break;
