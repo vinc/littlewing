@@ -27,51 +27,51 @@ impl PieceMove {
         PieceMove(0)
     }
 
-    pub fn from(&self) -> Square {
-        let PieceMove(v) = *self;
+    pub fn from(self) -> Square {
+        let PieceMove(v) = self;
         (v >> 10) as Square
     }
 
-    pub fn to(&self) -> Square {
-        let PieceMove(v) = *self;
+    pub fn to(self) -> Square {
+        let PieceMove(v) = self;
         ((v >> 4) & 0b111111) as Square
     }
 
-    pub fn kind(&self) -> PieceMoveType {
-        let PieceMove(v) = *self;
+    pub fn kind(self) -> PieceMoveType {
+        let PieceMove(v) = self;
         (v & 0b1111) as PieceMoveType
     }
 
-    pub fn is_null(&self) -> bool {
-        let PieceMove(v) = *self;
+    pub fn is_null(self) -> bool {
+        let PieceMove(v) = self;
         v == 0
     }
 
-    pub fn is_capture(&self) -> bool {
+    pub fn is_capture(self) -> bool {
         self.kind() == CAPTURE || self.kind() & 0b1100 == 0b1100
     }
 
-    pub fn is_en_passant(&self) -> bool {
+    pub fn is_en_passant(self) -> bool {
         self.kind() == EN_PASSANT
     }
 
-    pub fn is_castle(&self) -> bool {
+    pub fn is_castle(self) -> bool {
         self.kind() == KING_CASTLE || self.kind() == QUEEN_CASTLE
     }
 
-    pub fn castle_kind(&self) -> Piece {
+    pub fn castle_kind(self) -> Piece {
         QUEEN_CASTLE << self.kind() - 1
     }
 
-    pub fn is_promotion(&self) -> bool {
+    pub fn is_promotion(self) -> bool {
         self.kind() & PROMOTION_MASK > 0
     }
 
-    pub fn promotion_kind(&self) -> Piece {
+    pub fn promotion_kind(self) -> Piece {
         PROMOTION_KINDS[(self.kind() & PROMOTION_KIND_MASK >> 2) as usize]
     }
 
-    pub fn to_can(&self) -> String {
+    pub fn to_can(self) -> String {
         self.to_string()
     }
 }

@@ -40,7 +40,7 @@ impl TranspositionTable {
         TranspositionTable::with_capacity(capacity)
     }
 
-    pub fn get(&mut self, hash: &u64) -> Option<&Transposition> {
+    pub fn get(&mut self, hash: u64) -> Option<&Transposition> {
         self.stats_lookups += 1;
 
         let h = self.entries.get();
@@ -51,11 +51,11 @@ impl TranspositionTable {
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
             None
-        } else if &t.hash() != hash {
+        } else if t.hash() != hash {
             self.stats_collisions += 1;
             None
         } else {
-            debug_assert_eq!(&t.hash(), hash);
+            debug_assert_eq!(t.hash(), hash);
             self.stats_hits += 1;
             Some(t)
         }
@@ -203,10 +203,10 @@ mod tests {
 
         tt.set(h, d, s, m, b);
 
-        assert_eq!(tt.get(&h).unwrap().best_move(), m);
+        assert_eq!(tt.get(h).unwrap().best_move(), m);
 
         let h = 1337;
-        assert_eq!(tt.get(&h), None);
+        assert_eq!(tt.get(h), None);
     }
 
     #[test]
@@ -231,7 +231,7 @@ mod tests {
                     tt.set(h, d, s, m, b); // First thread set a value in TT
                 }
                 c.wait(); // Synchronize all threads
-                tt.get(&h).unwrap().best_move() // All threads should get it
+                tt.get(h).unwrap().best_move() // All threads should get it
             }));
         }
 

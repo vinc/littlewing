@@ -253,7 +253,7 @@ impl Search for Game {
         let old_alpha = alpha; // To test if best score raise initial alpha
 
         // Try to get the best move from transposition_table table
-        if let Some(t) = self.tt.get(&hash) {
+        if let Some(t) = self.tt.get(hash) {
             if t.depth() >= depth { // This node has already been searched
                 match t.bound() {
                     Bound::Exact => {
@@ -314,7 +314,7 @@ impl Search for Game {
         if iid_allowed && depth > 3 {
             self.search_node(-beta, -alpha, depth / 2, ply + 1);
 
-            if let Some(t) = self.tt.get(&hash) {
+            if let Some(t) = self.tt.get(hash) {
                 best_move = t.best_move();
             }
         }
@@ -461,7 +461,7 @@ impl Search for Game {
         let old_alpha = alpha;
         let mut best_move = PieceMove::new_null();
 
-        if let Some(t) = self.tt.get(&hash) {
+        if let Some(t) = self.tt.get(hash) {
             if t.depth() >= depth { // This node has already been searched
                 match t.bound() {
                     Bound::Exact => {
@@ -568,7 +568,7 @@ impl SearchExt for Game {
 
         let side = self.positions.top().side;
         let hash = self.positions.top().hash;
-        if let Some(t) = self.tt.get(&hash) {
+        if let Some(t) = self.tt.get(hash) {
             m = t.best_move();
 
             if is_san_format && side == WHITE {
