@@ -95,12 +95,13 @@ impl BitboardExt for Bitboard {
     }
 }
 
-pub fn dumb7fill(mut sliders: Bitboard, empty: Bitboard, dir: Direction) -> Bitboard {
+// Flood fill algorithm
+pub fn dumb7fill(mut fill: Bitboard, empty: Bitboard, dir: Direction) -> Bitboard {
     let mut flood: Bitboard = 0;
 
-    while sliders > 0 {
-        flood |= sliders;
-        sliders = sliders.shift(dir) & empty;
+    while fill > 0 {
+        flood |= fill;
+        fill = fill.shift(dir) & empty;
     }
 
     flood
