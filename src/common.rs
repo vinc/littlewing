@@ -75,7 +75,7 @@ pub const CASTLING_MASKS: [[Bitboard; 2]; 2] = [
     [1 << F8 | 1 << G8, 1 << B8 | 1 << C8 | 1 << D8]
 ];
 
-pub const DEFAULT_FEN: &'static str =
+pub const DEFAULT_FEN: &str =
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /*
