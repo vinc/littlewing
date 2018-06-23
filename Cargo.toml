@@ -19,7 +19,7 @@ doc = false
 [dependencies]
 getopts = "0.2"
 lazy_static = "1.0"
-rand = "0.4"
+rand = "0.5"
 regex = "0.2"
 rustyline = "1.0"
 time = "0.1"

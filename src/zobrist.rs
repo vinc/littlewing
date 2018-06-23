@@ -1,7 +1,6 @@
-extern crate rand;
-
-use self::rand::Rng;
-use self::rand::weak_rng;
+use rand::FromEntropy;
+use rand::RngCore;
+use rand::rngs::SmallRng;
 
 use color::Color;
 use piece::Piece;
@@ -23,7 +22,8 @@ impl Zobrist {
             side: 0
         };
 
-        let mut rng = weak_rng();
+        let mut rng = SmallRng::from_entropy();
+
         for i in 0..14 {
             for j in 0..64 {
                 zobrist.positions[i][j] = rng.next_u64();
