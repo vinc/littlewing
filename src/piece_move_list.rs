@@ -245,8 +245,8 @@ impl PieceMoveList {
         let mt = PieceMoveType::from(self.stage());
         let targets = match self.stage() {
             PieceMoveListStage::QuietPieceMove => !occupied,
-            PieceMoveListStage::Capture   => bitboards[(side ^ 1) as usize],
-            _                     => panic!("wrong generation stage")
+            PieceMoveListStage::Capture        => bitboards[(side ^ 1) as usize],
+            _                                  => panic!("wrong generation stage")
         };
         while let Some(from) = pieces.next() {
             let mask = piece_attacks(p, from, occupied);
@@ -260,8 +260,8 @@ impl PieceMoveList {
         let mt = PieceMoveType::from(self.stage());
         let dests = match self.stage() {
             PieceMoveListStage::QuietPieceMove => !occupied,
-            PieceMoveListStage::Capture   => bitboards[(side ^ 1) as usize],
-            _                     => panic!("wrong generation stage")
+            PieceMoveListStage::Capture        => bitboards[(side ^ 1) as usize],
+            _                                  => panic!("wrong generation stage")
         };
         while let Some(from) = knights.next() {
             let mask = PIECE_MASKS[KNIGHT as usize][from as usize];
@@ -276,8 +276,8 @@ impl PieceMoveList {
         let mt = PieceMoveType::from(self.stage());
         let dests = match self.stage() {
             PieceMoveListStage::QuietPieceMove => !occupied,
-            PieceMoveListStage::Capture   => bitboards[(side ^ 1) as usize],
-            _                     => panic!("wrong generation stage")
+            PieceMoveListStage::Capture        => bitboards[(side ^ 1) as usize],
+            _                                  => panic!("wrong generation stage")
         };
         while let Some(from) = kings.next() {
             let mask = PIECE_MASKS[KING as usize][from as usize];
@@ -292,8 +292,8 @@ impl PieceMoveList {
         let mt = PieceMoveType::from(self.stage());
         let dests = match self.stage() {
             PieceMoveListStage::QuietPieceMove => !occupied,
-            PieceMoveListStage::Capture   => bitboards[(side ^ 1) as usize],
-            _                     => panic!("wrong generation stage")
+            PieceMoveListStage::Capture        => bitboards[(side ^ 1) as usize],
+            _                                  => panic!("wrong generation stage")
         };
         while let Some(from) = bishops.next() {
             let targets = bishop_attacks(from, occupied);
@@ -307,8 +307,8 @@ impl PieceMoveList {
         let mt = PieceMoveType::from(self.stage());
         let dests = match self.stage() {
             PieceMoveListStage::QuietPieceMove => !occupied,
-            PieceMoveListStage::Capture   => bitboards[(side ^ 1) as usize],
-            _                     => panic!("wrong generation stage")
+            PieceMoveListStage::Capture        => bitboards[(side ^ 1) as usize],
+            _                                  => panic!("wrong generation stage")
         };
         while let Some(from) = rooks.next() {
             let targets = rook_attacks(from, occupied);
@@ -322,8 +322,8 @@ impl PieceMoveList {
         let mt = PieceMoveType::from(self.stage());
         let dests = match self.stage() {
             PieceMoveListStage::QuietPieceMove => !occupied,
-            PieceMoveListStage::Capture   => bitboards[(side ^ 1) as usize],
-            _                     => panic!("wrong generation stage")
+            PieceMoveListStage::Capture        => bitboards[(side ^ 1) as usize],
+            _                                  => panic!("wrong generation stage")
         };
         while let Some(from) = queens.next() {
             let targets = bishop_attacks(from, occupied) | rook_attacks(from, occupied);
