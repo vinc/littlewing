@@ -63,10 +63,10 @@ impl FEN for Game {
 
         for c in fields.next().unwrap().chars() {
             match c {
-                'K' => position.castling_rights[WHITE as usize][(KING >> 3) as usize] = true,
-                'Q' => position.castling_rights[WHITE as usize][(QUEEN >> 3) as usize] = true,
-                'k' => position.castling_rights[BLACK as usize][(KING >> 3) as usize] = true,
-                'q' => position.castling_rights[BLACK as usize][(QUEEN >> 3) as usize] = true,
+                'K' => position.set_castling_right(WHITE, KING),
+                'Q' => position.set_castling_right(WHITE, QUEEN),
+                'k' => position.set_castling_right(BLACK, KING),
+                'q' => position.set_castling_right(BLACK, QUEEN),
                 _   => break
             }
         }
@@ -137,18 +137,18 @@ impl FEN for Game {
         }
 
         fen.push(' ');
-        let castling_rights = self.positions.top().castling_rights;
+        let &pos = self.positions.top();
         let mut castles = String::new();
-        if castling_rights[WHITE as usize][(KING >> 3) as usize] {
+        if pos.castling_right(WHITE, KING) {
             castles.push('K');
         }
-        if castling_rights[WHITE as usize][(QUEEN >> 3) as usize] {
+        if pos.castling_right(WHITE, QUEEN) {
             castles.push('Q');
         }
-        if castling_rights[BLACK as usize][(KING >> 3) as usize] {
+        if pos.castling_right(BLACK, KING) {
             castles.push('k');
         }
-        if castling_rights[BLACK as usize][(QUEEN >> 3) as usize] {
+        if pos.castling_right(BLACK, QUEEN) {
             castles.push('q');
         }
         if castles.is_empty() {

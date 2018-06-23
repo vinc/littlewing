@@ -185,7 +185,7 @@ impl PieceMoveGenerator for Game {
                 if new_position.castling_right(side, KING) {
                     new_position.halfmoves_count = 0;
                 }
-                new_position.remove_castling_right(side, KING);
+                new_position.reset_castling_right(side, KING);
                 new_position.hash ^= self.zobrist.castling_right(side, KING);
             }
 
@@ -194,17 +194,17 @@ impl PieceMoveGenerator for Game {
                 if new_position.castling_right(side, QUEEN) {
                     new_position.halfmoves_count = 0;
                 }
-                new_position.remove_castling_right(side, QUEEN);
+                new_position.reset_castling_right(side, QUEEN);
                 new_position.hash ^= self.zobrist.castling_right(side, QUEEN);
             }
 
             // Update opponent's castling rights on rook capture
             if capture.kind() == ROOK {
                 if m.to() == H1.flip(side ^ 1) {
-                    new_position.remove_castling_right(side ^ 1, KING);
+                    new_position.reset_castling_right(side ^ 1, KING);
                     new_position.hash ^= self.zobrist.castling_right(side ^ 1, KING);
                 } else if m.to() == A1.flip(side ^ 1) {
-                    new_position.remove_castling_right(side ^ 1, QUEEN);
+                    new_position.reset_castling_right(side ^ 1, QUEEN);
                     new_position.hash ^= self.zobrist.castling_right(side ^ 1, QUEEN);
                 }
             }

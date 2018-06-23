@@ -6,42 +6,49 @@ use square::*;
 
 #[derive(Copy, Clone)]
 pub struct Position {
-    pub halfmoves_count: u8,
     pub hash: u64,
+    pub castling_rights: u8,
+    pub halfmoves_count: u8,
     pub side: Color,
     pub capture: Piece, // TODO: use `Option<Piece>`?
     pub en_passant: Square, // TODO: use `Option<Square>`?
     pub null_move_right: bool,
+}
 
-    // WHITE == 0
-    // BLACK == 1
-    //
-    // KING  == 0b0100 =>  king's wing ==  KING >> 3 == 0
-    // QUEEN == 0b1100 => queen's wing == QUEEN >> 3 == 1
-    //
-    // castling_rights[side][wing]
-    pub castling_rights: [[bool; 2]; 2]
+// WHITE == 0b0000
+// BLACK == 0b0001
+// KING  == 0b0110 => 0b0000
+// QUEEN == 0b1100 => 0b0010
+fn castling_rights_index(side: Color, wing: Piece) -> u8 {
+    ((wing >> 3) << 1) | side
 }
 
 impl Position {
     pub fn new() -> Position {
         Position {
-            halfmoves_count: 0,
             hash: 0, // TODO: is it a problem for the starting position?
+            halfmoves_count: 0,
+            castling_rights: 0,
             side: WHITE,
             capture: EMPTY, // TODO: use `None`?
             en_passant: OUT, // TODO: use `None`?
             null_move_right: true,
-            castling_rights: [[false; 2]; 2]
         }
     }
 
     pub fn castling_right(&self, side: Color, wing: Piece) -> bool {
-        self.castling_rights[side as usize][(wing >> 3) as usize]
+        let i = castling_rights_index(side, wing);
+        self.castling_rights & (1 << i) > 0
     }
 
-    pub fn remove_castling_right(&mut self, side: Color, wing: Piece) {
-        self.castling_rights[side as usize][(wing >> 3) as usize] = false;
+    pub fn set_castling_right(&mut self, side: Color, wing: Piece) {
+        let i = castling_rights_index(side, wing);
+        self.castling_rights |= 1 << i;
+    }
+
+    pub fn reset_castling_right(&mut self, side: Color, wing: Piece) {
+        let i = castling_rights_index(side, wing);
+        self.castling_rights &= !(1 << i);
     }
 }
 
@@ -64,7 +71,7 @@ impl Positions {
     }
 
     pub fn push(&mut self, position: Position) {
-        self.stack[self.ply] = position;
+        self.stack[self.ply] = position; // FIXME: this operation is very slow
         self.ply += 1;
     }
 
@@ -148,7 +155,71 @@ impl Positions {
 impl Index<usize> for Positions {
     type Output = Position;
 
-    fn index(&self, _index: usize) -> &Position {
-        &self.stack[_index]
+    fn index(&self, i: usize) -> &Position {
+        &self.stack[i]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::mem;
+    use super::*;
+
+    #[test]
+    fn test_size_of_position() {
+        assert_eq!(mem::size_of::<u64>(),       8); // x1
+        assert_eq!(mem::size_of::<u8>(),        1); // x2
+        assert_eq!(mem::size_of::<bool>(),      1); // x1
+        assert_eq!(mem::size_of::<Color>(),     1); // x1
+        assert_eq!(mem::size_of::<Piece>(),     1); // x1
+        assert_eq!(mem::size_of::<Square>(),    1); // x1
+
+        assert_eq!(mem::size_of::<Position>(), 16);
+    }
+
+    #[test]
+    fn test_position_castling_rights() {
+        let mut pos = Position::new();
+        
+        assert_eq!(pos.castling_right(WHITE, KING),  false);
+        assert_eq!(pos.castling_right(WHITE, QUEEN), false);
+        assert_eq!(pos.castling_right(BLACK, KING),  false);
+        assert_eq!(pos.castling_right(BLACK, QUEEN), false);
+
+        pos.set_castling_right(WHITE, KING);
+        assert_eq!(pos.castling_right(WHITE, KING),  true);
+        assert_eq!(pos.castling_right(WHITE, QUEEN), false);
+        assert_eq!(pos.castling_right(BLACK, KING),  false);
+        assert_eq!(pos.castling_right(BLACK, QUEEN), false);
+
+        pos.set_castling_right(WHITE, KING);
+        assert_eq!(pos.castling_right(WHITE, KING),  true);
+        assert_eq!(pos.castling_right(WHITE, QUEEN), false);
+        assert_eq!(pos.castling_right(BLACK, KING),  false);
+        assert_eq!(pos.castling_right(BLACK, QUEEN), false);
+
+        pos.set_castling_right(BLACK, QUEEN);
+        assert_eq!(pos.castling_right(WHITE, KING),  true);
+        assert_eq!(pos.castling_right(WHITE, QUEEN), false);
+        assert_eq!(pos.castling_right(BLACK, KING),  false);
+        assert_eq!(pos.castling_right(BLACK, QUEEN), true);
+
+        pos.reset_castling_right(WHITE, KING);
+        assert_eq!(pos.castling_right(WHITE, KING),  false);
+        assert_eq!(pos.castling_right(WHITE, QUEEN), false);
+        assert_eq!(pos.castling_right(BLACK, KING),  false);
+        assert_eq!(pos.castling_right(BLACK, QUEEN), true);
+
+        pos.reset_castling_right(BLACK, QUEEN);
+        assert_eq!(pos.castling_right(WHITE, KING),  false);
+        assert_eq!(pos.castling_right(WHITE, QUEEN), false);
+        assert_eq!(pos.castling_right(BLACK, KING),  false);
+        assert_eq!(pos.castling_right(BLACK, QUEEN), false);
+
+        pos.reset_castling_right(BLACK, QUEEN);
+        assert_eq!(pos.castling_right(WHITE, KING),  false);
+        assert_eq!(pos.castling_right(WHITE, QUEEN), false);
+        assert_eq!(pos.castling_right(BLACK, KING),  false);
+        assert_eq!(pos.castling_right(BLACK, QUEEN), false);
     }
 }
