@@ -5,25 +5,25 @@ pub type Bitboard = u64;
 
 pub trait BitboardExt {
     /// Population count using LLVM `ctpop`
-    fn count(&self) -> u32;
+    fn count(self) -> u32;
 
     /// Bitscan using LLVM `cttz`
-    fn scan(&self) -> u32;
+    fn scan(self) -> u32;
 
-    /// Left shift positive values or right shift negative values
-    fn shift(&self, x: Direction) -> Bitboard;
+    /// Generalized shift (left shift positive values and right shift negative values)
+    fn shift(self, dir: Direction) -> Bitboard;
 
-    /// Toggle occupancy bit at the given square
-    fn toggle(&mut self, i: Square); // FIXME: Return instead of update?
+    /// Get occupancy at the given square
+    fn get(self, i: Square) -> bool;
 
     /// Set occupancy bit at the given square
     fn set(&mut self, i: Square);
 
+    /// Toggle occupancy bit at the given square
+    fn toggle(&mut self, i: Square); // FIXME: Return instead of update?
+
     /// Reset occupancy bit at the given square
     fn reset(&mut self, i: Square);
-
-    /// Get occupancy at the given square
-    fn get(&self, i: Square) -> bool;
 
     fn debug(&self);
     fn to_debug_string(&self) -> String;
@@ -31,27 +31,27 @@ pub trait BitboardExt {
 
 impl BitboardExt for Bitboard {
     #[inline]
-    fn count(&self) -> u32 {
+    fn count(self) -> u32 {
         self.count_ones()
     }
 
     #[inline]
-    fn scan(&self) -> u32 {
+    fn scan(self) -> u32 {
         self.trailing_zeros()
     }
 
     #[inline]
-    fn shift(&self, x: Direction) -> Bitboard {
-        if x > 0 {
-            *self << x
+    fn shift(self, dir: Direction) -> Bitboard {
+        if dir > 0 {
+            self << dir
         } else {
-            *self >> -x
+            self >> -dir
         }
     }
 
     #[inline]
-    fn toggle(&mut self, i: Square) {
-        *self ^= 1 << i
+    fn get(self, i: Square) -> bool {
+        self & (1 << i) > 0
     }
 
     #[inline]
@@ -60,13 +60,13 @@ impl BitboardExt for Bitboard {
     }
 
     #[inline]
-    fn reset(&mut self, i: Square) {
-        *self &= !(1 << i)
+    fn toggle(&mut self, i: Square) {
+        *self ^= 1 << i
     }
 
     #[inline]
-    fn get(&self, i: Square) -> bool {
-        *self & (1 << i) > 0
+    fn reset(&mut self, i: Square) {
+        *self &= !(1 << i)
     }
 
     //FIXME: remove this method
