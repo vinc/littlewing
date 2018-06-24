@@ -7,32 +7,32 @@ use square::*;
 #[derive(Copy, Clone)]
 pub struct Position {
     pub hash: u64,
-    pub castling_rights: u8,
-    pub halfmoves_count: u8,
     pub side: Color,
     pub capture: Piece, // TODO: use `Option<Piece>`?
     pub en_passant: Square, // TODO: use `Option<Square>`?
     pub null_move_right: bool,
+    pub castling_rights: u8,
+    pub halfmoves_count: u8,
 }
 
-// WHITE == 0b0000
-// BLACK == 0b0001
-// KING  == 0b0110 => 0b0000
-// QUEEN == 0b1100 => 0b0010
+// WHITE == 0b0000 => 0b0000
+// BLACK == 0b0001 => 0b0001
+// KING  == 0b0110 => 0b0010
+// QUEEN == 0b1100 => 0b0000
 fn castling_rights_index(side: Color, wing: Piece) -> u8 {
-    ((wing >> 3) << 1) | side
+    (wing & 0b0010) | side
 }
 
 impl Position {
     pub fn new() -> Position {
         Position {
             hash: 0, // TODO: is it a problem for the starting position?
-            halfmoves_count: 0,
-            castling_rights: 0,
             side: WHITE,
             capture: EMPTY, // TODO: use `None`?
             en_passant: OUT, // TODO: use `None`?
             null_move_right: true,
+            castling_rights: 0,
+            halfmoves_count: 0,
         }
     }
 
