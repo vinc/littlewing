@@ -16,11 +16,7 @@ pub trait Attack {
 impl Attack for Game {
     fn is_check(&self, side: Color) -> bool {
         let king = self.bitboards[(side | KING) as usize];
-        if king == 0 {
-            return true; // FIXME: Obviously...
-        }
-        let square = king.scan() as Square;
-        self.is_attacked(square, side)
+        king == 0 || self.is_attacked(king.scan() as Square, side)
     }
 
     fn is_attacked(&self, square: Square, side: Color) -> bool {

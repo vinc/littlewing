@@ -83,8 +83,7 @@ impl Eval for Game {
                 let mut pieces = self.bitboards[piece as usize];
                 let n = pieces.count() as Score;
                 material[c as usize] += n * PIECE_VALUES[piece as usize];
-                // FIXME: This conditional slows the function from 1250ns to 1350ns
-                if p == BISHOP && n > 1 {
+                if p == BISHOP && n > 1 { // FIXME: Slows eval from 1250ns to 1350ns
                     material[c as usize] += BONUS_BISHOP_PAIR;
                 }
                 while let Some(square) = pieces.next() {
@@ -153,9 +152,8 @@ impl Eval for Game {
             let n = pieces.count() as Score;
             score += n * PIECE_VALUES[piece as usize];
 
-            // FIXME: This conditional slows the function from 65 to 130ns
             /*
-            match p {
+            match p { // FIXME: Slows eval from 65 to 130ns
                 PAWN => {
                     pawns_count = n;
 
