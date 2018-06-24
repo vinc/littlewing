@@ -251,7 +251,7 @@ impl PieceMoveGenerator for Game {
 
             if m.kind() == EN_PASSANT {
                 new_position.halfmoves_count = 0;
-                let square = (((m.to().flip(side) as Direction) + DOWN) as Square).flip(side);
+                let square = (((m.to().flip(side) as Shift) + DOWN) as Square).flip(side);
                 let pawn = (side ^ 1) | PAWN;
                 self.board[square as usize] = EMPTY;
                 self.bitboards[(side ^ 1) as usize].toggle(square);
@@ -268,7 +268,7 @@ impl PieceMoveGenerator for Game {
         }
 
         new_position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
-            ((((m.from().flip(side)) as Direction) + UP) as Square).flip(side)
+            ((((m.from().flip(side)) as Shift) + UP) as Square).flip(side)
         } else {
             OUT
         };
@@ -321,7 +321,7 @@ impl PieceMoveGenerator for Game {
         }
 
         if m.kind() == EN_PASSANT {
-            let square = (((m.to().flip(side) as Direction) + DOWN) as Square).flip(side);
+            let square = (((m.to().flip(side) as Shift) + DOWN) as Square).flip(side);
             self.board[square as usize] = side ^ 1 | PAWN;
             self.bitboards[(side ^ 1 | PAWN) as usize].toggle(square);
             self.bitboards[(side ^ 1) as usize].toggle(square);
@@ -428,15 +428,15 @@ impl PieceMoveGeneratorExt for Game {
         if m.is_capture() {
             (attacks & targets).get(m.to())
         } else if p.kind() == PAWN {
-            let d = YDIRS[side as usize];
+            let y = YSHIFTS[side as usize];
             let mut s = m.from();
 
-            s = ((s as Direction) + d) as Square;
+            s = ((s as Shift) + y) as Square;
             if m.kind() == DOUBLE_PAWN_PUSH {
                 if occupied.get(s) {
                     return false;
                 }
-                s = ((s as Direction) + d) as Square;
+                s = ((s as Shift) + y) as Square;
             }
 
             if m.to() != s {

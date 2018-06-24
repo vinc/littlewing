@@ -40,7 +40,7 @@ impl FEN for Game {
             let dir = if c == '/' {
                 2 * DOWN
             } else if '1' <= c && c <= '8' {
-                c.to_digit(10).unwrap() as Direction
+                c.to_digit(10).unwrap() as Shift
             } else {
                 let p = PieceChar::from_char(c);
                 self.board[sq as usize] = p;

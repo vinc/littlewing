@@ -11,7 +11,7 @@ pub trait BitboardExt {
     fn scan(self) -> u32;
 
     /// Generalized shift (left shift positive values and right shift negative values)
-    fn shift(self, dir: Direction) -> Bitboard;
+    fn shift(self, s: Shift) -> Bitboard;
 
     /// Get occupancy at the given square
     fn get(self, i: Square) -> bool;
@@ -41,11 +41,11 @@ impl BitboardExt for Bitboard {
     }
 
     #[inline]
-    fn shift(self, dir: Direction) -> Bitboard {
-        if dir > 0 {
-            self << dir
+    fn shift(self, s: Shift) -> Bitboard {
+        if s > 0 {
+            self << s
         } else {
-            self >> -dir
+            self >> -s
         }
     }
 
@@ -96,7 +96,7 @@ impl BitboardExt for Bitboard {
 }
 
 // Flood fill algorithm
-pub fn dumb7fill(mut fill: Bitboard, empty: Bitboard, dir: Direction) -> Bitboard {
+pub fn dumb7fill(mut fill: Bitboard, empty: Bitboard, dir: Shift) -> Bitboard {
     let mut flood: Bitboard = 0;
 
     while fill > 0 {

@@ -4,18 +4,49 @@ use piece::*;
 use square::*;
 use bitboard::Bitboard;
 
-pub type Direction = i8;
+pub type Shift = i8;
+pub type Direction = usize;
 pub type PieceMoveType = u8;
 pub type Score = i16;
 pub type Depth = i8;
 
 pub const INF: Score = 29999;
 
-pub const UP:    Direction = 8;
-pub const DOWN:  Direction = -8;
-pub const LEFT:  Direction = -1;
-pub const RIGHT: Direction = 1;
+pub const UP:    Shift = 8;
+pub const DOWN:  Shift = -8;
+pub const LEFT:  Shift = -1;
+pub const RIGHT: Shift = 1;
 
+pub const NORTH:     Direction = 0;
+pub const SOUTH:     Direction = 1;
+pub const WEST:      Direction = 2;
+pub const EAST:      Direction = 3;
+pub const NORTHWEST: Direction = 4;
+pub const NORTHEAST: Direction = 5;
+pub const SOUTHWEST: Direction = 6;
+pub const SOUTHEAST: Direction = 7;
+
+pub const DIRECTION_SHIFTS: [Shift; 8] = [
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
+    UP + LEFT,
+    UP + RIGHT,
+    DOWN + LEFT,
+    DOWN + RIGHT
+];
+
+pub const DIRECTION_MASKS: [Bitboard; 8] = [
+    0xFFFFFFFFFFFFFFFF,
+    0xFFFFFFFFFFFFFFFF,
+    0x7F7F7F7F7F7F7F7F,
+    0xFEFEFEFEFEFEFEFE,
+    0x7F7F7F7F7F7F7F7F,
+    0xFEFEFEFEFEFEFEFE,
+    0x7F7F7F7F7F7F7F7F,
+    0xFEFEFEFEFEFEFEFE
+];
 
 pub const RANK_1: Bitboard = 0x00000000000000FF;
 pub const RANK_2: Bitboard = 0x000000000000FF00;
@@ -97,8 +128,8 @@ pub const MAX_KILLERS: usize = 2;
 
 pub const TT_SIZE: usize = 8 << 20; // 8 Mb
 
-pub const XDIRS: [Direction; 2] = [LEFT, RIGHT];
-pub const YDIRS: [Direction; 2] = [UP, DOWN];
+pub const XSHIFTS: [Shift; 2] = [LEFT, RIGHT];
+pub const YSHIFTS: [Shift; 2] = [UP, DOWN];
 pub const END_FILES: [Bitboard; 2] = [FILE_A, FILE_H];
 pub const SEC_RANKS: [Bitboard; 2] = [RANK_3, RANK_6];
 pub const END_RANKS: [Bitboard; 2] = [RANK_8, RANK_1];

@@ -173,12 +173,12 @@ impl PieceMoveList {
         self.sizes[self.ply] += 1;
     }
 
-    pub fn add_moves(&mut self, mut targets: Bitboard, dir: Direction, mt: PieceMoveType) {
+    pub fn add_moves(&mut self, mut targets: Bitboard, dir: Shift, mt: PieceMoveType) {
         while targets != 0 {
             let to = targets.scan() as Square;
-            debug_assert!((to as Direction) - dir >= 0);
-            debug_assert!((to as Direction) - dir < 64);
-            let from = ((to as Direction) - dir) as Square;
+            debug_assert!((to as Shift) - dir >= 0);
+            debug_assert!((to as Shift) - dir < 64);
+            let from = ((to as Shift) - dir) as Square;
             let m = PieceMove::new(from, to, mt);
             self.add_move(m);
             targets.reset(to);
@@ -195,7 +195,7 @@ impl PieceMoveList {
     }
 
     pub fn add_pawns_moves(&mut self, bitboards: &[Bitboard], side: Color, ep: Square) {
-        let ydir = YDIRS[side as usize];
+        let ydir = YSHIFTS[side as usize];
         let end_rank = END_RANKS[side as usize];
 
         match self.stage() {
@@ -215,7 +215,7 @@ impl PieceMoveList {
             },
             PieceMoveListStage::Capture => {
                 for i in 0..2 { // LEFT and RIGHT attacks
-                    let dir = ydir + XDIRS[i as usize];
+                    let dir = ydir + XSHIFTS[i as usize];
                     let attackers = bitboards[(side | PAWN) as usize] & !END_FILES[i];
 
                     let targets = attackers.shift(dir);

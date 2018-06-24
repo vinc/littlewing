@@ -47,7 +47,7 @@ impl PieceMoveNotation for Game {
         } else if piece.kind() == KING && from == E1.flip(side) && to == C1.flip(side) {
             QUEEN_CASTLE
         } else if capture == EMPTY {
-            let d = (to.flip(side) as Direction) - (from.flip(side) as Direction);
+            let d = (to.flip(side) as Shift) - (from.flip(side) as Shift);
             if piece.kind() == PAWN && (d == 2 * UP) {
                 DOUBLE_PAWN_PUSH
             } else if piece.kind() == PAWN && to == self.positions.top().en_passant {
