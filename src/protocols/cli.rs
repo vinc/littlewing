@@ -73,7 +73,7 @@ impl CLI {
                         "load" | "setboard" => { self.cmd_setboard(&args) },
                         "core" | "threads"  => { self.cmd_threads(&args) },
                         "hash" | "memory"   => { self.cmd_memory(&args) },
-                        "perft"             => { self.cmd_perft() },
+                        "perft"             => { self.cmd_perft(&args) },
                         "perftsuite"        => { self.cmd_perftsuite(&args) },
                         "testsuite"         => { self.cmd_testsuite(&args) },
                         "divide"            => { self.cmd_divide(&args) },
@@ -103,7 +103,7 @@ impl CLI {
         println!("  hash <size>               Set the <size> of the memory (in MB)");
         println!("  core <number>             Set the <number> of threads");
         println!("");
-        println!("  perft                     Count the nodes at each depth");
+        println!("  perft [<depth>]           Count the nodes at each depth");
         println!("  perftsuite <epd>          Compare perft results to each position of <epd>");
         println!("  testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
         println!("  divide <depth>            Count the nodes at <depth> for each moves");
@@ -358,18 +358,34 @@ impl CLI {
         self.game.tt_resize(memory << 20);
     }
 
-    fn cmd_perft(&mut self) {
+    fn cmd_perft(&mut self, args: &[&str]) {
+        let mut depth = if args.len() == 2 {
+            args[1].parse::<Depth>().unwrap()
+        } else {
+            1
+        };
+
+        if self.game.is_debug {
+            println!("# FEN {}", self.game.to_fen());
+            println!("# starting perft at depth {}", depth);
+        }
+
         self.game.moves.skip_ordering = true;
         self.game.moves.skip_killers = true;
-        let mut i = 0;
+
         loop {
-            i += 1;
             let started_at = time::precise_time_s();
-            let n = self.game.perft(i);
+            let n = self.game.perft(depth);
             let ended_at = time::precise_time_s();
             let s = ended_at - started_at;
             let nps = (n as f64) / s;
-            println!("perft({}) -> {} ({:.2} s, {:.2e} nps)", i, n, s, nps);
+            println!("perft({}) -> {} ({:.2} s, {:.2e} nps)", depth, n, s, nps);
+
+            if args.len() == 2 {
+                break;
+            } else {
+                depth += 1;
+            }
         }
     }
 

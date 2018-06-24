@@ -35,7 +35,8 @@ pub trait Search {
 }
 
 trait SearchExt {
-    fn print_thinking_header(&self);
+    fn print_debug_init(&self, depth: Depth);
+    fn print_thinking_init(&self);
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
     fn get_pv(&mut self, depth: Depth) -> String;
 }
@@ -119,15 +120,12 @@ impl Search for Game {
         let side = self.positions.top().side;
         let ply = 0;
 
-        let old_fen = self.to_fen();
         if self.is_debug {
-            println!("# FEN {}", old_fen);
-            println!("# allocating {} ms to move", self.clock.allocated_time());
-            println!("# starting search at depth {}", depths.start);
+            self.print_debug_init(depths.start);
         }
 
         if self.is_search_verbose {
-            self.print_thinking_header();
+            self.print_thinking_init();
         }
 
         // Current best move
@@ -208,9 +206,6 @@ impl Search for Game {
                 break;
             }
         }
-
-        let new_fen = self.to_fen();
-        debug_assert_eq!(old_fen, new_fen);
 
         if self.is_debug {
             let n = self.nodes_count;
@@ -527,7 +522,13 @@ impl Search for Game {
 }
 
 impl SearchExt for Game {
-    fn print_thinking_header(&self) {
+    fn print_debug_init(&self, depth: Depth) {
+        println!("# FEN {}", self.to_fen());
+        println!("# allocating {} ms to move", self.clock.allocated_time());
+        println!("# starting search at depth {}", depth);
+    }
+
+    fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
             println!(" ply   score   time     nodes  pv");
         }
