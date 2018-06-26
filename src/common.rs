@@ -17,14 +17,36 @@ pub const DOWN:  Shift = -8;
 pub const LEFT:  Shift = -1;
 pub const RIGHT: Shift = 1;
 
-pub const NORTH:     Direction = 0;
-pub const SOUTH:     Direction = 1;
-pub const WEST:      Direction = 2;
-pub const EAST:      Direction = 3;
-pub const NORTHWEST: Direction = 4;
-pub const NORTHEAST: Direction = 5;
-pub const SOUTHWEST: Direction = 6;
-pub const SOUTHEAST: Direction = 7;
+pub const NORTH:     Direction = 0; // 0b0000
+pub const SOUTH:     Direction = 1; // 0b0001
+pub const WEST:      Direction = 2; // 0b0010
+pub const EAST:      Direction = 3; // 0b0011
+pub const NORTHWEST: Direction = 4; // 0b0100
+pub const NORTHEAST: Direction = 5; // 0b0101
+pub const SOUTHWEST: Direction = 6; // 0b0110
+pub const SOUTHEAST: Direction = 7; // 0b0111
+
+pub trait DirectionExt {
+    fn is_north(self) -> bool;
+    fn is_south(self) -> bool;
+    fn is_west(self) -> bool;
+    fn is_east(self) -> bool;
+}
+
+impl DirectionExt for Direction {
+    fn is_north(self) -> bool {
+        DIRECTION_SHIFTS[self] > 1
+    }
+    fn is_south(self) -> bool {
+        DIRECTION_SHIFTS[self] < 1
+    }
+    fn is_east(self) -> bool {
+        self > 1 && self % 2 == 0
+    }
+    fn is_west(self) -> bool {
+        self > 1 && self % 2 == 1
+    }
+}
 
 pub const DIRECTION_SHIFTS: [Shift; 8] = [
     UP,

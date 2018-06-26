@@ -3,7 +3,10 @@ use piece::*;
 use square::*;
 use common::*;
 use bitboard::{Bitboard, BitboardExt};
-use bitboard::dumb7fill;
+use hyperbola::bishop_attacks;
+use hyperbola::rook_attacks;
+//use dumb7fill::bishop_attacks;
+//use dumb7fill::rook_attacks;
 use game::Game;
 use piece::PieceAttr;
 
@@ -91,38 +94,6 @@ pub fn piece_attacks(piece: Piece, square: Square, occupied: Bitboard) -> Bitboa
     }
 }
 
-pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    let fill = 1 << from;
-    let mut targets = 0;
-
-    let occluded = dumb7fill(fill, !occupied & 0x7F7F7F7F7F7F7F7F, UP + LEFT);
-    targets |= 0x7F7F7F7F7F7F7F7F & occluded.shift(UP + LEFT);
-    let occluded = dumb7fill(fill, !occupied & 0x7F7F7F7F7F7F7F7F, DOWN + LEFT);
-    targets |= 0x7F7F7F7F7F7F7F7F & occluded.shift(DOWN + LEFT);
-    let occluded = dumb7fill(fill, !occupied & 0xFEFEFEFEFEFEFEFE, DOWN + RIGHT);
-    targets |= 0xFEFEFEFEFEFEFEFE & occluded.shift(DOWN + RIGHT);
-    let occluded = dumb7fill(fill, !occupied & 0xFEFEFEFEFEFEFEFE, UP + RIGHT);
-    targets |= 0xFEFEFEFEFEFEFEFE & occluded.shift(UP + RIGHT);
-
-    targets
-}
-
-pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    let fill = 1 << from;
-    let mut targets = 0;
-
-    let occluded = dumb7fill(fill, !occupied & 0xFFFFFFFFFFFFFFFF, UP);
-    targets |= 0xFFFFFFFFFFFFFFFF & occluded.shift(UP);
-    let occluded = dumb7fill(fill, !occupied & 0xFFFFFFFFFFFFFFFF, DOWN);
-    targets |= 0xFFFFFFFFFFFFFFFF & occluded.shift(DOWN);
-    let occluded = dumb7fill(fill, !occupied & 0x7F7F7F7F7F7F7F7F, LEFT);
-    targets |= 0x7F7F7F7F7F7F7F7F & occluded.shift(LEFT);
-    let occluded = dumb7fill(fill, !occupied & 0xFEFEFEFEFEFEFEFE, RIGHT);
-    targets |= 0xFEFEFEFEFEFEFEFE & occluded.shift(RIGHT);
-
-    targets
-}
-
 lazy_static! {
     pub static ref PAWN_ATTACKS: [[Bitboard; 64]; 2] = {
         let xdirs = [LEFT, RIGHT];
@@ -176,5 +147,33 @@ mod tests {
         let defended = moves & game.bitboard(WHITE);
         assert_eq!(defended.count(), 1);
         assert_eq!(defended.scan() as Square, C2);
+    }
+
+    #[test]
+    fn test_bishop_attacks() {
+        let fen = "r1bqk1nr/ppppbppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4";
+        let game = Game::from_fen(fen);
+        let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
+
+        bishop_attacks(B5, occupied).debug();
+        bishop_attacks(C8, occupied).debug();
+        bishop_attacks(E7, occupied).debug();
+        assert_eq!(bishop_attacks(B5, occupied), 0x0000050005081020);
+        assert_eq!(bishop_attacks(C8, occupied), 0x000A000000000000);
+        assert_eq!(bishop_attacks(E7, occupied), 0x2800284482010000);
+    }
+
+    #[test]
+    fn test_rook_attacks() {
+        let fen = "r3k3/8/8/8/3R4/8/8/R3K3 w - - 0 1";
+        let game = Game::from_fen(fen);
+        let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
+
+        rook_attacks(A1, occupied).debug();
+        rook_attacks(A8, occupied).debug();
+        rook_attacks(D4, occupied).debug();
+        assert_eq!(rook_attacks(A1, occupied), 0x010101010101011E);
+        assert_eq!(rook_attacks(A8, occupied), 0x1E01010101010101);
+        assert_eq!(rook_attacks(D4, occupied), 0x08080808F7080808);
     }
 }

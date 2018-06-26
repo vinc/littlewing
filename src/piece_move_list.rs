@@ -8,6 +8,10 @@ use attack::*;
 use piece_move::*;
 use square::SquareExt;
 use bitboard::{Bitboard, BitboardExt, BitboardIterator};
+use hyperbola::bishop_attacks;
+use hyperbola::rook_attacks;
+//use dumb7fill::bishop_attacks;
+//use dumb7fill::rook_attacks;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Scored<T, S> {
@@ -24,11 +28,11 @@ impl<T, S> Scored<T, S> {
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
 pub enum PieceMoveListStage { // If we don't care about `PartialOrd` we could do:
-    BestPieceMove   = 0,   // = 16 (BEST_MOVE)
-    Capture    = 1,   // =  4 (CAPTURE)
-    KillerPieceMove = 2,   // = 17 (KILLER_MOVE)
-    QuietPieceMove  = 3,   // =  0 (QUIET_MOVE < CAPTURE)
-    Done       = 4,
+    BestPieceMove   = 0,      // = 16 (BEST_MOVE)
+    Capture         = 1,      // =  4 (CAPTURE)
+    KillerPieceMove = 2,      // = 17 (KILLER_MOVE)
+    QuietPieceMove  = 3,      // =  0 (QUIET_MOVE < CAPTURE)
+    Done            = 4,
 }
 
 // Convert `PieceMoveListStage::Capture` into `CAPTURE`

@@ -46,6 +46,8 @@ extern crate rustyline;
 
 mod attack;
 mod common;
+mod dumb7fill;
+mod hyperbola;
 mod piece_move;
 mod piece_move_list;
 mod positions;
