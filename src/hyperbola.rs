@@ -1,7 +1,7 @@
 use common::*;
 use color::*;
 use square::*;
-use bitboard::Bitboard;
+use bitboard::{Bitboard, BitboardExt};
 
 pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
     hyperbola(occupied, from, HyperbolaMask::Diag) |
@@ -23,8 +23,8 @@ fn hyperbola(occupied: Bitboard, sq: Square, t: HyperbolaMask) -> Bitboard {
     let mut reverse = forward.swap_bytes();
     //forward -= 1 << sq;
     //reverse -= 1 << sq.flip(BLACK);
-    forward = forward.wrapping_sub(1 << sq);
-    reverse = reverse.wrapping_sub(1 << sq.flip(BLACK));
+    forward = forward.wrapping_sub(Bitboard::from_square(sq));
+    reverse = reverse.wrapping_sub(Bitboard::from_square(sq.flip(BLACK)));
     forward ^= reverse.swap_bytes();
     forward & mask
 }
@@ -59,7 +59,7 @@ fn genmask(dir: Direction, sq: Square) -> Bitboard {
         if is_out_file(dir, dest) || dest >= OUT {
             break;
         }
-        bb |= 1 << dest;
+        bb |= Bitboard::from_square(dest);
         if is_out_rank(dir, dest) {
             break;
         }

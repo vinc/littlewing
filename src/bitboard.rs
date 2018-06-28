@@ -4,6 +4,8 @@ use square::*;
 pub type Bitboard = u64;
 
 pub trait BitboardExt {
+    fn from_square(sq: Square) -> Bitboard;
+
     /// Population count using LLVM `ctpop`
     fn count(self) -> u32;
 
@@ -14,22 +16,28 @@ pub trait BitboardExt {
     fn shift(self, s: Shift) -> Bitboard;
 
     /// Get occupancy at the given square
-    fn get(self, i: Square) -> bool;
+    fn get(self, sq: Square) -> bool;
 
     /// Set occupancy bit at the given square
-    fn set(&mut self, i: Square);
+    fn set(&mut self, sq: Square);
 
     /// Toggle occupancy bit at the given square
-    fn toggle(&mut self, i: Square); // FIXME: Return instead of update?
+    fn toggle(&mut self, sq: Square); // FIXME: Return instead of update?
 
     /// Reset occupancy bit at the given square
-    fn reset(&mut self, i: Square);
+    fn reset(&mut self, sq: Square);
 
     fn debug(&self);
     fn to_debug_string(&self) -> String;
 }
 
 impl BitboardExt for Bitboard {
+    fn from_square(sq: Square) -> Bitboard {
+        //BB_SQUARES[sq as usize]
+        //unsafe { *BB_SQUARES.get_unchecked(sq as usize) }
+        1 << sq
+    }
+
     #[inline]
     fn count(self) -> u32 {
         self.count_ones()
@@ -50,23 +58,23 @@ impl BitboardExt for Bitboard {
     }
 
     #[inline]
-    fn get(self, i: Square) -> bool {
-        self & (1 << i) > 0
+    fn get(self, sq: Square) -> bool {
+        (self & Bitboard::from_square(sq)) > 0
     }
 
     #[inline]
-    fn set(&mut self, i: Square) {
-        *self |= 1 << i
+    fn set(&mut self, sq: Square) {
+        *self |= Bitboard::from_square(sq)
     }
 
     #[inline]
-    fn toggle(&mut self, i: Square) {
-        *self ^= 1 << i
+    fn toggle(&mut self, sq: Square) {
+        *self ^= Bitboard::from_square(sq)
     }
 
     #[inline]
-    fn reset(&mut self, i: Square) {
-        *self &= !(1 << i)
+    fn reset(&mut self, sq: Square) {
+        *self &= !Bitboard::from_square(sq)
     }
 
     //FIXME: remove this method
@@ -133,6 +141,18 @@ impl BitboardIterator for Bitboard {
         }
     }
 }
+
+/*
+lazy_static! {
+    static ref BB_SQUARES: [Bitboard; 64] = {
+        let mut bb_squares = [0; 64];
+        for sq in 0..64 {
+            bb_squares[sq] = 1 << sq;
+        }
+        bb_squares
+    };
+}
+*/
 
 #[cfg(test)]
 mod tests {
