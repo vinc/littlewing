@@ -184,18 +184,18 @@ impl PieceMoveGenerator for Game {
             if piece.kind() == KING || (piece.kind() == ROOK && m.from() == H1.flip(side)) {
                 if new_position.castling_right(side, KING) {
                     new_position.halfmoves_count = 0;
+                    new_position.reset_castling_right(side, KING);
+                    new_position.hash ^= self.zobrist.castling_right(side, KING);
                 }
-                new_position.reset_castling_right(side, KING);
-                new_position.hash ^= self.zobrist.castling_right(side, KING);
             }
 
             // Update castling right on queen side
             if piece.kind() == KING || (piece.kind() == ROOK && m.from() == A1.flip(side)) {
                 if new_position.castling_right(side, QUEEN) {
                     new_position.halfmoves_count = 0;
+                    new_position.reset_castling_right(side, QUEEN);
+                    new_position.hash ^= self.zobrist.castling_right(side, QUEEN);
                 }
-                new_position.reset_castling_right(side, QUEEN);
-                new_position.hash ^= self.zobrist.castling_right(side, QUEEN);
             }
 
             // Update opponent's castling rights on rook capture
@@ -210,7 +210,6 @@ impl PieceMoveGenerator for Game {
             }
 
             if m.is_castle() {
-                new_position.halfmoves_count = 0;
                 let rook = side | ROOK;
 
                 let (rook_from, rook_to) = if m.castle_kind() == KING {
@@ -273,7 +272,7 @@ impl PieceMoveGenerator for Game {
             OUT
         };
 
-        new_position.side ^= 1; // TODO: Define self.side.toggle(0)
+        new_position.side ^= 1; // TODO: Define Color#flip()
         new_position.hash ^= self.zobrist.side;
 
         self.positions.push(new_position);
