@@ -173,7 +173,7 @@ impl PieceMoveGenerator for Game {
             self.bitboards[piece as usize].toggle(m.from());
             self.board[m.from() as usize] = EMPTY;
 
-            new_position.hash ^= self.zobrist.positions[piece as usize][m.from() as usize];
+            new_position.hash ^= self.zobrist.pieces[piece as usize][m.from() as usize];
             new_position.capture = capture;
 
             if piece.kind() == PAWN {
@@ -225,8 +225,8 @@ impl PieceMoveGenerator for Game {
                 self.bitboards[rook as usize].toggle(rook_to);
                 self.bitboards[side as usize].toggle(rook_from);
                 self.bitboards[side as usize].toggle(rook_to);
-                new_position.hash ^= self.zobrist.positions[rook as usize][rook_from as usize];
-                new_position.hash ^= self.zobrist.positions[rook as usize][rook_to as usize];
+                new_position.hash ^= self.zobrist.pieces[rook as usize][rook_from as usize];
+                new_position.hash ^= self.zobrist.pieces[rook as usize][rook_to as usize];
             }
 
             if m.is_promotion() {
@@ -234,11 +234,11 @@ impl PieceMoveGenerator for Game {
                 let promoted_piece = side | m.promotion_kind();
                 self.board[m.to() as usize] = promoted_piece;
                 self.bitboards[promoted_piece as usize].toggle(m.to());
-                new_position.hash ^= self.zobrist.positions[promoted_piece as usize][m.to() as usize];
+                new_position.hash ^= self.zobrist.pieces[promoted_piece as usize][m.to() as usize];
             } else {
                 self.board[m.to() as usize] = piece;
                 self.bitboards[piece as usize].toggle(m.to());
-                new_position.hash ^= self.zobrist.positions[piece as usize][m.to() as usize];
+                new_position.hash ^= self.zobrist.pieces[piece as usize][m.to() as usize];
             }
 
             // if m.is_capture() {
@@ -246,7 +246,7 @@ impl PieceMoveGenerator for Game {
                 new_position.halfmoves_count = 0;
                 self.bitboards[capture as usize].toggle(m.to());
                 self.bitboards[(side ^ 1) as usize].toggle(m.to());
-                new_position.hash ^= self.zobrist.positions[capture as usize][m.to() as usize];
+                new_position.hash ^= self.zobrist.pieces[capture as usize][m.to() as usize];
             }
 
             if m.kind() == EN_PASSANT {
@@ -256,7 +256,7 @@ impl PieceMoveGenerator for Game {
                 self.board[square as usize] = EMPTY;
                 self.bitboards[(side ^ 1) as usize].toggle(square);
                 self.bitboards[pawn as usize].toggle(square);
-                new_position.hash ^= self.zobrist.positions[pawn as usize][square as usize];
+                new_position.hash ^= self.zobrist.pieces[pawn as usize][square as usize];
             }
 
             if old_position.en_passant != OUT {
