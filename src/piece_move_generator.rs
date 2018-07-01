@@ -183,7 +183,6 @@ impl PieceMoveGenerator for Game {
             // Update castling right on king side
             if piece.kind() == KING || (piece.kind() == ROOK && m.from() == H1.flip(side)) {
                 if new_position.castling_right(side, KING) {
-                    new_position.halfmoves_count = 0;
                     new_position.reset_castling_right(side, KING);
                     new_position.hash ^= self.zobrist.castling_right(side, KING);
                 }
@@ -192,7 +191,6 @@ impl PieceMoveGenerator for Game {
             // Update castling right on queen side
             if piece.kind() == KING || (piece.kind() == ROOK && m.from() == A1.flip(side)) {
                 if new_position.castling_right(side, QUEEN) {
-                    new_position.halfmoves_count = 0;
                     new_position.reset_castling_right(side, QUEEN);
                     new_position.hash ^= self.zobrist.castling_right(side, QUEEN);
                 }
@@ -229,7 +227,6 @@ impl PieceMoveGenerator for Game {
             }
 
             if m.is_promotion() {
-                new_position.halfmoves_count = 0;
                 let promoted_piece = side | m.promotion_kind();
                 self.board[m.to() as usize] = promoted_piece;
                 self.bitboards[promoted_piece as usize].toggle(m.to());
