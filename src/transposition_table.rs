@@ -82,8 +82,13 @@ impl TranspositionTable {
     }
 
     pub fn clear(&mut self) {
-        let capacity = self.len();
-        self.entries = Arc::new(SharedTable::with_capacity(capacity));
+        {
+            let h = self.entries.get();
+            let n = self.len();
+            for i in 0..n {
+                h[i] = Transposition::new_null();
+            }
+        }
         self.clear_stats();
     }
 
