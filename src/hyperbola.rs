@@ -72,8 +72,6 @@ lazy_static! {
                         break;
                     }
                 }
-                println!("occ={} file={} i={}", occ, file, i);
-                rank_attacks[i].debug()
             }
         }
         rank_attacks
