@@ -226,16 +226,10 @@ impl PieceMoveGenerator for Game {
                 new_position.hash ^= self.zobrist.pieces[rook as usize][rook_to as usize];
             }
 
-            if m.is_promotion() {
-                let promoted_piece = side | m.promotion_kind();
-                self.board[m.to() as usize] = promoted_piece;
-                self.bitboards[promoted_piece as usize].toggle(m.to());
-                new_position.hash ^= self.zobrist.pieces[promoted_piece as usize][m.to() as usize];
-            } else {
-                self.board[m.to() as usize] = piece;
-                self.bitboards[piece as usize].toggle(m.to());
-                new_position.hash ^= self.zobrist.pieces[piece as usize][m.to() as usize];
-            }
+            let p = if m.is_promotion() { side | m.promotion_kind() } else { piece };
+            self.board[m.to() as usize] = p;
+            self.bitboards[p as usize].toggle(m.to());
+            new_position.hash ^= self.zobrist.pieces[p as usize][m.to() as usize];
 
             // if m.is_capture() {
             if capture != EMPTY {
