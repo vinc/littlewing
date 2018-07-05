@@ -16,6 +16,7 @@ pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
 #[repr(usize)]
 enum HyperbolaMask { File, Rank, Diag, Anti }
 
+// Hyperbola Quintessence
 fn hyperbola(occupied: Bitboard, sq: Square, t: HyperbolaMask) -> Bitboard {
     debug_assert!(sq < OUT);
     let mask = HYPERBOLA_MASKS[sq as usize][t as usize];
@@ -29,52 +30,49 @@ fn hyperbola(occupied: Bitboard, sq: Square, t: HyperbolaMask) -> Bitboard {
     forward & mask
 }
 
+// First Rank Attacks
 fn rank_attacks(occupied: Bitboard, sq: Square) -> Bitboard {
     debug_assert!(sq < OUT);
-    let file = sq.file() as Bitboard;
-    let rankx8 = (sq.rank() * 8) as Bitboard;
-    let occupied = (occupied >> rankx8) & 2 * 63;
-
-    RANK_ATTACKS[(4 * occupied + file) as usize] << rankx8
+    let f = sq & 7; // sq.file() as Bitboard;
+    let r = sq & !7; // (sq.rank() * 8) as Bitboard;
+    let o = (occupied >> (r + 1)) & 63;
+    FIRST_RANK_ATTACKS[o as usize][f as usize] << r
 }
-
-// Initialization of HYPERBOLA_MASKS and RANK_ATTACKS
 
 lazy_static! {
     static ref HYPERBOLA_MASKS: [[Bitboard; 4]; 64] = {
         let mut hyperbola_masks = [[0; 4]; 64];
         for sq in 0..64 {
-            hyperbola_masks[sq as usize][HyperbolaMask::File as usize] = genmask(NORTH,     sq) | genmask(SOUTH,     sq);
-            hyperbola_masks[sq as usize][HyperbolaMask::Rank as usize] = genmask(EAST,      sq) | genmask(WEST,      sq);
-            hyperbola_masks[sq as usize][HyperbolaMask::Diag as usize] = genmask(NORTHEAST, sq) | genmask(SOUTHWEST, sq);
-            hyperbola_masks[sq as usize][HyperbolaMask::Anti as usize] = genmask(NORTHWEST, sq) | genmask(SOUTHEAST, sq);
+            hyperbola_masks[sq as usize][HyperbolaMask::File as usize] = generate_mask(NORTH,     sq) | generate_mask(SOUTH,     sq);
+            hyperbola_masks[sq as usize][HyperbolaMask::Rank as usize] = generate_mask(EAST,      sq) | generate_mask(WEST,      sq);
+            hyperbola_masks[sq as usize][HyperbolaMask::Diag as usize] = generate_mask(NORTHEAST, sq) | generate_mask(SOUTHWEST, sq);
+            hyperbola_masks[sq as usize][HyperbolaMask::Anti as usize] = generate_mask(NORTHWEST, sq) | generate_mask(SOUTHEAST, sq);
         }
         hyperbola_masks
     };
 
-    static ref RANK_ATTACKS: [Bitboard; 64 * 8] = {
-        let mut rank_attacks = [0; 64 * 8];
-        for occ in 0..64 {
-            for file in 0..8 {
-                let i = occ * 8 + file;
+    static ref FIRST_RANK_ATTACKS: [[Bitboard; 8]; 64] = {
+        let mut first_rank_attacks = [[0; 8]; 64];
+        for o in 0..64 {
+            for f in 0..8 {
+                first_rank_attacks[o][f] = 0;
 
-                rank_attacks[i] = 0;
-
-                for dest in (file + 1)..8 {
-                    rank_attacks[i] |= 1 << dest;
-                    if (1 << dest) & (occ << 1) > 0 {
+                for i in (f + 1)..8 {
+                    first_rank_attacks[o][f] |= 1 << i;
+                    if (o << 1) & (1 << i) > 0 {
                         break;
                     }
                 }
-                for dest in (0..file).rev() {
-                    rank_attacks[i] |= 1 << dest;
-                    if (1 << dest) & (occ << 1) > 0 {
+                for i in (0..f).rev() {
+                    first_rank_attacks[o][f] |= 1 << i;
+                    if (o << 1) & (1 << i) > 0 {
                         break;
                     }
                 }
             }
         }
-        rank_attacks
+
+        first_rank_attacks
     };
 }
 
@@ -90,7 +88,7 @@ fn is_out_file(dir: Direction, sq: Square) -> bool {
     crossed_west || crossed_east
 }
 
-fn genmask(dir: Direction, sq: Square) -> Bitboard {
+fn generate_mask(dir: Direction, sq: Square) -> Bitboard {
     debug_assert!(sq < OUT);
     let shift = DIRECTION_SHIFTS[dir];
     let mut bb = 0;

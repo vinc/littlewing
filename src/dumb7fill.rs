@@ -34,7 +34,7 @@ pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
 
 #[allow(dead_code)]
 pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    let fill = 1 << from;
+    let fill = Bitboard::from_square(from);
     let mut targets = 0;
 
     let occluded = dumb7fill(fill, !occupied & 0xFFFFFFFFFFFFFFFF, UP);
