@@ -511,26 +511,37 @@ mod tests {
     }
 
     #[test]
-    fn test_make_move_en_passant() {
+    fn test_make_move_hash() {
         let mut game = Game::from_fen(DEFAULT_FEN);
         game.make_move(PieceMove::new(E2, E3, QUIET_MOVE));
         game.make_move(PieceMove::new(E7, E6, QUIET_MOVE));
         game.make_move(PieceMove::new(E3, E4, QUIET_MOVE));
         game.make_move(PieceMove::new(E6, E5, QUIET_MOVE));
         let hash1 = game.positions.top().hash;
-        game.make_move(PieceMove::new(D2, D3, QUIET_MOVE));
+        game.make_move(PieceMove::new(G1, F3, QUIET_MOVE));
         let hash2 = game.positions.top().hash;
 
         let mut game = Game::from_fen(DEFAULT_FEN);
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         game.make_move(PieceMove::new(E7, E5, DOUBLE_PAWN_PUSH));
+        // This position is identical to hash1 except for the en passant
+        let hash3 = game.positions.top().hash;
         assert_ne!(game.positions.top().hash, hash1);
-        game.make_move(PieceMove::new(D2, D3, QUIET_MOVE));
+        game.make_move(PieceMove::new(G1, F3, QUIET_MOVE));
+        assert_eq!(game.positions.top().hash, hash2);
+
+        game.make_move(PieceMove::new(G8, F5, QUIET_MOVE));
+        game.make_move(PieceMove::new(F3, G1, QUIET_MOVE));
+        game.make_move(PieceMove::new(F5, G8, QUIET_MOVE));
+        // Back to hash1 position
+        assert_eq!(game.positions.top().hash, hash1);
+        assert_ne!(game.positions.top().hash, hash3);
+        game.make_move(PieceMove::new(G1, F3, QUIET_MOVE));
         assert_eq!(game.positions.top().hash, hash2);
     }
 
     #[test]
-    fn test_make_undo_move_zobrist() {
+    fn test_make_undo_move_hash() {
         let mut game = Game::from_fen(DEFAULT_FEN);
         let hash = game.positions.top().hash;
 
