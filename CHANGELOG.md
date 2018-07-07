@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Use Xorshift random number generator for Zobrist hashing
+- Use Hyperbola Quintessence and First Rank Attacks for sliding piece attacks
+- Add depth parameter to perft command
+
+### Changed
+- Rename `Direction` to `Shift` and introduce a new (compass) `Direction`
+- Rename `Move*` to `PieceMove*`
+- Store castling rights in a u8 in `Position`
+- Use fail-soft instead of fail-hard in search
+- Refactor many parts of the code
+
 ## [0.4.0] - 2017-11-20
 
 ### Added
