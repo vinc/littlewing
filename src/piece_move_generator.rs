@@ -511,7 +511,7 @@ mod tests {
     }
 
     #[test]
-    fn test_make_move() {
+    fn test_make_move_en_passant() {
         let mut game = Game::from_fen(DEFAULT_FEN);
         game.make_move(PieceMove::new(E2, E3, QUIET_MOVE));
         game.make_move(PieceMove::new(E7, E6, QUIET_MOVE));
@@ -527,6 +527,47 @@ mod tests {
         assert_ne!(game.positions.top().hash, hash1);
         game.make_move(PieceMove::new(D2, D3, QUIET_MOVE));
         assert_eq!(game.positions.top().hash, hash2);
+    }
+
+    #[test]
+    fn test_make_undo_move_zobrist() {
+        let mut game = Game::from_fen(DEFAULT_FEN);
+        let hash = game.positions.top().hash;
+
+        let moves = vec![
+            PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH),
+            PieceMove::new(E7, E5, DOUBLE_PAWN_PUSH),
+            PieceMove::new(G1, F3, QUIET_MOVE),
+            PieceMove::new(B8, C6, QUIET_MOVE),
+            PieceMove::new(F1, B5, QUIET_MOVE),
+            PieceMove::new(A7, A6, QUIET_MOVE),
+            PieceMove::new(B5, C6, CAPTURE),
+            PieceMove::new(B7, B5, DOUBLE_PAWN_PUSH),
+            PieceMove::new(C6, D7, CAPTURE),
+            PieceMove::new(E8, D7, CAPTURE),
+            PieceMove::new(E1, G1, KING_CASTLE),
+            PieceMove::new(C8, B7, QUIET_MOVE)
+        ];
+
+        for m in moves.iter() {
+            game.make_move(*m);
+            let fen = game.to_fen();
+            println!("{} {}", fen, m.to_can());
+            let copy = Game::from_fen(&fen);
+            assert_eq!(copy.to_fen().as_str(), fen);
+            assert_eq!(copy.positions.top().hash, game.positions.top().hash);
+        }
+
+        for m in moves.iter().rev() {
+            game.undo_move(*m);
+            let fen = game.to_fen();
+            let copy = Game::from_fen(&fen);
+            assert_eq!(copy.to_fen().as_str(), fen);
+            assert_eq!(copy.positions.top().hash, game.positions.top().hash);
+        }
+
+        assert_eq!(game.to_fen().as_str(), DEFAULT_FEN);
+        assert_eq!(game.positions.top().hash, hash);
     }
 
     #[test]

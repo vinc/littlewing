@@ -32,6 +32,7 @@ impl FEN for Game {
 
     fn load_fen(&mut self, fen: &str) {
         self.clear();
+        let mut position = Position::new();
 
         let mut fields = fen.split_whitespace();
 
@@ -46,6 +47,7 @@ impl FEN for Game {
                 self.board[sq as usize] = p;
                 self.bitboards[(p) as usize].set(sq);
                 self.bitboards[(p & 1) as usize].set(sq); // TODO: p.color()
+                position.hash ^= self.zobrist.pieces[p as usize][sq as usize];
 
                 1
             };
@@ -53,20 +55,34 @@ impl FEN for Game {
             sq = ((sq as i8) + dir) as Square;
         }
 
-        let mut position = Position::new();
-
         position.side = match fields.next().unwrap() {
             "w" => WHITE,
             "b" => BLACK,
             _   => panic!("wrong side char")
         };
 
+        if position.side == BLACK {
+            position.hash ^= self.zobrist.side;
+        }
+
         for c in fields.next().unwrap().chars() {
             match c {
-                'K' => position.set_castling_right(WHITE, KING),
-                'Q' => position.set_castling_right(WHITE, QUEEN),
-                'k' => position.set_castling_right(BLACK, KING),
-                'q' => position.set_castling_right(BLACK, QUEEN),
+                'K' => {
+                    position.set_castling_right(WHITE, KING);
+                    position.hash ^= self.zobrist.castling_right(WHITE, KING);
+                }
+                'Q' => {
+                    position.set_castling_right(WHITE, QUEEN);
+                    position.hash ^= self.zobrist.castling_right(WHITE, QUEEN);
+                }
+                'k' => {
+                    position.set_castling_right(BLACK, KING);
+                    position.hash ^= self.zobrist.castling_right(BLACK, KING);
+                }
+                'q' => {
+                    position.set_castling_right(BLACK, QUEEN);
+                    position.hash ^= self.zobrist.castling_right(BLACK, QUEEN);
+                }
                 _   => break
             }
         }
@@ -74,6 +90,7 @@ impl FEN for Game {
         if let Some(ep) = fields.next() {
             if ep != "-" {
                 position.en_passant = SquareExt::from_coord(ep.into());
+                position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
             }
         };
 
