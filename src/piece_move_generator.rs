@@ -249,9 +249,9 @@ impl PieceMoveGenerator for Game {
             }
         }
 
-        //if position.en_passant != OUT { // FIXME: uncomment this?
-        //    position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
-        //}
+        if position.en_passant != OUT {
+            position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
+        }
 
         position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
             ((((m.from().flip(side)) as Shift) + UP) as Square).flip(side)
@@ -259,9 +259,9 @@ impl PieceMoveGenerator for Game {
             OUT
         };
 
-        //if position.en_passant != OUT { // FIXME: uncomment this?
-        //    position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
-        //}
+        if position.en_passant != OUT {
+            position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
+        }
 
         position.side ^= 1; // TODO: Define Color#flip()
         position.hash ^= self.zobrist.side;
@@ -512,34 +512,41 @@ mod tests {
 
     #[test]
     fn test_make_move() {
-        let fens = [
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-            "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
-        ];
-        let m = PieceMove::new(E2, E3, QUIET_MOVE);
+        let mut game = Game::from_fen(DEFAULT_FEN);
+        game.make_move(PieceMove::new(E2, E3, QUIET_MOVE));
+        game.make_move(PieceMove::new(E7, E6, QUIET_MOVE));
+        game.make_move(PieceMove::new(E3, E4, QUIET_MOVE));
+        game.make_move(PieceMove::new(E6, E5, QUIET_MOVE));
+        let hash1 = game.positions.top().hash;
+        game.make_move(PieceMove::new(D2, D3, QUIET_MOVE));
+        let hash2 = game.positions.top().hash;
 
-        let mut game = Game::from_fen(fens[0]);
-        assert_eq!(game.to_fen().as_str(), fens[0]);
-
-        game.make_move(m);
-        assert_eq!(game.to_fen().as_str(), fens[1]);
+        let mut game = Game::from_fen(DEFAULT_FEN);
+        game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
+        game.make_move(PieceMove::new(E7, E5, DOUBLE_PAWN_PUSH));
+        assert_ne!(game.positions.top().hash, hash1);
+        game.make_move(PieceMove::new(D2, D3, QUIET_MOVE));
+        assert_eq!(game.positions.top().hash, hash2);
     }
 
     #[test]
-    fn test_undo_move() {
-        let fens = [
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-            "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    fn test_make_undo_move() {
+        let positions = vec![
+            (PieceMove::new(E2, E3, QUIET_MOVE), "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"),
+            (PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
         ];
-        let m = PieceMove::new(E2, E3, QUIET_MOVE);
 
-        let mut game = Game::from_fen(fens[0]);
+        for (m, fen) in positions {
+            let mut game = Game::from_fen(DEFAULT_FEN);
+            let hash = game.positions.top().hash;
 
-        game.make_move(m);
-        assert_eq!(game.to_fen().as_str(), fens[1]);
+            game.make_move(m);
+            assert_eq!(game.to_fen().as_str(), fen);
 
-        game.undo_move(m);
-        assert_eq!(game.to_fen().as_str(), fens[0]);
+            game.undo_move(m);
+            assert_eq!(game.to_fen().as_str(), DEFAULT_FEN);
+            assert_eq!(game.positions.top().hash, hash);
+        }
     }
 
     #[test]
