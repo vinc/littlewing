@@ -158,14 +158,13 @@ impl PieceMoveGenerator for Game {
     }
 
     fn make_move(&mut self, m: PieceMove) {
-        let &old_position = self.positions.top();
-        let mut new_position = old_position;
-        let side = old_position.side;
+        let mut position = *self.positions.top();
+        let side = position.side;
 
         let piece = self.board[m.from() as usize];
         let capture = self.board[m.to() as usize]; // TODO: En passant
 
-        new_position.halfmoves_count += 1;
+        position.halfmoves_count += 1;
 
         if !m.is_null() {
             self.bitboards[side as usize].toggle(m.from());
@@ -173,37 +172,37 @@ impl PieceMoveGenerator for Game {
             self.bitboards[piece as usize].toggle(m.from());
             self.board[m.from() as usize] = EMPTY;
 
-            new_position.hash ^= self.zobrist.pieces[piece as usize][m.from() as usize];
-            new_position.capture = capture;
+            position.hash ^= self.zobrist.pieces[piece as usize][m.from() as usize];
+            position.capture = capture;
 
             if piece.kind() == PAWN {
-                new_position.halfmoves_count = 0;
+                position.halfmoves_count = 0;
             }
 
             // Update castling right on king side
             if piece.kind() == KING || (piece.kind() == ROOK && m.from() == H1.flip(side)) {
-                if new_position.castling_right(side, KING) {
-                    new_position.reset_castling_right(side, KING);
-                    new_position.hash ^= self.zobrist.castling_right(side, KING);
+                if position.castling_right(side, KING) {
+                    position.reset_castling_right(side, KING);
+                    position.hash ^= self.zobrist.castling_right(side, KING);
                 }
             }
 
             // Update castling right on queen side
             if piece.kind() == KING || (piece.kind() == ROOK && m.from() == A1.flip(side)) {
-                if new_position.castling_right(side, QUEEN) {
-                    new_position.reset_castling_right(side, QUEEN);
-                    new_position.hash ^= self.zobrist.castling_right(side, QUEEN);
+                if position.castling_right(side, QUEEN) {
+                    position.reset_castling_right(side, QUEEN);
+                    position.hash ^= self.zobrist.castling_right(side, QUEEN);
                 }
             }
 
             // Update opponent's castling rights on rook capture
             if capture.kind() == ROOK {
                 if m.to() == H1.flip(side ^ 1) {
-                    new_position.reset_castling_right(side ^ 1, KING);
-                    new_position.hash ^= self.zobrist.castling_right(side ^ 1, KING);
+                    position.reset_castling_right(side ^ 1, KING);
+                    position.hash ^= self.zobrist.castling_right(side ^ 1, KING);
                 } else if m.to() == A1.flip(side ^ 1) {
-                    new_position.reset_castling_right(side ^ 1, QUEEN);
-                    new_position.hash ^= self.zobrist.castling_right(side ^ 1, QUEEN);
+                    position.reset_castling_right(side ^ 1, QUEEN);
+                    position.hash ^= self.zobrist.castling_right(side ^ 1, QUEEN);
                 }
             }
 
@@ -222,51 +221,52 @@ impl PieceMoveGenerator for Game {
                 self.bitboards[rook as usize].toggle(rook_to);
                 self.bitboards[side as usize].toggle(rook_from);
                 self.bitboards[side as usize].toggle(rook_to);
-                new_position.hash ^= self.zobrist.pieces[rook as usize][rook_from as usize];
-                new_position.hash ^= self.zobrist.pieces[rook as usize][rook_to as usize];
+                position.hash ^= self.zobrist.pieces[rook as usize][rook_from as usize];
+                position.hash ^= self.zobrist.pieces[rook as usize][rook_to as usize];
             }
 
             let p = if m.is_promotion() { side | m.promotion_kind() } else { piece };
             self.board[m.to() as usize] = p;
             self.bitboards[p as usize].toggle(m.to());
-            new_position.hash ^= self.zobrist.pieces[p as usize][m.to() as usize];
+            position.hash ^= self.zobrist.pieces[p as usize][m.to() as usize];
 
             // if m.is_capture() {
             if capture != EMPTY {
-                new_position.halfmoves_count = 0;
+                position.halfmoves_count = 0;
                 self.bitboards[capture as usize].toggle(m.to());
                 self.bitboards[(side ^ 1) as usize].toggle(m.to());
-                new_position.hash ^= self.zobrist.pieces[capture as usize][m.to() as usize];
+                position.hash ^= self.zobrist.pieces[capture as usize][m.to() as usize];
             }
 
             if m.kind() == EN_PASSANT {
-                new_position.halfmoves_count = 0;
+                position.halfmoves_count = 0;
                 let square = (((m.to().flip(side) as Shift) + DOWN) as Square).flip(side);
                 let pawn = (side ^ 1) | PAWN;
                 self.board[square as usize] = EMPTY;
                 self.bitboards[(side ^ 1) as usize].toggle(square);
                 self.bitboards[pawn as usize].toggle(square);
-                new_position.hash ^= self.zobrist.pieces[pawn as usize][square as usize];
-            }
-
-            if old_position.en_passant != OUT {
-                new_position.hash ^= self.zobrist.en_passant[old_position.en_passant as usize]; // TODO ?
-            }
-            if new_position.en_passant != OUT {
-                new_position.hash ^= self.zobrist.en_passant[new_position.en_passant as usize];
+                position.hash ^= self.zobrist.pieces[pawn as usize][square as usize];
             }
         }
 
-        new_position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
+        //if position.en_passant != OUT { // FIXME: uncomment this?
+        //    position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
+        //}
+
+        position.en_passant = if m.kind() == DOUBLE_PAWN_PUSH {
             ((((m.from().flip(side)) as Shift) + UP) as Square).flip(side)
         } else {
             OUT
         };
 
-        new_position.side ^= 1; // TODO: Define Color#flip()
-        new_position.hash ^= self.zobrist.side;
+        //if position.en_passant != OUT { // FIXME: uncomment this?
+        //    position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
+        //}
 
-        self.positions.push(new_position);
+        position.side ^= 1; // TODO: Define Color#flip()
+        position.hash ^= self.zobrist.side;
+
+        self.positions.push(position);
         self.moves.inc();
     }
 
