@@ -1,6 +1,4 @@
-use rand::FromEntropy;
-use rand::RngCore;
-use rand::rngs::SmallRng;
+use rand::{RngCore, SeedableRng, XorShiftRng};
 
 use color::Color;
 use piece::Piece;
@@ -13,6 +11,8 @@ pub struct Zobrist {
     pub side: u64
 }
 
+const SEED: [u8; 16] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+
 impl Zobrist {
     pub fn new() -> Zobrist {
         let mut zobrist = Zobrist {
@@ -22,7 +22,7 @@ impl Zobrist {
             side: 0
         };
 
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = XorShiftRng::from_seed(SEED);
 
         for i in 0..14 {
             for j in 0..64 {
