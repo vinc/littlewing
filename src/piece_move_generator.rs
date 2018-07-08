@@ -194,7 +194,7 @@ impl PieceMoveGenerator for Game {
             self.bitboards[p as usize].toggle(m.to());
             position.hash ^= self.zobrist.pieces[p as usize][m.to() as usize];
 
-            if m.kind() == EN_PASSANT {
+            if m.is_en_passant() {
                 let sq = (((m.to().flip(side) as Shift) + DOWN) as Square).flip(side);
                 let pawn = (side ^ 1) | PAWN;
                 self.board[sq as usize] = EMPTY;
@@ -288,7 +288,7 @@ impl PieceMoveGenerator for Game {
         if capture != EMPTY {
             self.bitboards[capture as usize].toggle(m.to());
             self.bitboards[(side ^ 1) as usize].toggle(m.to());
-        } else if m.kind() == EN_PASSANT {
+        } else if m.is_en_passant() {
             let sq = (((m.to().flip(side) as Shift) + DOWN) as Square).flip(side);
             let pawn = side ^ 1 | PAWN;
             self.board[sq as usize] = pawn;
