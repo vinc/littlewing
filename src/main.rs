@@ -18,6 +18,7 @@ fn main() {
     opts.optflag("c", "color",   "enable color output");
     opts.optflag("d", "debug",   "enable debug output");
     opts.optflag("h", "help",    "print this message");
+    opts.optflag("s", "silent",  "display less output");
     opts.optflag("v", "version", "print version");
 
     let matches = match opts.parse(&args) {
@@ -30,11 +31,17 @@ fn main() {
         return;
     }
 
-    println!("{}", littlewing::version());
+    if !matches.opt_present("s") {
+        println!("{}", littlewing::version());
+    }
+
     if matches.opt_present("v") {
         return;
     }
-    println!("");
+
+    if !matches.opt_present("s") {
+        println!("");
+    }
 
     let mut cli = CLI::new();
     if matches.opt_present("c") {
