@@ -12,6 +12,10 @@ Currently evaluated at 2000+ ELO on CCRL 40/4 Rating List.
 
 [![asciicast](https://asciinema.org/a/146112.png)](https://asciinema.org/a/146112)
 
+
+Features
+--------
+
 - Board representation
   - Bitboard with LLVM CTPOP and CTTZ
   - Sliding piece attacks with Hyperbola Quintessence and First Rank Attacks
@@ -175,8 +179,9 @@ in addition it has its own text-based user interface:
     Report bugs to https://github.com/vinc/littlewing/issues
     > quit
 
-Test
-----
+
+Tests
+-----
 
 Run the test suite with Cargo:
 
