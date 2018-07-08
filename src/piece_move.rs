@@ -28,27 +28,23 @@ impl PieceMove {
     }
 
     pub fn from(self) -> Square {
-        let PieceMove(v) = self;
-        (v >> 10) as Square
+        (self.0 >> 10) as Square
     }
 
     pub fn to(self) -> Square {
-        let PieceMove(v) = self;
-        ((v >> 4) & 0b111111) as Square
+        ((self.0 >> 4) & 0b111111) as Square
     }
 
     pub fn kind(self) -> PieceMoveType {
-        let PieceMove(v) = self;
-        (v & 0b1111) as PieceMoveType
+        (self.0 & 0b1111) as PieceMoveType
     }
 
     pub fn is_null(self) -> bool {
-        let PieceMove(v) = self;
-        v == 0
+        self.0 == 0
     }
 
     pub fn is_capture(self) -> bool {
-        self.kind() == CAPTURE || self.kind() & 0b1100 == 0b1100
+        self.kind() == CAPTURE || self.kind() & PROMOTION_KIND_MASK == PROMOTION_KIND_MASK
     }
 
     pub fn is_en_passant(self) -> bool {
