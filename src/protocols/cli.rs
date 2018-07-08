@@ -379,7 +379,7 @@ impl CLI {
             let ended_at = time::precise_time_s();
             let s = ended_at - started_at;
             let nps = (n as f64) / s;
-            println!("perft({}) -> {} ({:.2} s, {:.2e} nps)", depth, n, s, nps);
+            println!("perft {} -> {} ({:.2} s, {:.2e} nps)", depth, n, s, nps);
 
             if args.len() == 2 {
                 break;
