@@ -6,16 +6,19 @@ Little Wing
 
 A bitboard chess engine written in Rust.
 
-A work in progress since December 2014.
+A work in progress since December 2014, still maintained in 2018.
+
+Currently evaluated at 2000+ ELO on CCRL 40/4 Rating List.
 
 [![asciicast](https://asciinema.org/a/146112.png)](https://asciinema.org/a/146112)
 
 - Board representation
   - Bitboard with LLVM CTPOP and CTTZ
-  - FEN support
-  - Zobrist hashing
+  - Sliding piece attacks with Hyperbola Quintessence and First Rank Attacks
+  - Zobrist hashing with Xorshift RNG
   - Staged moves generation
   - MVV/LVA and SEE moves ordering with insertion sort
+  - FEN support
 - Search
   - Principal variation search
   - Quiescence search
@@ -34,17 +37,17 @@ A work in progress since December 2014.
   - XBoard and UCI communication protocol
   - Public API with documented library
 
-Tested on GNU/Linux 32 and 64 bits, should run anywhere.
-
 
 Usage
 -----
 
-First you need to install Rust:
+Binaries are available here: https://vinc.cc/binaries
+
+If you want to compile Little Wing yourself, you need to install Rust:
 
     $ curl https://sh.rustup.rs -sSf | sh
 
-Then you can install the latest stable version of the engine with cargo:
+Then you can install the latest stable version of the engine with Cargo:
 
     $ cargo install littlewing
 
@@ -159,7 +162,7 @@ in addition it has its own text-based user interface:
       hash <size>               Set the <size> of the memory (in MB)
       core <number>             Set the <number> of threads
 
-      perft                     Count the nodes at each depth
+      perft [<depth>]           Count the nodes at each depth
       perftsuite <epd>          Compare perft results to each position of <epd>
       testsuite <epd> [<time>]  Search each position of <epd> [for <time>]
       divide <depth>            Count the nodes at <depth> for each moves
@@ -175,8 +178,7 @@ in addition it has its own text-based user interface:
 Test
 ----
 
-Unit testing in Rust is wonderful. You can run the test suite directly
-from Cargo:
+Run the test suite with Cargo:
 
     $ cargo test
 
@@ -187,11 +189,11 @@ each depth from the starting position.
     Little Wing v0.4.0
 
     > perft
-    perft(1) -> 20 (0.00 s, 5.83e4 nps)
-    perft(2) -> 400 (0.00 s, 7.62e5 nps)
-    perft(3) -> 8902 (0.01 s, 7.44e5 nps)
-    perft(4) -> 197281 (0.16 s, 1.26e6 nps)
-    perft(5) -> 4865609 (3.82 s, 1.27e6 nps)
+    perft 1 -> 20 (0.00 s, 5.83e4 nps)
+    perft 2 -> 400 (0.00 s, 7.62e5 nps)
+    perft 3 -> 8902 (0.01 s, 7.44e5 nps)
+    perft 4 -> 197281 (0.16 s, 1.26e6 nps)
+    perft 5 -> 4865609 (3.82 s, 1.27e6 nps)
 
 
 And a `perftsuite` command for comparing the results of a perft calculation
@@ -215,7 +217,7 @@ with the given EPD file.
     r3k3/1K6/8/8/8/8/8/8 w q - 0 1 -> ......
 
 
-And the usual others like `divide`, `setboard` or `testsuite`:
+And the usual others like `divide` or `testsuite`:
 
     $ cargo run -- --color
     Little Wing v0.4.0
@@ -235,6 +237,13 @@ And the usual others like `divide`, `setboard` or `testsuite`:
 
 Here we used `cargo run` to run the engine in debug mode, but you can invoke
 it from `littlewing` if you installed it to make it run (much) faster.
+
+The CLI as been designed to interface nicely with other Unix tools, for example
+to test if the times from perft are stable you could do:
+
+    $ for i in $(seq 0 10); do littlewing -s <<< "perft 6"; sleep 1; done
+
+Anyway, have fun with it and send me your feedback at <v@vinc.cc>!
 
 
 License
