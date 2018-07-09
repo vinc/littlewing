@@ -5,14 +5,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Clone)]
 pub struct Clock {
+    pub polling_nodes_count: u64,
+    pub started_at: u64,
     moves_level: u16,
-    //time_level: u64, // TODO: check that we really don't need it
-
     moves_remaining: u16,
     time_remaining: u64,
-
-    pub started_at: u64,
-    pub polling_nodes_count: u64,
     last_nodes_count: u64,
     is_finished: Arc<AtomicBool>,
     is_level: bool // TODO: find a better name
@@ -21,12 +18,11 @@ pub struct Clock {
 impl Clock {
     pub fn new(moves: u16, time: u64) -> Clock {
         Clock {
+            polling_nodes_count: 100,
+            started_at: 0,
             moves_level: moves,
-            //time_level: time,
             moves_remaining: moves,
             time_remaining: time,
-            started_at: 0,
-            polling_nodes_count: 100,
             last_nodes_count: 0,
             is_finished: Arc::new(AtomicBool::new(false)),
             is_level: true
