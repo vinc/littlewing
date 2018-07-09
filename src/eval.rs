@@ -167,8 +167,10 @@ impl Eval for Game {
                     score += BONUS_BISHOP_PAIR;
                 },
                 ROOK => {
-                    score += ((pieces & open_files).count() as Score) * BONUS_ROOK_OPEN_FILE;
-                    score += ((pieces & half_open_files).count() as Score) * BONUS_ROOK_OPEN_FILE / 2;
+                    let rooks_on_open_files = (pieces & open_files).count();
+                    let rooks_on_half_open_files = (pieces & half_open_files).count();
+                    score += (rooks_on_open_files as Score) * BONUS_ROOK_OPEN_FILE;
+                    score += (rooks_on_half_open_files as Score) * BONUS_ROOK_OPEN_FILE / 2;
                     score += n * (8 - pawns_count) * BONUS_ROOK_PAWNS;
                 },
                 _ => { }

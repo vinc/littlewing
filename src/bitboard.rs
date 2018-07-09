@@ -77,8 +77,8 @@ impl BitboardExt for Bitboard {
         *self &= !Bitboard::from_square(sq)
     }
 
-    //FIXME: remove this method
-    //#[deprecated(since="0.2.0", note="please use `to_debug_string` instead")]
+    // FIXME: remove this method
+    // #[deprecated(since="0.2.0", note="please use `to_debug_string` instead")]
     fn debug(&self) {
         println!("{}", self.to_debug_string());
     }

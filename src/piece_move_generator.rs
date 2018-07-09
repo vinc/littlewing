@@ -567,19 +567,24 @@ mod tests {
 
     #[test]
     fn test_make_undo_move() {
-        let positions = vec![
-            (PieceMove::new(E2, E3, QUIET_MOVE), "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"),
-            (PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
+        let moves = vec![
+            PieceMove::new(E2, E3, QUIET_MOVE),
+            PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH)
         ];
 
-        for (m, fen) in positions {
+        let fens = vec![
+            "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+        ];
+
+        for (m, fen) in moves.iter().zip(fens) {
             let mut game = Game::from_fen(DEFAULT_FEN);
             let hash = game.positions.top().hash;
 
-            game.make_move(m);
+            game.make_move(*m);
             assert_eq!(game.to_fen().as_str(), fen);
 
-            game.undo_move(m);
+            game.undo_move(*m);
             assert_eq!(game.to_fen().as_str(), DEFAULT_FEN);
             assert_eq!(game.positions.top().hash, hash);
         }

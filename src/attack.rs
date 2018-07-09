@@ -23,35 +23,37 @@ impl Attack for Game {
     }
 
     fn is_attacked(&self, square: Square, side: Color) -> bool {
-        let occupied = self.bitboards[WHITE as usize] | self.bitboards[BLACK as usize];
+        let bbs = &self.bitboards;
 
-        let pawns = self.bitboards[(side ^ 1 | PAWN) as usize];
+        let occupied = bbs[WHITE as usize] | bbs[BLACK as usize];
+
+        let pawns = bbs[(side ^ 1 | PAWN) as usize];
         let attacks = PAWN_ATTACKS[side as usize][square as usize];
         if attacks & pawns > 0 {
             return true;
         }
 
-        let knights = self.bitboards[(side ^ 1 | KNIGHT) as usize];
+        let knights = bbs[(side ^ 1 | KNIGHT) as usize];
         let attacks = PIECE_MASKS[KNIGHT as usize][square as usize];
         if attacks & knights > 0 {
             return true;
         }
 
-        let king = self.bitboards[(side ^ 1 | KING) as usize];
+        let king = bbs[(side ^ 1 | KING) as usize];
         let attacks = PIECE_MASKS[KING as usize][square as usize];
         if attacks & king > 0 {
             return true;
         }
 
-        let queens = self.bitboards[(side ^ 1 | QUEEN) as usize];
+        let queens = bbs[(side ^ 1 | QUEEN) as usize];
 
-        let bishops = self.bitboards[(side ^ 1 | BISHOP) as usize];
+        let bishops = bbs[(side ^ 1 | BISHOP) as usize];
         let attacks = bishop_attacks(square, occupied);
         if attacks & (bishops | queens) > 0 {
             return true;
         }
 
-        let rooks = self.bitboards[(side ^ 1 | ROOK) as usize];
+        let rooks = bbs[(side ^ 1 | ROOK) as usize];
         let attacks = rook_attacks(square, occupied);
         if attacks & (rooks | queens) > 0 {
             return true;

@@ -509,7 +509,7 @@ impl Search for Game {
         }
 
         if !best_move.is_null() {
-            let bound = if alpha > old_alpha { // TODO: try '&& is_pv'
+            let bound = if alpha > old_alpha {
                 Bound::Exact
             } else {
                 Bound::Upper

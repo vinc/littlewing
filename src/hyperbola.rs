@@ -43,10 +43,11 @@ lazy_static! {
     static ref HYPERBOLA_MASKS: [[Bitboard; 4]; 64] = {
         let mut hyperbola_masks = [[0; 4]; 64];
         for sq in 0..64 {
-            hyperbola_masks[sq as usize][HyperbolaMask::File as usize] = generate_mask(NORTH,     sq) | generate_mask(SOUTH,     sq);
-            hyperbola_masks[sq as usize][HyperbolaMask::Rank as usize] = generate_mask(EAST,      sq) | generate_mask(WEST,      sq);
-            hyperbola_masks[sq as usize][HyperbolaMask::Diag as usize] = generate_mask(NORTHEAST, sq) | generate_mask(SOUTHWEST, sq);
-            hyperbola_masks[sq as usize][HyperbolaMask::Anti as usize] = generate_mask(NORTHWEST, sq) | generate_mask(SOUTHEAST, sq);
+            let mask = &mut hyperbola_masks[sq as usize];
+            mask[HyperbolaMask::File as usize] = generate_mask(NORTH,     sq) | generate_mask(SOUTH,     sq);
+            mask[HyperbolaMask::Rank as usize] = generate_mask(EAST,      sq) | generate_mask(WEST,      sq);
+            mask[HyperbolaMask::Diag as usize] = generate_mask(NORTHEAST, sq) | generate_mask(SOUTHWEST, sq);
+            mask[HyperbolaMask::Anti as usize] = generate_mask(NORTHWEST, sq) | generate_mask(SOUTHEAST, sq);
         }
         hyperbola_masks
     };

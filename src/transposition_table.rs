@@ -107,6 +107,7 @@ impl TranspositionTable {
         self.len() * mem::size_of::<Transposition>()
     }
 
+    /// Print transposition table stats
     pub fn print_stats(&mut self) {
         // Memory size
         let v = self.memory() as u64;
@@ -135,16 +136,23 @@ impl TranspositionTable {
         let miss = self.stats_lookups - hits - collisions;
 
         println!("# {:15} {:>8} ({} {}B)", "tt size:", self.len(), size, unit);
-        let percent = 100.0 / (self.len() as f64);
-        println!("# {:15} {:>8} ({:.2} %)", " - lower:", lower_count, (lower_count as f64) * percent);
-        println!("# {:15} {:>8} ({:.2} %)", " - upper:", upper_count, (upper_count as f64) * percent);
-        println!("# {:15} {:>8} ({:.2} %)", " - exact:", exact_count, (exact_count as f64) * percent);
+
+        let percent = (lower_count as f64) * 100.0 / (self.len() as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - lower:", lower_count, percent);
+        let percent = (upper_count as f64) * 100.0 / (self.len() as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - upper:", upper_count, percent);
+        let percent = (exact_count as f64) * 100.0 / (self.len() as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - exact:", exact_count, percent);
+
         println!("# {:15} {:>8}", "tt inserts:", self.stats_inserts);
         println!("# {:15} {:>8}", "tt lookups:", self.stats_lookups);
-        let percent = 100.0 / (self.stats_lookups as f64);
-        println!("# {:15} {:>8} ({:.2} %)", " - miss:", miss, (miss as f64) * percent);
-        println!("# {:15} {:>8} ({:.2} %)", " - hits:", hits, (hits as f64) * percent);
-        println!("# {:15} {:>8} ({:.2} %)", " - collisions:", collisions, (collisions as f64) * percent);
+
+        let percent = (miss as f64) * 100.0 / (self.stats_lookups as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - miss:", miss, percent);
+        let percent = (hits as f64) * 100.0 / (self.stats_lookups as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - hits:", hits, percent);
+        let percent = (collisions as f64) * 100.0 / (self.stats_lookups as f64);
+        println!("# {:15} {:>8} ({:.2} %)", " - collisions:", collisions, percent);
     }
 }
 
