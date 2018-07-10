@@ -211,6 +211,9 @@ impl Search for Game {
             let n = self.nodes_count;
             let t = self.clock.elapsed_time();
             let nps = (n as f64) / ((t as f64) / 1000.0);
+            if self.is_search_verbose {
+                println!();
+            }
             println!("# {:15} {:>8}", "score:", best_score);
             println!("# {:15} {:>8} ms", "time:", t);
             println!("# {:15} {:>8} ({:.2e} nps)", "nodes:", n, nps);
@@ -526,11 +529,12 @@ impl SearchExt for Game {
         println!("# FEN {}", self.to_fen());
         println!("# allocating {} ms to move", self.clock.allocated_time());
         println!("# starting search at depth {}", depth);
+        println!();
     }
 
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
-            println!(" ply   score   time     nodes  pv");
+            println!("  ply   score   time     nodes  pv");
         }
     }
 
@@ -550,7 +554,7 @@ impl SearchExt for Game {
                     let fm = self.positions.fullmoves();
                     pv = format!("{}. ... {}", fm, pv);
                 }
-                println!(" {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time / 10, nodes, pv);
+                println!("  {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time / 10, nodes, pv);
             }
         }
 

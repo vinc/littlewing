@@ -90,7 +90,6 @@ impl fmt::Display for Game {
         let mut lines = vec![];
 
         let sep = "+---".repeat(8) + "+";
-
         lines.push(sep.clone());
 
         for rank in 0..8 {
@@ -123,11 +122,16 @@ impl fmt::Display for Game {
         }
 
         if self.show_coordinates {
-            let line = "abcdefgh".chars().map(|c| format!("  {} ", c)).collect();
+            let line = "abcdefgh".chars().
+                map(|c| format!("  {} ", c)).collect();
+
             lines.push(line);
         }
 
-        write!(f, "{}", lines.join("\n"))
+        let indented_lines: Vec<String> = lines.iter().
+            map(|l| format!("  {}", l)).collect();
+
+        write!(f, "{}", indented_lines.join("\n"))
     }
 }
 

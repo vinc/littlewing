@@ -28,7 +28,7 @@ pub struct CLI {
     pub game: Game,
     max_depth: Depth,
     play_side: Option<Color>,
-    show_board: bool
+    pub show_board: bool
 }
 
 impl CLI {
@@ -88,7 +88,9 @@ impl CLI {
     }
 
     fn cmd_usage(&self) {
+        println!();
         println!("Commands:");
+        println!();
         println!("  quit                      Exit this program");
         println!("  help                      Display this screen");
         println!("  hint                      Search the best move");
@@ -96,29 +98,28 @@ impl CLI {
         println!("  undo                      Undo the last move");
         println!("  move <move>               Play <move> on the board");
         println!("  load <fen>                Set the board to <fen>");
-        println!("");
+        println!();
         println!("  show <feature>            Show <feature>");
         println!("  hide <feature>            Hide <feature>");
         println!("  time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
         println!("  hash <size>               Set the <size> of the memory (in MB)");
         println!("  core <number>             Set the <number> of threads");
-        println!("");
+        println!();
         println!("  perft [<depth>]           Count the nodes at each depth");
         println!("  perftsuite <epd>          Compare perft results to each position of <epd>");
         println!("  testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
         println!("  divide <depth>            Count the nodes at <depth> for each moves");
-        println!("");
+        println!();
         println!("  uci                       Start UCI mode");
         println!("  xboard                    Start XBoard mode");
-        println!("");
+        println!();
         println!("Made with <3 in 2014-2018 by Vincent Ollivier <v@vinc.cc>");
-        println!("");
+        println!();
         println!("Report bugs to https://github.com/vinc/littlewing/issues");
+        println!();
     }
 
     fn cmd_config_usage(&self, value: bool) {
-        println!("Commands:");
-
         let cmds = [
             ["board", "board"],
             ["color", "terminal colors"],
@@ -127,6 +128,8 @@ impl CLI {
             ["think", "search output"]
         ];
 
+        println!("Subcommands:");
+        println!();
         for args in &cmds {
             if value {
                 println!("  show {}     Show {}", args[0], args[1]);
@@ -134,6 +137,7 @@ impl CLI {
                 println!("  hide {}     Hide {}", args[0], args[1]);
             }
         }
+        println!();
     }
 
     fn cmd_uci(&self) {
@@ -165,7 +169,7 @@ impl CLI {
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
             self.print_error(format!("no subcommand given"));
-            println!("");
+            println!();
             self.cmd_config_usage(value);
             return;
         }
@@ -174,7 +178,9 @@ impl CLI {
             "board" => {
                 self.show_board = value;
                 if value {
+                    println!();
                     println!("{}", self.game.to_string());
+                    println!();
                 }
             }
             "color" | "colors" => {
@@ -194,7 +200,7 @@ impl CLI {
             }
             _ => {
                 self.print_error(format!("unrecognized subcommand '{}'", args[1]));
-                println!("");
+                println!();
                 self.cmd_config_usage(value);
             }
         }
@@ -221,9 +227,16 @@ impl CLI {
     }
 
     fn think(&mut self, play: bool) {
+        if self.game.is_debug || self.game.is_search_verbose {
+            println!();
+        }
         let c = if play { "<" } else { "#" };
         let n = self.max_depth;
-        match self.game.search(1..n) {
+        let r = self.game.search(1..n);
+        if self.game.is_debug || self.game.is_search_verbose {
+            println!();
+        }
+        match r {
             None => {
                 if self.game.is_check(WHITE) {
                     println!("{} black mates", c);
@@ -241,7 +254,9 @@ impl CLI {
                     self.game.history.push(m);
 
                     if self.show_board {
+                        println!();
                         println!("{}", self.game.to_string());
+                        println!();
                     }
                 }
             }
@@ -252,11 +267,11 @@ impl CLI {
         let c = self.game.positions.top().side;
 
         println!("Static evaluation of the current position:");
-        println!("");
+        println!();
         self.game.is_eval_verbose = true;
         self.game.eval();
         self.game.is_eval_verbose = false;
-        println!("");
+        println!();
         println!("(score in pawn, relative to {})", if c == WHITE { "white" } else { "black"});
     }
 
@@ -267,7 +282,9 @@ impl CLI {
         }
 
         if self.show_board {
+            println!();
             println!("{}", self.game.to_string());
+            println!();
         }
     }
 
@@ -301,7 +318,11 @@ impl CLI {
         self.game.history.push(parsed_move);
 
         if self.show_board {
+            println!();
             println!("{}", self.game.to_string());
+            if self.play_side == None || (!self.game.is_debug && !self.game.is_search_verbose) {
+                println!();
+            }
         }
 
         if self.play_side == Some(self.game.positions.top().side) {
@@ -344,7 +365,7 @@ impl CLI {
             self.game.undo_move(m);
         }
 
-        println!("");
+        println!();
         println!("Moves: {}", moves_count);
         println!("Nodes: {}", nodes_count);
     }
@@ -417,7 +438,7 @@ impl CLI {
                     break;
                 }
             }
-            println!("");
+            println!();
         }
     }
 
@@ -478,7 +499,6 @@ impl CLI {
 
     fn cmd_error(&mut self, args: &[&str]) {
         self.print_error(format!("unrecognized command '{}'", args[0]));
-        println!("");
     }
 
     fn print_error(&self, msg: String) {
@@ -487,7 +507,7 @@ impl CLI {
         } else {
             "error:".into()
         };
-        println!("{} {}", err, msg);
+        println!("# {} {}", err, msg);
     }
 
     fn colorize_red(&self, text: String) -> String {

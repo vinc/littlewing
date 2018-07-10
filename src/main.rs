@@ -10,6 +10,26 @@ fn print_usage(opts: Options) {
     print!("{}", opts.usage(&brief));
 }
 
+fn print_banner(mut board: String) {
+    let mut version = littlewing::version();
+    println!("                                      _,;");
+    println!("               ,       .--.       _,-'.-;");
+    println!("                \\`-, <) o  `._ ,-' ,'`_7");
+    println!("                <_  `-\\ _       _,' _.'");
+    println!("                  <_`\".| `\\    `  _.>");
+    println!("                    <_ ;   \\     _>");
+    println!("                     `\"     ;  ``");
+    if version.len() < 19 {
+        version = format!("{}    \\   |   \\", version);
+    }
+    println!("  {}", version);
+    println!("                         '|-. _  \\");
+    println!("  by Vincent Ollivier  _/ /     \\ '.");
+    board.replace_range(23..35, "\"-\"`---+--'\\_>");
+    println!("{}", board);
+    println!();
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -31,21 +51,20 @@ fn main() {
         return;
     }
 
-    if !matches.opt_present("s") {
-        println!("{}", littlewing::version());
-    }
-
     if matches.opt_present("v") {
+        println!("{}", littlewing::version());
         return;
     }
 
-    if !matches.opt_present("s") {
-        println!("");
-    }
-
     let mut cli = CLI::new();
+
     if matches.opt_present("c") {
         cli.game.is_colored = true;
+    }
+    if !matches.opt_present("s") {
+        cli.show_board = true;
+        cli.game.show_coordinates = true;
+        print_banner(cli.game.to_string());
     }
     if matches.opt_present("d") {
         cli.game.is_debug = true;
