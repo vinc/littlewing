@@ -220,6 +220,10 @@ impl CLI {
         }
 
         self.think(true);
+
+        if self.game.is_mate() {
+            self.print_result(true);
+        }
     }
 
     fn cmd_hint(&mut self) {
@@ -238,13 +242,7 @@ impl CLI {
         }
         match r {
             None => {
-                if self.game.is_check(WHITE) {
-                    println!("{} black mates", c);
-                } else if self.game.is_check(BLACK) {
-                    println!("{} white mates", c);
-                } else {
-                    println!("{} draw", c);
-                }
+                self.print_result(play);
             },
             Some(m) => {
                 println!("{} move {}", c, m.to_can());
@@ -260,6 +258,17 @@ impl CLI {
                     }
                 }
             }
+        }
+    }
+
+    fn print_result(&self, play: bool) {
+        let c = if play { "<" } else { "#" };
+        if self.game.is_check(WHITE) {
+            println!("{} black mates", c);
+        } else if self.game.is_check(BLACK) {
+            println!("{} white mates", c);
+        } else {
+            println!("{} draw", c);
         }
     }
 
@@ -327,6 +336,10 @@ impl CLI {
 
         if self.play_side == Some(self.game.positions.top().side) {
             self.think(true);
+        }
+
+        if self.game.is_mate() {
+            self.print_result(true);
         }
     }
 

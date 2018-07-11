@@ -32,6 +32,8 @@ pub trait Search {
 
     /// Specialized quiescence search
     fn quiescence(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
+
+    fn is_mate(&mut self) -> bool;
 }
 
 trait SearchExt {
@@ -522,6 +524,20 @@ impl Search for Game {
 
         alpha
     }
+
+    fn is_mate(&mut self) -> bool {
+        let side = self.positions.top().side;
+        self.moves.clear();
+        while let Some(m) = self.next_move() {
+            self.make_move(m);
+            let is_legal = !self.is_check(side);
+            self.undo_move(m);
+            if is_legal {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 impl SearchExt for Game {
@@ -847,5 +863,14 @@ mod tests {
         let m = game.search(1..100).unwrap();
         assert_eq!(m, PieceMove::new(E1, F1, QUIET_MOVE));
         */
+    }
+
+    #[test]
+    fn test_is_mate() {
+        let fen = "rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2";
+        let mut game = Game::from_fen(fen);
+        assert!(!game.is_mate());
+        game.make_move(PieceMove::new(D8, H4, QUIET_MOVE));
+        assert!(game.is_mate());
     }
 }
