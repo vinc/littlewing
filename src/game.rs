@@ -85,6 +85,11 @@ impl Game {
     pub fn bitboard(&self, piece: Piece) -> &Bitboard {
         &self.bitboards[piece as usize]
     }
+
+    /// Get the current side color
+    pub fn side(&self) -> Color {
+        self.positions.top().side
+    }
 }
 
 impl fmt::Display for Game {

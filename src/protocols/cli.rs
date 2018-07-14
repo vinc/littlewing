@@ -258,7 +258,7 @@ impl CLI {
                 let mut line = String::new();
                 for m in moves {
                     let fm = self.game.positions.fullmoves();
-                    if self.game.positions.top().side == WHITE {
+                    if self.game.side() == WHITE {
                         line.push_str(&format!("{}. ", fm));
                     } else if first_move {
                         line.push_str(&format!("{}. ... ", fm));
@@ -272,7 +272,7 @@ impl CLI {
 
                     if self.game.is_mate() {
                         line.push('#');
-                    } else if self.game.is_check(self.game.positions.top().side) {
+                    } else if self.game.is_check(self.game.side()) {
                         line.push('+');
                     }
 
@@ -341,7 +341,7 @@ impl CLI {
                 _       => None
             };
 
-            if self.play_side != Some(self.game.positions.top().side) {
+            if self.play_side != Some(self.game.side()) {
                 return;
             }
         }
@@ -395,7 +395,7 @@ impl CLI {
     }
 
     fn cmd_eval(&mut self) {
-        let c = self.game.positions.top().side;
+        let c = self.game.side();
 
         println!("Static evaluation of the current position:");
         println!();
@@ -428,7 +428,7 @@ impl CLI {
         let parsed_move = self.game.move_from_can(args[1]);
 
         let mut is_valid = false;
-        let side = self.game.positions.top().side;
+        let side = self.game.side();
         self.game.moves.clear();
         while let Some(m) = self.game.next_move() {
             if m == parsed_move {
@@ -456,7 +456,7 @@ impl CLI {
             }
         }
 
-        if self.play_side == Some(self.game.positions.top().side) {
+        if self.play_side == Some(self.game.side()) {
             self.think(true);
         }
 
@@ -484,7 +484,7 @@ impl CLI {
 
         let d = args[1].parse::<Depth>().unwrap();
 
-        let side = self.game.positions.top().side;
+        let side = self.game.side();
         self.game.moves.clear();
         while let Some(m) = self.game.next_move() {
             self.game.make_move(m);
@@ -609,7 +609,7 @@ impl CLI {
             let mut best_move_str = self.game.move_to_san(best_move);
 
             // Add `+` to move in case of check
-            let side = self.game.positions.top().side;
+            let side = self.game.side();
             self.game.make_move(best_move);
             if self.game.is_check(side ^ 1) {
                 best_move_str.push('+');

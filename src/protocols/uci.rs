@@ -71,7 +71,7 @@ impl UCI {
     fn cmd_go(&mut self, args: &[&str]) {
         self.abort_search();
 
-        let side = self.game.positions.top().side;
+        let side = self.game.side();
         let mut is_time = false;
         let mut is_moves = false;
         let mut time = u64::max_value(); // Infinite time

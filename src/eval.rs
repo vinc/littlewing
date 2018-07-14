@@ -66,7 +66,7 @@ trait EvalExt {
 impl Eval for Game {
     fn eval(&self) -> Score {
         let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
-        let side = self.positions.top().side;
+        let side = self.side();
 
         // Look for win/loss/draw
         if let Some(score) = self.eval_ending(side) {
@@ -184,7 +184,7 @@ impl Eval for Game {
     fn see(&self, capture: PieceMove) -> Score {
         let mut occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
         let mut sq = capture.from();
-        let mut side = self.positions.top().side;
+        let mut side = self.side();
         let mut gains = [0; 32];
         let mut d = 0;
 

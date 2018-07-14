@@ -48,7 +48,7 @@ impl Search for Game {
         if depth == 0 {
             1
         } else {
-            let side = self.positions.top().side;
+            let side = self.side();
             self.moves.clear();
             let mut r = 0;
             while let Some(m) = self.next_move() {
@@ -119,7 +119,7 @@ impl Search for Game {
 
     fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         let hash = self.positions.top().hash;
-        let side = self.positions.top().side;
+        let side = self.side();
         let ply = 0;
 
         if self.is_debug {
@@ -244,7 +244,7 @@ impl Search for Game {
         }
 
         let hash = self.positions.top().hash;
-        let side = self.positions.top().side;
+        let side = self.side();
         let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
 
@@ -457,7 +457,7 @@ impl Search for Game {
         }
 
         let hash = self.positions.top().hash;
-        let side = self.positions.top().side;
+        let side = self.side();
         let old_alpha = alpha;
         let mut best_move = PieceMove::new_null();
 
@@ -526,7 +526,7 @@ impl Search for Game {
     }
 
     fn is_mate(&mut self) -> bool {
-        let side = self.positions.top().side;
+        let side = self.side();
         self.moves.clear();
         while let Some(m) = self.next_move() {
             self.make_move(m);
@@ -566,7 +566,7 @@ impl SearchExt for Game {
                 println!("info depth {} score cp {} time {} nodes {} pv {}", depth, score, time, nodes, pv);
             },
             Protocol::XBoard | Protocol::CLI => {
-                if self.positions.top().side == BLACK {
+                if self.side() == BLACK {
                     let fm = self.positions.fullmoves();
                     pv = format!("{}. ... {}", fm, pv);
                 }
@@ -587,7 +587,7 @@ impl SearchExt for Game {
         let mut res = vec![];
         let mut m = PieceMove::new_null();
 
-        let side = self.positions.top().side;
+        let side = self.side();
         let hash = self.positions.top().hash;
         if let Some(t) = self.tt.get(hash) {
             m = t.best_move();

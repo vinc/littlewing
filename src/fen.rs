@@ -148,7 +148,7 @@ impl FEN for Game {
         }
 
         fen.push(' ');
-        if self.positions.top().side == WHITE {
+        if self.side() == WHITE {
             fen.push('w');
         } else {
             fen.push('b');

@@ -22,7 +22,7 @@ impl PieceMoveNotation for Game {
     fn move_from_can(&mut self, s: &str) -> PieceMove {
         debug_assert!(s.len() == 4 || s.len() == 5);
 
-        let side = self.positions.top().side;
+        let side = self.side();
         let (a, b) = s.split_at(2);
         let from = Square::from_coord(String::from(a));
         let to = Square::from_coord(String::from(b));
