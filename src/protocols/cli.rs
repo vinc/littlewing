@@ -239,22 +239,17 @@ impl CLI {
         if self.game.is_debug || self.game.is_search_verbose {
             println!();
         }
-        match r {
-            None => {
-                self.print_result(play);
-            },
-            Some(m) => {
-                println!("{} move {}", c, m.to_can());
+        if let Some(m) = r {
+            println!("{} move {}", c, m.to_can());
 
-                if play {
-                    self.game.make_move(m);
-                    self.game.history.push(m);
+            if play {
+                self.game.make_move(m);
+                self.game.history.push(m);
 
-                    if self.show_board {
-                        println!();
-                        println!("{}", self.game.to_string());
-                        println!();
-                    }
+                if self.show_board {
+                    println!();
+                    println!("{}", self.game.to_string());
+                    println!();
                 }
             }
         }
