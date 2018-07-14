@@ -1,4 +1,4 @@
-extern crate time;
+use time::precise_time_s;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -32,7 +32,7 @@ impl Clock {
     pub fn start(&mut self, ply: usize) {
         self.is_finished.store(false, Ordering::Relaxed);
         self.last_nodes_count = 0;
-        self.started_at = (time::precise_time_s() * 1000.0) as u64;
+        self.started_at = (precise_time_s() * 1000.0) as u64;
 
         // The UCI protocol gives the number of remaining moves before each
         // search but XBoard doesn't so we need to calculate it based on moves
@@ -61,7 +61,7 @@ impl Clock {
     }
 
     pub fn elapsed_time(&self) -> u64 {
-        let now = (time::precise_time_s() * 1000.0) as u64;
+        let now = (precise_time_s() * 1000.0) as u64;
 
         now - self.started_at
     }

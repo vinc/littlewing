@@ -1,4 +1,6 @@
-extern crate time;
+use regex::Regex;
+use rustyline::Editor;
+use time::precise_time_s;
 
 use std::io;
 use std::fs::File;
@@ -6,9 +8,6 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Write;
 use std::path::Path;
-
-use regex::Regex;
-use rustyline::Editor;
 
 use color::*;
 use common::*;
@@ -408,9 +407,9 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         loop {
-            let started_at = time::precise_time_s();
+            let started_at = precise_time_s();
             let n = self.game.perft(depth);
-            let ended_at = time::precise_time_s();
+            let ended_at = precise_time_s();
             let s = ended_at - started_at;
             let nps = (n as f64) / s;
             println!("perft {} -> {} ({:.2} s, {:.2e} nps)", depth, n, s, nps);

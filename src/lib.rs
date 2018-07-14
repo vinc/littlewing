@@ -43,6 +43,7 @@ extern crate lazy_static;
 extern crate rand;
 extern crate regex;
 extern crate rustyline;
+extern crate time;
 
 mod attack;
 mod common;
