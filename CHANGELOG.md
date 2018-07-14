@@ -5,9 +5,13 @@
 ### Added
 - Use Xorshift random number generator for Zobrist hashing
 - Use Hyperbola Quintessence and First Rank Attacks for sliding piece attacks
-- Add depth parameter to perft command
+- Add depth parameter to `perft` CLI command
+- Add `save fen` and `save pgn` CLI commands
+- Add `--silent` flag to executable
 
 ### Changed
+- Improve CLI output
+- Rename `load` CLI command to `load fen`
 - Rename `Direction` to `Shift` and introduce a new (compass) `Direction`
 - Rename `Move*` to `PieceMove*`
 - Store castling rights in a u8 in `Position`
