@@ -17,6 +17,7 @@ use piece::{PieceAttr, PieceChar};
 #[derive(Clone)]
 pub struct Game {
     pub protocol: Protocol,
+    pub starting_fen: String,
     pub is_debug: bool,  // Print debugging
     pub is_eval_verbose: bool, // Print thinking in eval
     pub is_search_verbose: bool, // Print thinking in search
@@ -39,6 +40,7 @@ impl Game {
     pub fn new() -> Game {
         Game {
             protocol: Protocol::CLI,
+            starting_fen: String::from(DEFAULT_FEN),
             is_debug: false,
             is_eval_verbose: false,
             is_search_verbose: false,

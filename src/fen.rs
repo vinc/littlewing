@@ -32,6 +32,7 @@ impl FEN for Game {
 
     fn load_fen(&mut self, fen: &str) {
         self.clear();
+        self.starting_fen = String::from(fen);
         let mut position = Position::new();
 
         let mut fields = fen.split_whitespace();

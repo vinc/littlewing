@@ -58,27 +58,28 @@ impl CLI {
 
                     let args: Vec<&str> = line.trim().split(' ').collect();
                     match args[0] {
-                        ""                        => (),
-                        "quit" | "q" | "exit"     => { break },
-                        "help" | "h"              => { self.cmd_usage() },
-                        "play" | "p" | "go"       => { self.cmd_play(&args) },
-                        "hint"                    => { self.cmd_hint() },
-                        "eval" | "e"              => { self.cmd_eval() },
-                        "undo" | "u"              => { self.cmd_undo() },
-                        "move" | "m"              => { self.cmd_move(&args) },
-                        "time" | "t" | "level"    => { self.cmd_time(&args) },
-                        "show"                    => { self.cmd_config(true, &args) },
-                        "hide"                    => { self.cmd_config(false, &args) },
-                        "load" | "l" | "setboard" => { self.cmd_setboard(&args) },
-                        "core" | "threads"        => { self.cmd_threads(&args) },
-                        "hash" | "memory"         => { self.cmd_memory(&args) },
-                        "perft"                   => { self.cmd_perft(&args) },
-                        "perftsuite"              => { self.cmd_perftsuite(&args) },
-                        "testsuite"               => { self.cmd_testsuite(&args) },
-                        "divide"                  => { self.cmd_divide(&args) },
-                        "uci"                     => { self.cmd_uci(); break },
-                        "xboard"                  => { self.cmd_xboard(); break },
-                        _                         => { self.cmd_error(&args); self.cmd_usage() }
+                        ""                         => (),
+                        "quit" | "q" | "exit"      => { break },
+                        "help" | "h"               => { self.cmd_usage() },
+                        "load" | "l"               => { self.cmd_load(&args) },
+                        "save" | "s"               => { self.cmd_save(&args) },
+                        "play" | "p" | "go"        => { self.cmd_play(&args) },
+                        "hint"                     => { self.cmd_hint() },
+                        "eval" | "e"               => { self.cmd_eval() },
+                        "undo" | "u"               => { self.cmd_undo() },
+                        "move" | "m"               => { self.cmd_move(&args) },
+                        "time" | "t" | "level"     => { self.cmd_time(&args) },
+                        "show"                     => { self.cmd_config(true, &args) },
+                        "hide"                     => { self.cmd_config(false, &args) },
+                        "core" | "threads"         => { self.cmd_threads(&args) },
+                        "hash" | "memory"          => { self.cmd_memory(&args) },
+                        "perft"                    => { self.cmd_perft(&args) },
+                        "perftsuite"               => { self.cmd_perftsuite(&args) },
+                        "testsuite"                => { self.cmd_testsuite(&args) },
+                        "divide"                   => { self.cmd_divide(&args) },
+                        "uci"                      => { self.cmd_uci(); break },
+                        "xboard"                   => { self.cmd_xboard(); break },
+                        _                          => { self.cmd_error(&args); self.cmd_usage() }
                     }
                 },
                 Err(_) => { break }
@@ -92,11 +93,12 @@ impl CLI {
         println!();
         println!("  quit                      Exit this program");
         println!("  help                      Display this screen");
+        println!("  load [<options>]          Load game from <options>");
+        println!("  save [<options>]          Save game to <options>");
         println!("  hint                      Search the best move");
         println!("  play [<color>]            Search and play [<color>] move[s]");
         println!("  undo                      Undo the last move");
         println!("  move <move>               Play <move> on the board");
-        println!("  load <fen>                Set the board to <fen>");
         println!();
         println!("  show <feature>            Show <feature>");
         println!("  hide <feature>            Hide <feature>");
@@ -139,6 +141,22 @@ impl CLI {
         println!();
     }
 
+    fn cmd_load_usage(&self) {
+        println!("Subcommands:");
+        println!();
+        println!("  load fen <string>         Load game from FEN <string>");
+        //println!("  load pgn <file>           Load game from PGN <file>"); // TODO
+        println!();
+    }
+
+    fn cmd_save_usage(&self) {
+        println!("Subcommands:");
+        println!();
+        println!("  save fen                  Save game to FEN <string>");
+        println!("  save pgn <file>           Save game to PGN <file>");
+        println!();
+    }
+
     fn cmd_uci(&self) {
         let mut uci = UCI::new();
         uci.game.is_debug = self.game.is_debug;
@@ -155,14 +173,124 @@ impl CLI {
         xboard.run();
     }
 
-    fn cmd_setboard(&mut self, args: &[&str]) {
+    fn cmd_load(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            self.print_error(format!("no fen given"));
+            self.print_error(format!("no subcommand given"));
+            println!();
+            self.cmd_load_usage();
             return;
         }
 
-        let fen = args[1..].join(" ");
-        self.game.load_fen(&fen);
+        match args[1] {
+            "fen" => {
+                let fen = args[2..].join(" ");
+                self.game.load_fen(&fen);
+            },
+            "pgn" => {
+                self.print_error(format!("not implemented yet")); // TODO
+                println!();
+            }
+            _ => {
+                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                println!();
+                self.cmd_load_usage();
+            }
+        }
+    }
+
+    fn cmd_save(&mut self, args: &[&str]) {
+        if args.len() == 1 {
+            self.print_error(format!("no subcommand given"));
+            println!();
+            self.cmd_save_usage();
+            return;
+        }
+
+        match args[1] {
+            "fen" => {
+                println!("{}", self.game.to_fen());
+            },
+            "pgn" => {
+                let starting_fen = self.game.starting_fen.clone();
+
+                if args.len() == 2 {
+                    self.print_error(format!("no filename given"));
+                    return;
+                }
+                let path = Path::new(args[2]);
+                let mut buffer = File::create(&path).unwrap();
+
+                let mut version = ::version();
+                let result = if self.game.is_mate() {
+                    if self.game.is_check(WHITE) {
+                        "0-1"
+                    } else if self.game.is_check(BLACK) {
+                        "1-0"
+                    } else {
+                        "1/2-1/2"
+                    }
+                } else {
+                    "*"
+                };
+
+                writeln!(buffer, "[Event \"?\"]").unwrap();
+                writeln!(buffer, "[Site \"?\"]").unwrap();
+                if self.play_side == Some(WHITE) {
+                    writeln!(buffer, "[White \"{}\"]", version).unwrap();
+                } else {
+                    writeln!(buffer, "[White \"?\"]").unwrap();
+                }
+                if self.play_side == Some(BLACK) {
+                    writeln!(buffer, "[Black \"{}\"]", version).unwrap();
+                } else {
+                    writeln!(buffer, "[Black \"?\"]").unwrap();
+                }
+                writeln!(buffer, "[Result \"{}\"]", result).unwrap();
+                if starting_fen != String::from(DEFAULT_FEN) {
+                    writeln!(buffer, "[FEN \"{}\"]", starting_fen).unwrap();
+                    writeln!(buffer, "[SetUp \"1\"]").unwrap();
+                }
+                writeln!(buffer, "").unwrap();
+
+                let moves = self.game.history.clone();
+                self.game.load_fen(&starting_fen);
+                let mut first_move = true;
+                let mut line = String::new();
+                for m in moves {
+                    let fm = self.game.positions.fullmoves();
+                    if self.game.positions.top().side == WHITE {
+                        line.push_str(&format!("{}. ", fm));
+                    } else if first_move {
+                        line.push_str(&format!("{}. ... ", fm));
+                    }
+                    first_move = false;
+
+                    line.push_str(&self.game.move_to_san(m));
+
+                    self.game.make_move(m);
+                    self.game.history.push(m);
+
+                    if self.game.is_mate() {
+                        line.push('#');
+                    } else if self.game.is_check(self.game.positions.top().side) {
+                        line.push('+');
+                    }
+
+                    if line.len() > 70 {
+                        writeln!(buffer, "{}", line).unwrap();
+                        line = String::new();
+                    } else {
+                        line.push(' ');
+                    }
+                }
+                writeln!(buffer, "{}{}", line, result).unwrap();
+            }
+            _ => {
+                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                println!();
+                self.cmd_save_usage();
+            }
+        }
     }
 
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
