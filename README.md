@@ -1,12 +1,14 @@
-Little Wing
-===========
+Little Wing: a chess engine written in Rust
+===========================================
 
 [![Travis](https://img.shields.io/travis/vinc/littlewing/master.svg)](https://travis-ci.org/vinc/littlewing/branches)
 [![Crates.io](https://img.shields.io/crates/v/littlewing.svg)](https://crates.io/crates/littlewing)
 
-A bitboard chess engine written in Rust.
+Little Wing is the successor of [Purple Haze](https://github.com/vinc/purplehaze).
 
-A work in progress since December 2014, still maintained in 2018.
+The project started in December 2014 to learn the Rust language and play with
+bitboards. Both experiments were conclusive and Little Wing it is still
+maintained in 2018.
 
 Currently evaluated at 2000+ ELO on CCRL 40/4 Rating List.
 
@@ -16,6 +18,10 @@ Currently evaluated at 2000+ ELO on CCRL 40/4 Rating List.
 Features
 --------
 
+- Interfaces
+  - A nice CLI with many commands
+  - XBoard and UCI communication protocols
+  - Public API with [documented library](https://docs.rs/littlewing)
 - Board representation
   - Bitboard with LLVM CTPOP and CTTZ
   - Sliding piece attacks with Hyperbola Quintessence and First Rank Attacks
@@ -26,7 +32,7 @@ Features
 - Search
   - Principal variation search
   - Quiescence search
-  - Transpositions table
+  - Transposition table
   - Null move pruning
   - Internal iterative deepening
   - Futility pruning
@@ -36,18 +42,15 @@ Features
   - Piece square table evaluation
   - Mobility evaluation
   - Static exchange evaluation
-- Interface
-  - CLI with play and debug commands
-  - XBoard and UCI communication protocol
-  - Public API with documented library
 
 
-Usage
------
+Install
+-------
 
-Binaries are available here: https://vinc.cc/binaries
+Binaries for GNU/Linux (x86-64), Android (ARMv7), and Windows (x86-64) are
+available: https://vinc.cc/binaries
 
-If you want to compile Little Wing yourself, you need to install Rust:
+If you want to compile Little Wing yourself, you must first install Rust:
 
     $ curl https://sh.rustup.rs -sSf | sh
 
@@ -59,106 +62,132 @@ Or the development version by fetching the git repository:
 
     $ git clone https://github.com/vinc/littlewing.git
     $ cd littlewing
-    $ LITTLEWING_VERSION=$(git describe) cargo build --release
+    $ export RUSTFLAGS="-C target-cpu=native"
+    $ export LITTLEWING_VERSION="$(git describe)"
+    $ cargo build --release
     $ sudo cp target/release/littlewing /usr/local/bin
 
-Little Wing is compatible with XBoard and UCI communication protocols,
-in addition it has its own text-based user interface:
 
-    $ littlewing --color --debug
-    Little Wing v0.4.0
+Usage
+-----
+
+Little Wing is compatible with XBoard and UCI communication protocols,
+and in addition it has its own text-based user interface:
+
+    $ littlewing --color
+                                          _,;
+                   ,       .--.       _,-'.-;
+                    \`-, <) o  `._ ,-' ,'`_7
+                    <_  `-\ _       _,' _.'
+                      <_`".| `\    `  _.>
+                        <_ ;   \     _>
+                         `"     ;  ``
+      Little Wing v0.4.0    \   |   \
+                             '|-. _  \
+      by Vincent Ollivier  _/ /     \ '.
+      +---+---+---+---+---+"-"`---+--'\_>
+      | r | n | b | q | k | b | n | r | 8
+      +---+---+---+---+---+---+---+---+
+      | p | p | p | p | p | p | p | p | 7
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 6
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 5
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 4
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 3
+      +---+---+---+---+---+---+---+---+
+      | P | P | P | P | P | P | P | P | 2
+      +---+---+---+---+---+---+---+---+
+      | R | N | B | Q | K | B | N | R | 1
+      +---+---+---+---+---+---+---+---+
+        a   b   c   d   e   f   g   h
 
     > move e2e4
-    > show board
-    +---+---+---+---+---+---+---+---+
-    | r | n | b | q | k | b | n | r |
-    +---+---+---+---+---+---+---+---+
-    | p | p | p | p | p | p | p | p |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   |   |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   |   |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   | P |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   |   |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    | P | P | P | P |   | P | P | P |
-    +---+---+---+---+---+---+---+---+
-    | R | N | B | Q | K | B | N | R |
-    +---+---+---+---+---+---+---+---+
-    > show think
+
+      +---+---+---+---+---+---+---+---+
+      | r | n | b | q | k | b | n | r | 8
+      +---+---+---+---+---+---+---+---+
+      | p | p | p | p | p | p | p | p | 7
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 6
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 5
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   | P |   |   |   | 4
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 3
+      +---+---+---+---+---+---+---+---+
+      | P | P | P | P |   | P | P | P | 2
+      +---+---+---+---+---+---+---+---+
+      | R | N | B | Q | K | B | N | R | 1
+      +---+---+---+---+---+---+---+---+
+        a   b   c   d   e   f   g   h
+
     > time 1 10
-    > play
-    # using 0 threads
-    # FEN rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
-    # allocating 10000 ms to move
-    # starting search at depth 1
-     ply   score   time     nodes  pv
-       1     -46      0         1  1. ... a6
-       1     -45      0         3  1. ... c6
-       1     -22      0         4  1. ... d6
-       1     -20      0         5  1. ... e6
-       1      -1      0        14  1. ... d5
-       1       0      0        15  1. ... e5
-       1       9      0        20  1. ... Nc6
-       2     -47      0        53  1. ... Nc6 2. Nc3
-       3       9      0       278  1. ... Nc6 2. Nc3 Nf6
-       4     -45      1       860  1. ... Nc6 2. Nc3 Nf6 3. Nf3
-       4     -31      1      2435  1. ... d5 2. exd5 Qxd5 3. Nc3
-       5     -32      2      4559  1. ... d5 2. exd5 Qxd5 3. Nc3 Qd4
-       5     -21      2      7708  1. ... d6 2. Qe2 Nf6 3. Nc3 Nc6
-       5      -3      3     11522  1. ... e5 2. Qh5 d6 3. d3 Nc6
-       5       1      4     13090  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5
-       6     -21      4     14191  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5 4. d3
-       7      -7     10     42921  1. ... Nc6 2. Nf3 Nf6 3. e5 Ng4 4. d4 d5
-       8     -30     15     68987  1. ... Nc6 2. Nf3 Nf6 3. Nc3 e6 4. d4 d5 5. e5
-       9     -18     42    203216  1. ... Nc6 2. d4 d5 3. exd5 Qxd5 4. Nf3 Qe4+ 5. Be3 e5
-      10     -43     68    337369  1. ... Nc6 2. d4 e6 3. Nc3 d5 4. Nf3 dxe4 5. Nxe4 Nf6 6. Bg5
-      10     -38    113    570619  1. ... d5 2. exd5 Qxd5 3. Nc3 Qe6+ 4. Nge2 Nf6 5. d4 Nc6 6. Bf4
-      10     -21    136    689628  1. ... e5 2. Nc3 Nf6 3. Nf3 Nc6 4. Bb5 Qe7 5. d3 d6
-      11      -8    244   1231372  1. ... e5 2. c4 Bd6 3. Nf3 Ne7 4. Nc3 Nbc6 5. d4 O-O 6. c5 exd4
-      12     -22    488   2552398  1. ... e5 2. Nf3 Nf6 3. Nc3 Nc6 4. d4 exd4 5. Nxd4 d5 6. exd5 Nxd5
-      13     -13    859   4716253  1. ... e5 2. Nf3 Nf6 3. Nc3 Nc6 4. d4 exd4 5. Nxd4 d5 6. exd5 Nxd5 7. Bc4 Qe7+
-    # score:               -22
-    # time:               9951 ms
-    # nodes:           5571362 (5.60e5 nps)
-    # tt size:          524288 (8 MB)
-    #  - lower:         382039 (72.87 %)
-    #  - upper:          54669 (10.43 %)
-    #  - exact:            170 (0.03 %)
-    # tt inserts:       941233
-    # tt lookups:      3650051
-    #  - miss:         1472020 (40.33 %)
-    #  - hits:          469768 (12.87 %)
-    #  - collisions:   1708263 (46.80 %)
+    > show think
+    > play black
+
+      dep  score    time      nodes  pv
+        1    -46       0          1  1. ... a6
+        1    -45       0          3  1. ... c6
+        1    -22       0          4  1. ... d6
+        1    -20       0          5  1. ... e6
+        1     -1       0         14  1. ... d5
+        1      0       0         15  1. ... e5
+        1      9       0         20  1. ... Nc6
+        2    -47       0         53  1. ... Nc6 2. Nc3
+        3      9       0        278  1. ... Nc6 2. Nc3 Nf6
+        4    -45       0        860  1. ... Nc6 2. Nc3 Nf6 3. Nf3
+        4    -31       1       2437  1. ... d5 2. exd5 Qxd5 3. Nc3
+        5    -32       1       4856  1. ... d5 2. exd5 Qxd5 3. Nc3 Qd4
+        5    -20       2       7520  1. ... d6 2. Nc3 Nf6 3. Nf3 Nc6
+        5     -3       3      11132  1. ... e5 2. Qh5 d6 3. d3 Nc6
+        5      1       3      12703  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5
+        6    -21       3      13728  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5 4. d3
+        7     -7       8      41121  1. ... Nc6 2. Nf3 Nf6 3. e5 Ng4 4. d4 d5
+        8    -30      12      60887  1. ... Nc6 2. Nf3 Nf6 3. Nc3 e6 4. d4 d5 5. e5
+        9    -25      29     162011  1. ... Nc6 2. d4 d5 3. e5 e6 4. Nc3 Bb4 5. Nf3 Nge7
+        9    -15      40     226461  1. ... e5 2. Nc3 Nf6 3. Bc4 Nc6 4. Nge2 d6 5. d3 Bg4
+       10    -10      66     392169  1. ... e5 2. Nc3 Nc6 3. Nf3 Nf6 4. d4 exd4 5. Nxd4 d5 6. f3
+       11    -10     130     783585  1. ... e5 2. Ne2 Nf6 3. Nbc3 Nc6 4. d4 exd4 5. Nxd4 d5 6. Nxc6 bxc6
+       12    -23     363    2254362  1. ... e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nc3 d5 6. exd5 Nxd5 7. Bc4
+       13    -13     690    4457080  1. ... e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nc3 d5 6. exd5 Nxd5 7. Bc4
+
     < move e7e5
-    +---+---+---+---+---+---+---+---+
-    | r | n | b | q | k | b | n | r |
-    +---+---+---+---+---+---+---+---+
-    | p | p | p | p |   | p | p | p |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   |   |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   | p |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   | P |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    |   |   |   |   |   |   |   |   |
-    +---+---+---+---+---+---+---+---+
-    | P | P | P | P |   | P | P | P |
-    +---+---+---+---+---+---+---+---+
-    | R | N | B | Q | K | B | N | R |
-    +---+---+---+---+---+---+---+---+
+
+      +---+---+---+---+---+---+---+---+
+      | r | n | b | q | k | b | n | r | 8
+      +---+---+---+---+---+---+---+---+
+      | p | p | p | p |   | p | p | p | 7
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 6
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   | p |   |   |   | 5
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   | P |   |   |   | 4
+      +---+---+---+---+---+---+---+---+
+      |   |   |   |   |   |   |   |   | 3
+      +---+---+---+---+---+---+---+---+
+      | P | P | P | P |   | P | P | P | 2
+      +---+---+---+---+---+---+---+---+
+      | R | N | B | Q | K | B | N | R | 1
+      +---+---+---+---+---+---+---+---+
+        a   b   c   d   e   f   g   h
+
     > help
+
     Commands:
+
       quit                      Exit this program
       help                      Display this screen
+      load [<options>]          Load game from <options>
+      save [<options>]          Save game to <options>
       hint                      Search the best move
       play [<color>]            Search and play [<color>] move[s]
       undo                      Undo the last move
       move <move>               Play <move> on the board
-      load <fen>                Set the board to <fen>
 
       show <feature>            Show <feature>
       hide <feature>            Hide <feature>
@@ -177,6 +206,7 @@ in addition it has its own text-based user interface:
     Made with <3 in 2014-2018 by Vincent Ollivier <v@vinc.cc>
 
     Report bugs to https://github.com/vinc/littlewing/issues
+
     > quit
 
 
@@ -190,9 +220,7 @@ Run the test suite with Cargo:
 Little Wing also have a `perft` command for counting the number of nodes at
 each depth from the starting position.
 
-    $ cargo run
-    Little Wing v0.4.0
-
+    $ cargo run -- --silent
     > perft
     perft 1 -> 20 (0.00 s, 5.83e4 nps)
     perft 2 -> 400 (0.00 s, 7.62e5 nps)
@@ -200,13 +228,10 @@ each depth from the starting position.
     perft 4 -> 197281 (0.16 s, 1.26e6 nps)
     perft 5 -> 4865609 (3.82 s, 1.27e6 nps)
 
-
 And a `perftsuite` command for comparing the results of a perft calculation
 with the given EPD file.
 
-    $ cargo run -- --color
-    Little Wing v0.4.0
-
+    $ cargo run -- --silent --color
     > perftsuite tests/perftsuite.epd
     rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 -> ......
     r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 -> ......
@@ -221,12 +246,9 @@ with the given EPD file.
     4k2r/6K1/8/8/8/8/8/8 w k - 0 1 -> ......
     r3k3/1K6/8/8/8/8/8/8 w q - 0 1 -> ......
 
+And the usual debug commands like `divide` or `testsuite`:
 
-And the usual others like `divide` or `testsuite`:
-
-    $ cargo run -- --color
-    Little Wing v0.4.0
-
+    $ cargo run -- --silent --color
     > testsuite tests/wac.epd 1
     2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6 -> Qg6
     8/7p/5k2/5p2/p1p2P2/Pr1pPK2/1P1R3P/8 b - - bm Rxb2 -> c3
@@ -244,7 +266,7 @@ Here we used `cargo run` to run the engine in debug mode, but you can invoke
 it from `littlewing` if you installed it to make it run (much) faster.
 
 The CLI as been designed to interface nicely with other Unix tools, for example
-to test if the times from perft are stable you could do:
+to test if the times from perft are stable you can do:
 
     $ for i in $(seq 0 10); do littlewing -s <<< "perft 6"; sleep 1; done
 
