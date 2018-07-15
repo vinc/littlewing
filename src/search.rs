@@ -550,7 +550,7 @@ impl SearchExt for Game {
 
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
-            println!("  ply   score   time     nodes  pv");
+            println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "dep", "score", "time", "nodes", "pv");
         }
     }
 
@@ -570,7 +570,7 @@ impl SearchExt for Game {
                     let fm = self.positions.fullmoves();
                     pv = format!("{}. ... {}", fm, pv);
                 }
-                println!("  {:>3}  {:>6}  {:>5}  {:>8}  {}", depth, score, time / 10, nodes, pv);
+                println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", depth, score, time / 10, nodes, pv);
             }
         }
 
