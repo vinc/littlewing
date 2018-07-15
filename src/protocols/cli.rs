@@ -54,7 +54,7 @@ impl CLI {
 
             match readline {
                 Ok(line) => {
-                    rl.add_history_entry(&line);
+                    rl.add_history_entry(line.as_ref());
 
                     let args: Vec<&str> = line.trim().split(' ').collect();
                     match args[0] {

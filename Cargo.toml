@@ -21,7 +21,7 @@ getopts = "0.2"
 lazy_static = "1.0"
 rand = "0.5"
 regex = "1.0"
-rustyline = "1.0"
+rustyline = { git = "https://github.com/kkawakam/rustyline", version = "2.0.0-alpha" }
 time = "0.1"
 
 [badges]
