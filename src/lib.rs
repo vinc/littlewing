@@ -1,10 +1,5 @@
-//! Little Wing
-//!
-//! Little Wing is a bitboard chess engine.
-//!
-//! It has been a work in progress since 2014 and the library is not stabilized
-//! yet, but the goal is to have an engine with modern algorithms, a simple API
-//! and a great CLI with support for XBoard and UCI protocols.
+//! Little Wing is a chess engine rated at 2050+ ELO, compatible with both UCI
+//! and XBoard protocols, with a nice CLI, and a documented library.
 //!
 //! # Example
 //!
