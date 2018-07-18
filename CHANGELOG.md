@@ -2,9 +2,11 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2018-07-18
+
 ### Added
-- Use Xorshift random number generator for Zobrist hashing
 - Use Hyperbola Quintessence and First Rank Attacks for sliding piece attacks
+- Use Xorshift random number generator for Zobrist hashing
 - Add depth parameter to `perft` CLI command
 - Add `save fen` and `save pgn` CLI commands
 - Add `--silent` flag to executable

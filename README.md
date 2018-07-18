@@ -82,7 +82,7 @@ and in addition it has its own text-based user interface:
                       <_`".| `\    `  _.>
                         <_ ;   \     _>
                          `"     ;  ``
-      Little Wing v0.4.0    \   |   \
+      Little Wing v0.5.0    \   |   \
                              '|-. _  \
       by Vincent Ollivier  _/ /     \ '.
       +---+---+---+---+---+"-"`---+--'\_>
