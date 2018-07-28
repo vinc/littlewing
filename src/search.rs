@@ -92,12 +92,13 @@ impl Search for Game {
 
         for i in 0..n {
             let mut clone = self.clone();
+            clone.threads_index = i;
             if i > 0 {
                 clone.is_search_verbose = false;
                 clone.is_debug = false;
             }
 
-            let min_depth = depths.start; // TODO: + i as usize;
+            let min_depth = depths.start + i as Depth;
             let max_depth = depths.end;
 
             let builder = thread::Builder::new().
@@ -139,7 +140,18 @@ impl Search for Game {
         let mut best_scores = [0; MAX_PLY];
 
         debug_assert!(depths.start > 0);
-        for depth in depths {
+        for mut depth in depths {
+            // Half of the threads should search at depth + 1
+            if self.threads_count > 1 {
+                if self.threads_index == 0 {
+                    self.set_current_depth(depth);
+                } else if self.threads_index >= self.threads_count / 2 {
+                    if depth <= self.get_current_depth() {
+                        depth = self.get_current_depth() + 1;
+                    }
+                }
+            }
+
             let mut alpha = -INF;
             let beta = INF;
 
@@ -208,6 +220,8 @@ impl Search for Game {
                 break;
             }
         }
+
+        self.clock.stop();
 
         if self.is_debug {
             let n = self.nodes_count;
