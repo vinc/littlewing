@@ -1,5 +1,5 @@
-use rand::{RngCore, SeedableRng, XorShiftRng};
-
+use rand::{RngCore, SeedableRng};
+use rand_xorshift::XorShiftRng;
 use color::Color;
 use piece::Piece;
 

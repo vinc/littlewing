@@ -36,6 +36,7 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate rand;
+extern crate rand_xorshift;
 extern crate regex;
 extern crate rustyline;
 extern crate time;
