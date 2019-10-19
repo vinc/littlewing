@@ -9,6 +9,7 @@ use std::io::BufReader;
 use std::io::Write;
 use std::path::Path;
 
+use version;
 use color::*;
 use common::*;
 use attack::Attack;
@@ -220,7 +221,7 @@ impl CLI {
                 let path = Path::new(args[2]);
                 let mut buffer = File::create(&path).unwrap();
 
-                let mut version = ::version();
+                let version = version();
                 let result = if self.game.is_mate() {
                     if self.game.is_check(WHITE) {
                         "0-1"
