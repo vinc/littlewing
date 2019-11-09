@@ -8,7 +8,7 @@ Little Wing is the successor of [Purple Haze](https://github.com/vinc/purplehaze
 
 The project started in December 2014 to learn the Rust language and play with
 bitboards. Both experiments were conclusive and Little Wing it is still
-maintained in 2018.
+maintained in 2019.
 
 Currently evaluated at 2000+ ELO on CCRL 40/4 Rating List.
 
@@ -74,7 +74,7 @@ Usage
 Little Wing is compatible with XBoard and UCI communication protocols,
 and in addition it has its own text-based user interface:
 
-    $ littlewing --color
+    $ littlewing
                                           _,;
                    ,       .--.       _,-'.-;
                     \`-, <) o  `._ ,-' ,'`_7
@@ -203,7 +203,7 @@ and in addition it has its own text-based user interface:
       uci                       Start UCI mode
       xboard                    Start XBoard mode
 
-    Made with <3 in 2014-2018 by Vincent Ollivier <v@vinc.cc>
+    Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>
 
     Report bugs to https://github.com/vinc/littlewing/issues
 
@@ -231,7 +231,7 @@ each depth from the starting position.
 And a `perftsuite` command for comparing the results of a perft calculation
 with the given EPD file.
 
-    $ cargo run -- --silent --color
+    $ cargo run -- --silent
     > perftsuite tests/perftsuite.epd
     rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 -> ......
     r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 -> ......
@@ -248,7 +248,7 @@ with the given EPD file.
 
 And the usual debug commands like `divide` or `testsuite`:
 
-    $ cargo run -- --silent --color
+    $ cargo run -- --silent
     > testsuite tests/wac.epd 1
     2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6 -> Qg6
     8/7p/5k2/5p2/p1p2P2/Pr1pPK2/1P1R3P/8 b - - bm Rxb2 -> c3
@@ -276,4 +276,4 @@ Anyway, have fun with it and send me your feedback at <v@vinc.cc>!
 License
 -------
 
-Copyright (c) 2014-2018 Vincent Ollivier. Released under GNU GPL License v3.
+Copyright (c) 2014-2019 Vincent Ollivier. Released under GNU GPL License v3.
