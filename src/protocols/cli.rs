@@ -719,7 +719,6 @@ impl Completer for CommandHelper {
                         candidates.push(command_line.trim().to_owned());
                     }
                 }
-                break;
             }
         }
         Ok((0, candidates))
