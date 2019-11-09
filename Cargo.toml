@@ -21,11 +21,15 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+atty = "0.2"
+colored = "1.8"
+dirs = "2.0"
 getopts = "0.2"
 lazy_static = "1.0"
-rand = "0.5"
+rand = "0.7"
+rand_xorshift = "0.2"
 regex = "1.0"
-rustyline = { git = "https://github.com/kkawakam/rustyline", version = "2.0.0-alpha" }
+rustyline = "5.0"
 time = "0.1"
 
 [badges]

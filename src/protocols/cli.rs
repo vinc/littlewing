@@ -1,14 +1,21 @@
+use colored::Colorize;
 use regex::Regex;
-use rustyline::Editor;
+use rustyline::{Context, Editor, Helper};
+use rustyline::hint::Hinter;
+use rustyline::highlight::Highlighter;
+use rustyline::completion::Completer;
+use rustyline::error::ReadlineError;
 use time::precise_time_s;
 
 use std::io;
+use std::fs;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use version;
 use color::*;
 use common::*;
 use attack::Attack;
@@ -47,14 +54,23 @@ impl CLI {
     }
 
     pub fn run(&mut self) {
-        let mut rl = Editor::<()>::new();
+        let mut rl = Editor::new();
+        if let Some(path) = history_path() {
+            let _ = rl.load_history(&path);
+        }
+        let helper = CommandHelper {
+            move_params: Vec::new()
+        };
+        rl.set_helper(Some(helper));
 
         loop {
-            let readline = rl.readline("> ");
+            if let Some(helper) = rl.helper_mut() {
+                helper.move_params = self.game.get_moves();
+            }
 
-            match readline {
+            match rl.readline("> ") {
                 Ok(line) => {
-                    rl.add_history_entry(line.as_ref());
+                    rl.add_history_entry(line.as_str());
 
                     let args: Vec<&str> = line.trim().split(' ').collect();
                     match args[0] {
@@ -83,6 +99,12 @@ impl CLI {
                     }
                 },
                 Err(_) => { break }
+            }
+
+            if let Some(path) = history_path() {
+                if fs::create_dir_all(path.parent().unwrap()).is_ok() {
+                    rl.save_history(&path).unwrap();
+                }
             }
         }
     }
@@ -114,7 +136,7 @@ impl CLI {
         println!("  uci                       Start UCI mode");
         println!("  xboard                    Start XBoard mode");
         println!();
-        println!("Made with <3 in 2014-2018 by Vincent Ollivier <v@vinc.cc>");
+        println!("Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>");
         println!();
         println!("Report bugs to https://github.com/vinc/littlewing/issues");
         println!();
@@ -175,7 +197,7 @@ impl CLI {
 
     fn cmd_load(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            self.print_error(format!("no subcommand given"));
+            print_error(format!("no subcommand given"));
             println!();
             self.cmd_load_usage();
             return;
@@ -187,11 +209,14 @@ impl CLI {
                 self.game.load_fen(&fen);
             },
             "pgn" => {
-                self.print_error(format!("not implemented yet")); // TODO
+                print_error(format!("not implemented yet")); // TODO
                 println!();
             }
+            "help" => {
+                self.cmd_load_usage();
+            }
             _ => {
-                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_load_usage();
             }
@@ -200,7 +225,7 @@ impl CLI {
 
     fn cmd_save(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            self.print_error(format!("no subcommand given"));
+            print_error(format!("no subcommand given"));
             println!();
             self.cmd_save_usage();
             return;
@@ -214,13 +239,13 @@ impl CLI {
                 let starting_fen = self.game.starting_fen.clone();
 
                 if args.len() == 2 {
-                    self.print_error(format!("no filename given"));
+                    print_error(format!("no filename given"));
                     return;
                 }
                 let path = Path::new(args[2]);
                 let mut buffer = File::create(&path).unwrap();
 
-                let mut version = ::version();
+                let version = version();
                 let result = if self.game.is_mate() {
                     if self.game.is_check(WHITE) {
                         "0-1"
@@ -285,8 +310,11 @@ impl CLI {
                 }
                 writeln!(buffer, "{}{}", line, result).unwrap();
             }
+            "help" => {
+                self.cmd_save_usage();
+            }
             _ => {
-                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_save_usage();
             }
@@ -295,7 +323,7 @@ impl CLI {
 
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
-            self.print_error(format!("no subcommand given"));
+            print_error(format!("no subcommand given"));
             println!();
             self.cmd_config_usage(value);
             return;
@@ -311,7 +339,7 @@ impl CLI {
                 }
             }
             "color" | "colors" => {
-                self.game.is_colored = value;
+                colored::control::set_override(value);
             }
             "debug" => {
                 self.game.is_debug = value;
@@ -326,7 +354,7 @@ impl CLI {
                 self.cmd_config_usage(value);
             }
             _ => {
-                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_config_usage(value);
             }
@@ -422,7 +450,7 @@ impl CLI {
     fn cmd_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
         if !re.is_match(args[1]) {
-            self.print_error(format!("could not parse move '{}'", args[1]));
+            print_error(format!("could not parse move '{}'", args[1]));
             return;
         }
         let parsed_move = self.game.move_from_can(args[1]);
@@ -441,7 +469,7 @@ impl CLI {
             }
         }
         if !is_valid {
-            self.print_error(format!("move '{}' is not a valid move", args[1]));
+            print_error(format!("move '{}' is not a valid move", args[1]));
             return;
         }
 
@@ -478,7 +506,7 @@ impl CLI {
         let mut nodes_count = 0u64;
 
         if args.len() != 2 {
-            self.print_error(format!("no depth given"));
+            print_error(format!("no depth given"));
             return;
         }
 
@@ -550,7 +578,7 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         if args.len() == 1 {
-            self.print_error(format!("no filename given"));
+            print_error(format!("no filename given"));
             return;
         }
         let path = Path::new(args[1]);
@@ -566,10 +594,10 @@ impl CLI {
                 let d = it.next().unwrap()[1..].parse::<Depth>().unwrap();
                 let n = it.next().unwrap().parse::<u64>().unwrap();
                 if self.game.perft(d) == n {
-                    print!("{}", self.colorize_green(".".into()));
+                    print!("{}", ".".bold().green());
                     io::stdout().flush().unwrap();
                 } else {
-                    print!("{}", self.colorize_red("x".into()));
+                    print!("{}", "x".bold().red());
                     break;
                 }
             }
@@ -579,7 +607,7 @@ impl CLI {
 
     fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            self.print_error(format!("no filename given"));
+            print_error(format!("no filename given"));
             return;
         }
         let time = if args.len() == 3 {
@@ -623,9 +651,9 @@ impl CLI {
             };
             if found {
                 found_count += 1;
-                println!("{}", self.colorize_green(best_move_str));
+                println!("{}", best_move_str.bold().green());
             } else {
-                println!("{}", self.colorize_red(best_move_str));
+                println!("{}", best_move_str.bold().red());
             }
             total_count += 1;
         }
@@ -633,32 +661,65 @@ impl CLI {
     }
 
     fn cmd_error(&mut self, args: &[&str]) {
-        self.print_error(format!("unrecognized command '{}'", args[0]));
+        print_error(format!("unrecognized command '{}'", args[0]));
     }
+}
 
-    fn print_error(&self, msg: String) {
-        let err = if self.game.is_colored {
-            self.colorize_red("error:".into())
-        } else {
-            "error:".into()
-        };
-        println!("# {} {}", err, msg);
+fn print_error(msg: String) {
+    println!("# {} {}", "error:".bold().red(), msg);
+}
+
+fn history_path() -> Option<PathBuf> {
+    if let Some(data_dir) = dirs::data_dir() {
+        Some(data_dir.join("littlewing").join("history"))
+    } else {
+        None
     }
+}
 
-    fn colorize_red(&self, text: String) -> String {
-        if self.game.is_colored {
-            format!("\x1B[31m{}\x1B[0m", text)
-        } else {
-            text
+struct CommandHelper {
+    move_params: Vec<String>
+}
+
+impl Helper for CommandHelper {}
+impl Hinter for CommandHelper {}
+impl Highlighter for CommandHelper {}
+impl Completer for CommandHelper {
+    type Candidate = String;
+
+    fn complete(&self, line: &str, _pos: usize, _ctx: &Context<'_>) -> Result<(usize, Vec<String>), ReadlineError> {
+        let move_params = self.move_params.iter().map(AsRef::as_ref).collect();
+        let play_params = vec!["black", "white" ];
+        let conf_params = vec!["board", "color", "coord", "debug", "think"];
+        let load_params = vec!["fen", "help"];
+        let save_params = vec!["fen", "pgn", "help"];
+        let commands = vec![
+            "help", "quit", "load", "save", "play", "hint", "eval",
+            "undo", "move", "time", "show", "hide", "core", "hash",
+            "perft", "perftsuite", "testsuite", "divide", "xboard", "uci"
+        ];
+
+        let mut options = Vec::new();
+        options.push(("move", &move_params));
+        options.push(("play", &play_params));
+        options.push(("show", &conf_params));
+        options.push(("hide", &conf_params));
+        options.push(("load", &load_params));
+        options.push(("save", &save_params));
+        options.push(("", &commands));
+
+        let mut candidates = Vec::new();
+        for (command, params) in options {
+            if line.starts_with(command) {
+                for param in params {
+                    let command_line = format!("{} {}", command, param);
+                    if command_line.trim().starts_with(line) {
+                        candidates.push(command_line.trim().to_owned());
+                    }
+                }
+            }
         }
-    }
-
-    fn colorize_green(&self, text: String) -> String {
-        if self.game.is_colored {
-            format!("\x1B[32m{}\x1B[0m", text)
-        } else {
-            text
-        }
+        Ok((0, candidates))
     }
 }
 

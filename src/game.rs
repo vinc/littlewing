@@ -1,6 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use colored::Colorize;
 
 use color::*;
 use piece::*;
@@ -23,7 +24,6 @@ pub struct Game {
     pub is_debug: bool,  // Print debugging
     pub is_eval_verbose: bool, // Print thinking in eval
     pub is_search_verbose: bool, // Print thinking in search
-    pub is_colored: bool,
     pub show_coordinates: bool,
     pub threads_index: usize,
     pub threads_count: usize,
@@ -48,7 +48,6 @@ impl Game {
             is_debug: false,
             is_eval_verbose: false,
             is_search_verbose: false,
-            is_colored: false,
             show_coordinates: false,
             threads_index: 0,
             threads_count: 0,
@@ -127,11 +126,11 @@ impl fmt::Display for Game {
 
             for file in 0..8 {
                 let p = self.board[8 * (7 - rank) + file];
-                let c = p.to_char();
-                let s = if self.is_colored && p.color() == WHITE {
-                    format!("\x1B[1m\x1B[37m{}\x1B[0m", c)
-                } else if self.is_colored && p.color() == BLACK {
-                    format!("\x1B[1m\x1B[31m{}\x1B[0m", c)
+                let c = p.to_char().to_string();
+                let s = if p.color() == WHITE {
+                    format!("{}", c.bold().white())
+                } else if p.color() == BLACK {
+                    format!("{}", c.bold().red())
                 } else {
                     format!("{}", c)
                 };
