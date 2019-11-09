@@ -34,6 +34,7 @@ pub trait Search {
     fn quiescence(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
 
     fn is_mate(&mut self) -> bool;
+    fn get_moves(&mut self) -> Vec<String>;
 }
 
 trait SearchExt {
@@ -538,6 +539,20 @@ impl Search for Game {
         }
         true
     }
+
+    fn get_moves(&mut self) -> Vec<String> {
+        let mut res = Vec::new();
+        let side = self.side();
+        self.moves.clear();
+        while let Some(m) = self.next_move() {
+            self.make_move(m);
+            if !self.is_check(side) {
+                res.push(m.to_can());
+            }
+            self.undo_move(m);
+        }
+        res
+    }
 }
 
 impl SearchExt for Game {
@@ -872,5 +887,14 @@ mod tests {
         assert!(!game.is_mate());
         game.make_move(PieceMove::new(D8, H4, QUIET_MOVE));
         assert!(game.is_mate());
+    }
+
+    #[test]
+    fn test_get_moves() {
+        let mut game = Game::new();
+
+        // Initial position
+        game.load_fen("8/8/8/8/r7/1k6/8/K7 w - - 0 1");
+        assert_eq!(game.get_moves(), vec!["a1b1"]);
     }
 }

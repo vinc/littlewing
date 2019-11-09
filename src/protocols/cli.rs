@@ -1,5 +1,9 @@
 use regex::Regex;
-use rustyline::Editor;
+use rustyline::{Context, Editor, Helper};
+use rustyline::hint::Hinter;
+use rustyline::highlight::Highlighter;
+use rustyline::completion::Completer;
+use rustyline::error::ReadlineError;
 use time::precise_time_s;
 
 use std::io;
@@ -48,12 +52,18 @@ impl CLI {
     }
 
     pub fn run(&mut self) {
-        let mut rl = Editor::<()>::new();
+        let mut rl = Editor::new();
+        let helper = CommandHelper {
+            move_params: Vec::new()
+        };
+        rl.set_helper(Some(helper));
 
         loop {
-            let readline = rl.readline("> ");
+            if let Some(helper) = rl.helper_mut() {
+                helper.move_params = self.game.get_moves();
+            }
 
-            match readline {
+            match rl.readline("> ") {
                 Ok(line) => {
                     rl.add_history_entry(line.as_str());
 
@@ -660,6 +670,75 @@ impl CLI {
         } else {
             text
         }
+    }
+}
+
+struct CommandHelper {
+    move_params: Vec<String>
+}
+
+impl Helper for CommandHelper {}
+impl Hinter for CommandHelper {}
+impl Highlighter for CommandHelper {}
+impl Completer for CommandHelper {
+    type Candidate = String;
+
+    fn complete(&self, line: &str, _pos: usize, _ctx: &Context<'_>) -> Result<(usize, Vec<String>), ReadlineError> {
+        let commands = vec![
+            "help",
+            "quit",
+            "load",
+            "save",
+            "play",
+            "hint",
+            "eval",
+            "undo",
+            "move",
+            "time",
+            "show",
+            "hide",
+            "core",
+            "hash",
+            "perft",
+            "perftsuite",
+            "testsuite",
+            "divide",
+            "xboard",
+            "uci",
+        ];
+        let play_params = vec![
+            "black",
+            "white",
+        ];
+        let config_params = vec![
+           "board",
+           "color",
+           "coord",
+           "debug",
+           "think",
+        ];
+        let move_params = self.move_params.iter().map(AsRef::as_ref).collect();
+
+        let mut options = Vec::new();
+        options.push(("move", &move_params));
+        options.push(("play", &play_params));
+        options.push(("show", &config_params));
+        options.push(("hide", &config_params));
+        options.push(("", &commands));
+
+        let mut candidates = Vec::new();
+        for (command, params) in options {
+            if line.starts_with(command) {
+                for param in params {
+                    let command_line = format!("{} {}", command, param);
+                    if command_line.trim().starts_with(line) {
+                        candidates.push(command_line.trim().to_owned());
+                    }
+                }
+                break;
+            }
+        }
+        Ok((0, candidates))
     }
 }
 
