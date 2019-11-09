@@ -23,6 +23,7 @@ doc = false
 [dependencies]
 atty = "0.2"
 colored = "1.8"
+dirs = "2.0"
 getopts = "0.2"
 lazy_static = "1.0"
 rand = "0.7"
