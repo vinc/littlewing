@@ -1,7 +1,9 @@
 extern crate littlewing;
 extern crate getopts;
+extern crate atty;
 
 use std::env;
+use atty::Stream;
 use getopts::Options;
 use littlewing::protocols::cli::CLI;
 
@@ -32,6 +34,10 @@ fn print_banner(mut board: String) {
 
 fn main() {
     let mut cli = CLI::new();
+
+    if !atty::is(Stream::Stdout) {
+        colored::control::set_override(false);
+    }
 
     let mut opts = Options::new();
     opts.optopt("t",  "tt",      "set transposition table size (in MB)", "SIZE");
