@@ -31,16 +31,16 @@ fn print_banner(mut board: String) {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let mut cli = CLI::new();
 
     let mut opts = Options::new();
     opts.optopt("t",  "tt",      "set transposition table size (in MB)", "SIZE");
-    opts.optflag("c", "color",   "enable color output");
     opts.optflag("d", "debug",   "enable debug output");
     opts.optflag("h", "help",    "print this message");
     opts.optflag("s", "silent",  "display less output");
     opts.optflag("v", "version", "print version");
 
+    let args: Vec<String> = env::args().collect();
     let matches = match opts.parse(&args) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }
@@ -56,24 +56,22 @@ fn main() {
         return;
     }
 
-    let mut cli = CLI::new();
-
-    if matches.opt_present("c") {
-        cli.game.is_colored = true;
-    }
     if !matches.opt_present("s") {
         cli.show_board = true;
         cli.game.show_coordinates = true;
         print_banner(cli.game.to_string());
     }
+
     if matches.opt_present("d") {
         cli.game.is_debug = true;
     }
+
     if matches.opt_present("t") {
         if let Some(size) = matches.opt_str("t") {
             let memory = size.parse::<usize>().unwrap() << 20;
             cli.game.tt_resize(memory);
         }
     }
+
     cli.run();
 }
