@@ -125,7 +125,7 @@ impl CLI {
         println!("  uci                       Start UCI mode");
         println!("  xboard                    Start XBoard mode");
         println!();
-        println!("Made with <3 in 2014-2018 by Vincent Ollivier <v@vinc.cc>");
+        println!("Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>");
         println!();
         println!("Report bugs to https://github.com/vinc/littlewing/issues");
         println!();
@@ -200,6 +200,9 @@ impl CLI {
             "pgn" => {
                 self.print_error(format!("not implemented yet")); // TODO
                 println!();
+            }
+            "help" => {
+                self.cmd_load_usage();
             }
             _ => {
                 self.print_error(format!("unrecognized subcommand '{}'", args[1]));
@@ -295,6 +298,9 @@ impl CLI {
                     }
                 }
                 writeln!(buffer, "{}{}", line, result).unwrap();
+            }
+            "help" => {
+                self.cmd_save_usage();
             }
             _ => {
                 self.print_error(format!("unrecognized subcommand '{}'", args[1]));
@@ -684,46 +690,24 @@ impl Completer for CommandHelper {
     type Candidate = String;
 
     fn complete(&self, line: &str, _pos: usize, _ctx: &Context<'_>) -> Result<(usize, Vec<String>), ReadlineError> {
-        let commands = vec![
-            "help",
-            "quit",
-            "load",
-            "save",
-            "play",
-            "hint",
-            "eval",
-            "undo",
-            "move",
-            "time",
-            "show",
-            "hide",
-            "core",
-            "hash",
-            "perft",
-            "perftsuite",
-            "testsuite",
-            "divide",
-            "xboard",
-            "uci",
-        ];
-        let play_params = vec![
-            "black",
-            "white",
-        ];
-        let config_params = vec![
-           "board",
-           "color",
-           "coord",
-           "debug",
-           "think",
-        ];
         let move_params = self.move_params.iter().map(AsRef::as_ref).collect();
+        let play_params = vec!["black", "white" ];
+        let conf_params = vec!["board", "color", "coord", "debug", "think"];
+        let load_params = vec!["fen", "help"];
+        let save_params = vec!["fen", "pgn", "help"];
+        let commands = vec![
+            "help", "quit", "load", "save", "play", "hint", "eval",
+            "undo", "move", "time", "show", "hide", "core", "hash",
+            "perft", "perftsuite", "testsuite", "divide", "xboard", "uci"
+        ];
 
         let mut options = Vec::new();
         options.push(("move", &move_params));
         options.push(("play", &play_params));
-        options.push(("show", &config_params));
-        options.push(("hide", &config_params));
+        options.push(("show", &conf_params));
+        options.push(("hide", &conf_params));
+        options.push(("load", &load_params));
+        options.push(("save", &save_params));
         options.push(("", &commands));
 
         let mut candidates = Vec::new();
