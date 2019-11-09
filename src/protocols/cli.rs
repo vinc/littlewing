@@ -1,3 +1,4 @@
+use colored::Colorize;
 use regex::Regex;
 use rustyline::{Context, Editor, Helper};
 use rustyline::hint::Hinter;
@@ -328,7 +329,7 @@ impl CLI {
                 }
             }
             "color" | "colors" => {
-                self.game.is_colored = value;
+                colored::control::set_override(value);
             }
             "debug" => {
                 self.game.is_debug = value;
@@ -583,10 +584,10 @@ impl CLI {
                 let d = it.next().unwrap()[1..].parse::<Depth>().unwrap();
                 let n = it.next().unwrap().parse::<u64>().unwrap();
                 if self.game.perft(d) == n {
-                    print!("{}", self.colorize_green(".".into()));
+                    print!("{}", ".".bold().green());
                     io::stdout().flush().unwrap();
                 } else {
-                    print!("{}", self.colorize_red("x".into()));
+                    print!("{}", "x".bold().red());
                     break;
                 }
             }
@@ -640,9 +641,9 @@ impl CLI {
             };
             if found {
                 found_count += 1;
-                println!("{}", self.colorize_green(best_move_str));
+                println!("{}", best_move_str.bold().green());
             } else {
-                println!("{}", self.colorize_red(best_move_str));
+                println!("{}", best_move_str.bold().red());
             }
             total_count += 1;
         }
@@ -654,28 +655,7 @@ impl CLI {
     }
 
     fn print_error(&self, msg: String) {
-        let err = if self.game.is_colored {
-            self.colorize_red("error:".into())
-        } else {
-            "error:".into()
-        };
-        println!("# {} {}", err, msg);
-    }
-
-    fn colorize_red(&self, text: String) -> String {
-        if self.game.is_colored {
-            format!("\x1B[31m{}\x1B[0m", text)
-        } else {
-            text
-        }
-    }
-
-    fn colorize_green(&self, text: String) -> String {
-        if self.game.is_colored {
-            format!("\x1B[32m{}\x1B[0m", text)
-        } else {
-            text
-        }
+        println!("# {} {}", "error:".bold().red(), msg);
     }
 }
 

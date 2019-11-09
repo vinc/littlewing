@@ -35,6 +35,7 @@
 
 #[macro_use]
 extern crate lazy_static;
+extern crate colored;
 extern crate rand;
 extern crate rand_xorshift;
 extern crate regex;
