@@ -8,11 +8,12 @@ use rustyline::error::ReadlineError;
 use time::precise_time_s;
 
 use std::io;
+use std::fs;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use version;
 use color::*;
@@ -54,6 +55,9 @@ impl CLI {
 
     pub fn run(&mut self) {
         let mut rl = Editor::new();
+        if let Some(path) = history_path() {
+            let _ = rl.load_history(&path);
+        }
         let helper = CommandHelper {
             move_params: Vec::new()
         };
@@ -95,6 +99,12 @@ impl CLI {
                     }
                 },
                 Err(_) => { break }
+            }
+
+            if let Some(path) = history_path() {
+                if fs::create_dir_all(path.parent().unwrap()).is_ok() {
+                    rl.save_history(&path).unwrap();
+                }
             }
         }
     }
@@ -187,7 +197,7 @@ impl CLI {
 
     fn cmd_load(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            self.print_error(format!("no subcommand given"));
+            print_error(format!("no subcommand given"));
             println!();
             self.cmd_load_usage();
             return;
@@ -199,14 +209,14 @@ impl CLI {
                 self.game.load_fen(&fen);
             },
             "pgn" => {
-                self.print_error(format!("not implemented yet")); // TODO
+                print_error(format!("not implemented yet")); // TODO
                 println!();
             }
             "help" => {
                 self.cmd_load_usage();
             }
             _ => {
-                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_load_usage();
             }
@@ -215,7 +225,7 @@ impl CLI {
 
     fn cmd_save(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            self.print_error(format!("no subcommand given"));
+            print_error(format!("no subcommand given"));
             println!();
             self.cmd_save_usage();
             return;
@@ -229,7 +239,7 @@ impl CLI {
                 let starting_fen = self.game.starting_fen.clone();
 
                 if args.len() == 2 {
-                    self.print_error(format!("no filename given"));
+                    print_error(format!("no filename given"));
                     return;
                 }
                 let path = Path::new(args[2]);
@@ -304,7 +314,7 @@ impl CLI {
                 self.cmd_save_usage();
             }
             _ => {
-                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_save_usage();
             }
@@ -313,7 +323,7 @@ impl CLI {
 
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
-            self.print_error(format!("no subcommand given"));
+            print_error(format!("no subcommand given"));
             println!();
             self.cmd_config_usage(value);
             return;
@@ -344,7 +354,7 @@ impl CLI {
                 self.cmd_config_usage(value);
             }
             _ => {
-                self.print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_config_usage(value);
             }
@@ -440,7 +450,7 @@ impl CLI {
     fn cmd_move(&mut self, args: &[&str]) {
         let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
         if !re.is_match(args[1]) {
-            self.print_error(format!("could not parse move '{}'", args[1]));
+            print_error(format!("could not parse move '{}'", args[1]));
             return;
         }
         let parsed_move = self.game.move_from_can(args[1]);
@@ -459,7 +469,7 @@ impl CLI {
             }
         }
         if !is_valid {
-            self.print_error(format!("move '{}' is not a valid move", args[1]));
+            print_error(format!("move '{}' is not a valid move", args[1]));
             return;
         }
 
@@ -496,7 +506,7 @@ impl CLI {
         let mut nodes_count = 0u64;
 
         if args.len() != 2 {
-            self.print_error(format!("no depth given"));
+            print_error(format!("no depth given"));
             return;
         }
 
@@ -568,7 +578,7 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         if args.len() == 1 {
-            self.print_error(format!("no filename given"));
+            print_error(format!("no filename given"));
             return;
         }
         let path = Path::new(args[1]);
@@ -597,7 +607,7 @@ impl CLI {
 
     fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            self.print_error(format!("no filename given"));
+            print_error(format!("no filename given"));
             return;
         }
         let time = if args.len() == 3 {
@@ -651,11 +661,19 @@ impl CLI {
     }
 
     fn cmd_error(&mut self, args: &[&str]) {
-        self.print_error(format!("unrecognized command '{}'", args[0]));
+        print_error(format!("unrecognized command '{}'", args[0]));
     }
+}
 
-    fn print_error(&self, msg: String) {
-        println!("# {} {}", "error:".bold().red(), msg);
+fn print_error(msg: String) {
+    println!("# {} {}", "error:".bold().red(), msg);
+}
+
+fn history_path() -> Option<PathBuf> {
+    if let Some(data_dir) = dirs::data_dir() {
+        Some(data_dir.join("littlewing").join("history"))
+    } else {
+        None
     }
 }
 
