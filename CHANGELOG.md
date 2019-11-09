@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+- Save command history to file
+- Improve colored output
+- Add autocompletion to CLI
+
 ## [0.5.0] - 2018-07-18
 
 ### Added
