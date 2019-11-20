@@ -1,6 +1,6 @@
 use std::fmt;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use colored::Colorize;
 
 use color::*;
@@ -28,7 +28,7 @@ pub struct Game {
     pub threads_index: usize,
     pub threads_count: usize,
     pub current_depth: Arc<AtomicUsize>,
-    pub nodes_count: u64,
+    pub nodes_count: Arc<AtomicU64>,
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
@@ -52,7 +52,7 @@ impl Game {
             threads_index: 0,
             threads_count: 0,
             current_depth: Arc::new(AtomicUsize::new(0)),
-            nodes_count: 0,
+            nodes_count: Arc::new(AtomicU64::new(0)),
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
             board: [EMPTY; 64],
@@ -100,6 +100,21 @@ impl Game {
         self.positions.clear();
         self.history.clear();
         self.tt.clear();
+    }
+
+    /// Get the shared nodes count
+    pub fn nodes_count(&self) -> u64 {
+        self.nodes_count.load(Ordering::SeqCst)
+    }
+
+    /// Increment the shared nodes count
+    pub fn inc_nodes_count(&mut self) {
+        self.nodes_count.fetch_add(1, Ordering::SeqCst);
+    }
+
+    /// Reset the shared nodes count
+    pub fn reset_nodes_count(&mut self) {
+        self.nodes_count = Arc::new(AtomicU64::new(0));
     }
 
     /// Get a bitboard representation of the given piece in the game
