@@ -149,8 +149,8 @@ impl Search for Game {
                 if self.threads_index == 0 {
                     self.set_current_depth(depth);
                 } else if self.threads_index >= self.threads_count / 2 {
-                    if depth <= self.get_current_depth() {
-                        depth = self.get_current_depth() + 1;
+                    if depth <= self.current_depth() {
+                        depth = self.current_depth() + 1;
                     }
                 }
             }

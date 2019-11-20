@@ -64,7 +64,7 @@ impl Game {
         }
     }
 
-    pub fn get_current_depth(&mut self) -> Depth {
+    pub fn current_depth(&mut self) -> Depth {
         self.current_depth.load(Ordering::SeqCst) as Depth
     }
 
