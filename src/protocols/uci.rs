@@ -88,6 +88,9 @@ impl UCI {
                         next_arg_is_time = true;
                     }
                 },
+                "movetime" => {
+                    next_arg_is_time = true;
+                }
                 "movestogo" => {
                     next_arg_is_moves = true;
                 },
