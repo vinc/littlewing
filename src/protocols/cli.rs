@@ -518,15 +518,13 @@ impl CLI {
         let side = self.game.side();
         self.game.moves.clear();
         while let Some(m) = self.game.next_move() {
+            let move_str = if self.show_san { self.game.move_to_san(m) } else { m.to_lan() };
             self.game.make_move(m);
-            //println!("{}", game.to_string());
             if !self.game.is_check(side) {
                 let r = self.game.perft(d);
-                println!("{} {}", if self.show_san { self.game.move_to_san(m) } else { m.to_lan() }, r);
+                println!("{} {}", move_str, r);
                 moves_count += 1;
                 nodes_count += r;
-            } else {
-                //println!("{} (illegal)", m.to_lan());
             }
             self.game.undo_move(m);
         }
@@ -747,6 +745,14 @@ mod tests {
         // Undo 0 moves
         cli.cmd_undo();
 
+        assert!(true);
+    }
+
+    #[test]
+    fn test_divide() {
+        let mut cli = CLI::new();
+
+        cli.cmd_divide(&["divide", "2"]);
         assert!(true);
     }
 }
