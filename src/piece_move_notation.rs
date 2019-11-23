@@ -88,7 +88,10 @@ impl PieceMoveNotation for Game {
         lazy_static! {
             static ref RE: Regex = Regex::new(RE_SAN).unwrap();
         }
-        let caps = RE.captures(s).unwrap();
+        let caps = match RE.captures(s) {
+            Some(caps) => caps,
+            None => return None,
+        };
 
         let side = self.side();
         if caps.name("queen").is_some() {
@@ -252,6 +255,7 @@ mod tests {
     fn test_move_from_san() {
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p1pP/2NPP3/1B3N2/1PPB1PP1/R3K2R w KQ g6 0 25";
         let mut game = Game::from_fen(fen);
+        assert_eq!(game.move_from_san("none"), None);
         assert_eq!(game.move_from_san("O-O"), Some(PieceMove::new(E1, G1, KING_CASTLE)));
         assert_eq!(game.move_from_san("O-O-O"), Some(PieceMove::new(E1, C1, QUEEN_CASTLE)));
         assert_eq!(game.move_from_san("g3"), Some(PieceMove::new(G2, G3, QUIET_MOVE)));
