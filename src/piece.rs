@@ -54,6 +54,7 @@ impl PieceChar for Piece {
             _   => EMPTY // FIXME
         }
     }
+
     fn to_char(&self) -> char {
         match *self {
             WHITE_PAWN   => 'P',

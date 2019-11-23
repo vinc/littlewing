@@ -11,7 +11,7 @@ use square::SquareExt;
 
 /// PieceMoveList generator
 pub trait PieceMoveNotation {
-    /// Get move from the given SAN string
+    /// Get move from the given CAN string
     fn move_from_can(&mut self, s: &str) -> PieceMove;
 
     /// Get SAN string from the given move
@@ -19,13 +19,13 @@ pub trait PieceMoveNotation {
 }
 
 impl PieceMoveNotation for Game {
+    // TODO: Return Option<PieceMove>
     fn move_from_can(&mut self, s: &str) -> PieceMove {
         debug_assert!(s.len() == 4 || s.len() == 5);
 
         let side = self.side();
-        let (a, b) = s.split_at(2);
-        let from = Square::from_coord(String::from(a));
-        let to = Square::from_coord(String::from(b));
+        let from = Square::from_coord(&s[0..2]);
+        let to = Square::from_coord(&s[2..4]);
         let piece = self.board[from as usize];
         let capture = self.board[to as usize];
 
