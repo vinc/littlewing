@@ -12,9 +12,9 @@ use square::*;
 use square::SquareExt;
 use search::Search;
 
-static RE_LAN: &str = r"^(?P<from>[a-h][0-9])(?P<to>[a-h][0-9])(?P<promotion>[nbrq])?$";
+static RE_LAN: &str = r"^(?P<from>[a-h][1-8])(?P<to>[a-h][1-8])(?P<promotion>[nbrq])?$";
 static RE_SAN: &str = r"(?x)
-    ^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-9])?(?P<capture>x)?(?P<to>[a-h][1-9])=?(?P<promotion>[KBRQ])?
+    ^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-8])?(?P<capture>x)?(?P<to>[a-h][1-8])=?(?P<promotion>[KBRQ])?
     |(?P<queen>O-O-O)
     |(?P<king>O-O)";
 
