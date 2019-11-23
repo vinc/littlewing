@@ -97,3 +97,19 @@ fn bench_perft(b: &mut Bencher) {
         game.perft(3)
     });
 }
+
+#[bench]
+fn bench_move_from_can(b: &mut Bencher) {
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    b.iter(|| {
+        game.move_from_can("e2e4");
+    });
+}
+
+#[bench]
+fn bench_move_from_san(b: &mut Bencher) {
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    b.iter(|| {
+        game.move_from_san("e4");
+    });
+}

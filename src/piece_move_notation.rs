@@ -17,10 +17,10 @@ static RE_SAN: &str =
 
 /// PieceMoveList generator
 pub trait PieceMoveNotation {
-    /// Get move from the given CAN string
+    /// Get move from the given CAN string (fast)
     fn move_from_can(&mut self, s: &str) -> PieceMove;
 
-    /// Get move from the given SAN string
+    /// Get move from the given SAN string (slow)
     fn move_from_san(&mut self, s: &str) -> Option<PieceMove>;
 
     /// Get SAN string from the given move
@@ -28,7 +28,6 @@ pub trait PieceMoveNotation {
 }
 
 impl PieceMoveNotation for Game {
-    // TODO: Return Option<PieceMove>
     fn move_from_can(&mut self, s: &str) -> PieceMove {
         debug_assert!(s.len() == 4 || s.len() == 5);
 
