@@ -12,7 +12,7 @@ use square::*;
 use square::SquareExt;
 use search::Search;
 
-static RE_CAN: &str = r"^(?P<from>[a-h][0-9])(?P<to>[a-h][0-9])(?P<promotion>[nbrq])?$";
+static RE_LAN: &str = r"^(?P<from>[a-h][0-9])(?P<to>[a-h][0-9])(?P<promotion>[nbrq])?$";
 static RE_SAN: &str = r"(?x)
     ^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-9])?(?P<capture>x)?(?P<to>[a-h][1-9])=?(?P<promotion>[KBRQ])?
     |(?P<queen>O-O-O)
@@ -23,26 +23,26 @@ pub trait PieceMoveNotation {
     /// Parse move from string
     fn parse_move(&mut self, s: &str) -> Option<PieceMove>;
 
-    /// Get move from the given CAN string (fast)
-    fn move_from_can(&mut self, s: &str) -> PieceMove;
+    /// Get move from string in long algebraic notation (LAN)
+    fn move_from_lan(&mut self, s: &str) -> PieceMove;
 
-    /// Get move from the given SAN string (slow)
+    /// Get move from string in standard algebraic notation (SAN)
     fn move_from_san(&mut self, s: &str) -> Option<PieceMove>;
 
-    /// Get SAN string from the given move
+    /// Get SAN string from move
     fn move_to_san(&mut self, m: PieceMove) -> String;
 }
 
 trait PieceMoveNotationExt {
-    fn move_from_can_checked(&mut self, s: &str) -> Option<PieceMove>;
+    fn move_from_lan_checked(&mut self, s: &str) -> Option<PieceMove>;
 }
 
 impl PieceMoveNotation for Game {
     fn parse_move(&mut self, s: &str) -> Option<PieceMove> {
-        self.move_from_san(s).or(self.move_from_can_checked(s))
+        self.move_from_san(s).or(self.move_from_lan_checked(s))
     }
 
-    fn move_from_can(&mut self, s: &str) -> PieceMove {
+    fn move_from_lan(&mut self, s: &str) -> PieceMove {
         debug_assert!(s.len() == 4 || s.len() == 5);
 
         let side = self.side();
@@ -187,12 +187,12 @@ impl PieceMoveNotation for Game {
 }
 
 impl PieceMoveNotationExt for Game {
-    fn move_from_can_checked(&mut self, s: &str) -> Option<PieceMove> {
+    fn move_from_lan_checked(&mut self, s: &str) -> Option<PieceMove> {
         lazy_static! {
-            static ref RE: Regex = Regex::new(RE_CAN).unwrap();
+            static ref RE: Regex = Regex::new(RE_LAN).unwrap();
         }
         if RE.is_match(s) {
-            Some(self.move_from_can(s))
+            Some(self.move_from_lan(s))
         } else {
             None
         }
@@ -209,27 +209,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_move_from_can() {
+    fn test_move_from_lan() {
         let mut game = Game::from_fen(DEFAULT_FEN);
 
-        let m = game.move_from_can("e2e4");
+        let m = game.move_from_lan("e2e4");
         assert_eq!(m, PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
 
-        let m = game.move_from_can("g1f3");
+        let m = game.move_from_lan("g1f3");
         assert_eq!(m, PieceMove::new(G1, F3, QUIET_MOVE));
     }
 
     #[test]
-    fn test_move_from_can_checked() {
+    fn test_move_from_lan_checked() {
         let mut game = Game::from_fen(DEFAULT_FEN);
 
-        let m = game.move_from_can_checked("e2e4");
+        let m = game.move_from_lan_checked("e2e4");
         assert_eq!(m, Some(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH)));
 
-        let m = game.move_from_can_checked("g1f3");
+        let m = game.move_from_lan_checked("g1f3");
         assert_eq!(m, Some(PieceMove::new(G1, F3, QUIET_MOVE)));
 
-        let m = game.move_from_can_checked("none");
+        let m = game.move_from_lan_checked("none");
         assert_eq!(m, None);
     }
 

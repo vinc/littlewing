@@ -145,7 +145,7 @@ impl UCI {
         self.game.load_fen(&fen.join(" "));
 
         for s in moves {
-            let m = self.game.move_from_can(s);
+            let m = self.game.move_from_lan(s);
             self.game.make_move(m);
             self.game.history.push(m);
         }
@@ -165,7 +165,7 @@ impl UCI {
 
             if print_bestmove.load(Ordering::Relaxed) {
                 match res {
-                    Some(m) => println!("bestmove {}", m.to_can()),
+                    Some(m) => println!("bestmove {}", m.to_lan()),
                     None    => println!("bestmove 0000")
                 }
             }

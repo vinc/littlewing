@@ -619,7 +619,7 @@ impl SearchExt for Game {
             let cur = if is_san_format {
                 self.move_to_san(m)
             } else {
-                m.to_can()
+                m.to_lan()
             };
             self.make_move(m);
 
@@ -753,7 +753,7 @@ mod tests {
         let mut game = Game::from_fen("8/pp3p1k/2p2q1p/3r1P1Q/5R2/7P/P1P2P2/7K w - - 1 30");
         let moves = vec!["h5e2", "f6e5", "e2h5", "e5f6", "h5e2", "d5e5", "e2d3", "e5d5", "d3e2"];
         for s in moves {
-            let m = game.move_from_can(s);
+            let m = game.move_from_lan(s);
             game.make_move(m);
             game.history.push(m);
         }

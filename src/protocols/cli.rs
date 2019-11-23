@@ -67,7 +67,7 @@ impl CLI {
         loop {
             if let Some(helper) = rl.helper_mut() {
                 helper.move_params = self.game.get_moves().into_iter().
-                    map(|m| if self.show_san { self.game.move_to_san(m) } else { m.to_can() }).collect();
+                    map(|m| if self.show_san { self.game.move_to_san(m) } else { m.to_lan() }).collect();
             }
 
             match rl.readline("> ") {
@@ -402,7 +402,7 @@ impl CLI {
             println!();
         }
         if let Some(m) = r {
-            println!("{} move {}", c, if self.show_san { self.game.move_to_san(m) } else { m.to_can() });
+            println!("{} move {}", c, if self.show_san { self.game.move_to_san(m) } else { m.to_lan() });
 
             if play {
                 self.game.make_move(m);
@@ -522,11 +522,11 @@ impl CLI {
             //println!("{}", game.to_string());
             if !self.game.is_check(side) {
                 let r = self.game.perft(d);
-                println!("{} {}", if self.show_san { self.game.move_to_san(m) } else { m.to_can() }, r);
+                println!("{} {}", if self.show_san { self.game.move_to_san(m) } else { m.to_lan() }, r);
                 moves_count += 1;
                 nodes_count += r;
             } else {
-                //println!("{} (illegal)", m.to_can());
+                //println!("{} (illegal)", m.to_lan());
             }
             self.game.undo_move(m);
         }

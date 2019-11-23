@@ -163,7 +163,7 @@ impl XBoard {
             return;
         }
 
-        let m = self.game.move_from_can(args[0]);
+        let m = self.game.move_from_lan(args[0]);
         self.game.make_move(m);
         self.game.history.push(m);
 
@@ -188,7 +188,7 @@ impl XBoard {
                 self.game.make_move(m);
                 self.game.history.push(m);
 
-                println!("move {}", m.to_can());
+                println!("move {}", m.to_lan());
             }
         }
     }

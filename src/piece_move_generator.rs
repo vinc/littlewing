@@ -547,7 +547,7 @@ mod tests {
         for m in moves.iter() {
             game.make_move(*m);
             let fen = game.to_fen();
-            println!("{} {}", fen, m.to_can());
+            println!("{} {}", fen, m.to_lan());
             let copy = Game::from_fen(&fen);
             assert_eq!(copy.to_fen().as_str(), fen);
             assert_eq!(copy.positions.top().hash, game.positions.top().hash);
@@ -743,8 +743,8 @@ mod tests {
         let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
         let mut game = Game::from_fen(fen);
 
-        let capture = game.move_from_can("e4d5");
-        let first_quiet_move = game.move_from_can("a2a3");
+        let capture = game.move_from_lan("e4d5");
+        let first_quiet_move = game.move_from_lan("a2a3");
 
         game.moves.clear();
 
@@ -765,15 +765,15 @@ mod tests {
         let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
         let mut game = Game::from_fen(fen);
 
-        let capture = game.move_from_can("e4d5");
-        let first_quiet_move = game.move_from_can("a2a3");
+        let capture = game.move_from_lan("e4d5");
+        let first_quiet_move = game.move_from_lan("a2a3");
 
-        let first_killer_move = game.move_from_can("f1b5");
+        let first_killer_move = game.move_from_lan("f1b5");
         game.moves.add_killer_move(first_killer_move);
 
         game.moves.clear();
 
-        let best_move = game.move_from_can("b1c3");
+        let best_move = game.move_from_lan("b1c3");
         game.moves.add_move(best_move);
 
         let mut n = 0;
@@ -796,12 +796,12 @@ mod tests {
         let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
         let mut game = Game::from_fen(fen);
 
-        let best_move     = game.move_from_can("b5a4");
-        let good_capture  = game.move_from_can("b5c6");
-        let bad_capture_1 = game.move_from_can("f3e5");
-        let bad_capture_2 = game.move_from_can("b5a6");
-        let quiet_move_1  = game.move_from_can("a2a3");
-        let killer_move_1 = game.move_from_can("b5c4");
+        let best_move     = game.move_from_lan("b5a4");
+        let good_capture  = game.move_from_lan("b5c6");
+        let bad_capture_1 = game.move_from_lan("f3e5");
+        let bad_capture_2 = game.move_from_lan("b5a6");
+        let quiet_move_1  = game.move_from_lan("a2a3");
+        let killer_move_1 = game.move_from_lan("b5c4");
 
         game.moves.add_killer_move(killer_move_1);
         game.moves.clear();
@@ -829,11 +829,11 @@ mod tests {
         let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
         let mut game = Game::from_fen(fen);
 
-        let good_capture  = game.move_from_can("b5c6");
-        let bad_capture_1 = game.move_from_can("f3e5");
-        let bad_capture_2 = game.move_from_can("b5a6");
-        let quiet_move_1  = game.move_from_can("a2a3");
-        let killer_move_1 = game.move_from_can("b5c4");
+        let good_capture  = game.move_from_lan("b5c6");
+        let bad_capture_1 = game.move_from_lan("f3e5");
+        let bad_capture_2 = game.move_from_lan("b5a6");
+        let quiet_move_1  = game.move_from_lan("a2a3");
+        let killer_move_1 = game.move_from_lan("b5c4");
 
         let best_move = bad_capture_2;
 
