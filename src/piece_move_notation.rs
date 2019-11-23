@@ -166,9 +166,15 @@ impl PieceMoveNotation for Game {
             let attacks = piece_attacks(piece, m.to(), occupied);
             let attackers = pieces & attacks;
             if attackers.count() > 1 || piece.kind() == PAWN {
-                out.push(m.from().file_to_char());
+                if attackers != attackers & FILES[m.from().file() as usize] {
+                    out.push(m.from().file_to_char());
+                } else if attackers != attackers & RANKS[m.from().rank() as usize] {
+                    out.push(m.from().rank_to_char());
+                } else {
+                    out.push(m.from().file_to_char());
+                    out.push(m.from().rank_to_char());
+                }
             }
-            // TODO: Pawn disambiguation
         }
 
         if m.is_capture() {
@@ -263,7 +269,24 @@ mod tests {
         assert_eq!(game.move_from_san("Qxh7"), Some(PieceMove::new(H6, H7, CAPTURE)));
         assert_eq!(game.move_from_san("Qg7!"), Some(PieceMove::new(H6, G7, QUIET_MOVE)));
         assert_eq!(game.move_from_san("Qxh7!"), Some(PieceMove::new(H6, H7, CAPTURE)));
+        for m in game.get_moves() {
+            let san = game.move_to_san(m);
+            assert_eq!(game.move_from_san(&san), Some(m));
+        }
 
+        let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p2P/2NPP1p1/1B3N2/1PPB1PP1/R4RK1 w - - 0 26";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.move_from_san("Rae1"), Some(PieceMove::new(A1, E1, QUIET_MOVE)));
+        assert_eq!(game.move_from_san("Rfe1"), Some(PieceMove::new(F1, E1, QUIET_MOVE)));
+        for m in game.get_moves() {
+            let san = game.move_to_san(m);
+            assert_eq!(game.move_from_san(&san), Some(m));
+        }
+
+        let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/Rp2p2P/2NPP1p1/1B3N2/1PPB1PP1/R5K1 w - - 4 28";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.move_from_san("R5a4"), Some(PieceMove::new(A5, A4, QUIET_MOVE)));
+        assert_eq!(game.move_from_san("R1a4"), Some(PieceMove::new(A1, A4, QUIET_MOVE)));
         for m in game.get_moves() {
             let san = game.move_to_san(m);
             assert_eq!(game.move_from_san(&san), Some(m));

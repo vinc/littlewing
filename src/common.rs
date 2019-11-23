@@ -79,6 +79,17 @@ pub const RANK_6: Bitboard = 0x0000FF0000000000;
 pub const RANK_7: Bitboard = 0x00FF000000000000;
 pub const RANK_8: Bitboard = 0xFF00000000000000;
 
+pub const RANKS: [Bitboard; 8] = [
+    RANK_1,
+    RANK_2,
+    RANK_3,
+    RANK_4,
+    RANK_5,
+    RANK_6,
+    RANK_7,
+    RANK_8,
+];
+
 pub const FILE_A: Bitboard = 0x0101010101010101;
 pub const FILE_B: Bitboard = 0x0202020202020202;
 pub const FILE_C: Bitboard = 0x0404040404040404;
