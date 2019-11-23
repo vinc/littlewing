@@ -33,7 +33,8 @@ pub struct CLI {
     pub game: Game,
     max_depth: Depth,
     play_side: Option<Color>,
-    pub show_board: bool
+    pub show_board: bool,
+    pub show_san: bool,
 }
 
 impl CLI {
@@ -48,7 +49,8 @@ impl CLI {
             game,
             max_depth: (MAX_PLY - 10) as Depth,
             play_side: None,
-            show_board: false
+            show_board: false,
+            show_san: false,
         }
     }
 
@@ -64,7 +66,8 @@ impl CLI {
 
         loop {
             if let Some(helper) = rl.helper_mut() {
-                helper.move_params = self.game.get_moves().into_iter().map(|m| m.to_can()).collect()
+                helper.move_params = self.game.get_moves().into_iter().
+                    map(|m| if self.show_san { self.game.move_to_san(m) } else { m.to_can() }).collect();
             }
 
             match rl.readline("> ") {
@@ -147,7 +150,8 @@ impl CLI {
             ["color", "terminal colors"],
             ["coord", "board coordinates"],
             ["debug", "debug output"],
-            ["think", "search output"]
+            ["think", "search output"],
+            ["san", "standard algebraic notation"],
         ];
 
         println!("Subcommands:");
@@ -349,6 +353,9 @@ impl CLI {
             "coord" | "coords" | "coordinates" => {
                 self.game.show_coordinates = value;
             }
+            "san" => {
+                self.show_san = value;
+            }
             "help" => {
                 self.cmd_config_usage(value);
             }
@@ -395,7 +402,7 @@ impl CLI {
             println!();
         }
         if let Some(m) = r {
-            println!("{} move {}", c, m.to_can());
+            println!("{} move {}", c, if self.show_san { self.game.move_to_san(m) } else { m.to_can() });
 
             if play {
                 self.game.make_move(m);
@@ -515,7 +522,7 @@ impl CLI {
             //println!("{}", game.to_string());
             if !self.game.is_check(side) {
                 let r = self.game.perft(d);
-                println!("{} {}", m.to_can(), r);
+                println!("{} {}", if self.show_san { self.game.move_to_san(m) } else { m.to_can() }, r);
                 moves_count += 1;
                 nodes_count += r;
             } else {
@@ -686,7 +693,7 @@ impl Completer for CommandHelper {
     fn complete(&self, line: &str, _pos: usize, _ctx: &Context<'_>) -> Result<(usize, Vec<String>), ReadlineError> {
         let move_params = self.move_params.iter().map(AsRef::as_ref).collect();
         let play_params = vec!["black", "white" ];
-        let conf_params = vec!["board", "color", "coord", "debug", "think"];
+        let conf_params = vec!["board", "color", "coord", "debug", "think", "san"];
         let load_params = vec!["fen", "help"];
         let save_params = vec!["fen", "pgn", "help"];
         let commands = vec![
