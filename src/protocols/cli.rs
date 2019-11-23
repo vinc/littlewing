@@ -200,7 +200,7 @@ impl CLI {
 
     fn cmd_load(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            print_error(format!("no subcommand given"));
+            print_error("no subcommand given");
             println!();
             self.cmd_load_usage();
             return;
@@ -212,14 +212,14 @@ impl CLI {
                 self.game.load_fen(&fen);
             },
             "pgn" => {
-                print_error(format!("not implemented yet")); // TODO
+                print_error("not implemented yet"); // TODO
                 println!();
             }
             "help" => {
                 self.cmd_load_usage();
             }
             _ => {
-                print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(&format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_load_usage();
             }
@@ -228,7 +228,7 @@ impl CLI {
 
     fn cmd_save(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            print_error(format!("no subcommand given"));
+            print_error("no subcommand given");
             println!();
             self.cmd_save_usage();
             return;
@@ -242,7 +242,7 @@ impl CLI {
                 let starting_fen = self.game.starting_fen.clone();
 
                 if args.len() == 2 {
-                    print_error(format!("no filename given"));
+                    print_error("no filename given");
                     return;
                 }
                 let path = Path::new(args[2]);
@@ -317,7 +317,7 @@ impl CLI {
                 self.cmd_save_usage();
             }
             _ => {
-                print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(&format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_save_usage();
             }
@@ -326,7 +326,7 @@ impl CLI {
 
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
-            print_error(format!("no subcommand given"));
+            print_error("no subcommand given");
             println!();
             self.cmd_config_usage(value);
             return;
@@ -360,7 +360,7 @@ impl CLI {
                 self.cmd_config_usage(value);
             }
             _ => {
-                print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(&format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_config_usage(value);
             }
@@ -469,7 +469,7 @@ impl CLI {
                 }
             }
             if !is_valid {
-                print_error(format!("move '{}' is not a valid move", args[1]));
+                print_error(&format!("move '{}' is not valid", args[1]));
                 return;
             }
 
@@ -492,7 +492,7 @@ impl CLI {
                 self.print_result(true);
             }
         } else {
-            print_error(format!("could not parse move '{}'", args[1]));
+            print_error(&format!("could not parse move '{}'", args[1]));
         }
     }
 
@@ -509,7 +509,7 @@ impl CLI {
         let mut nodes_count = 0u64;
 
         if args.len() != 2 {
-            print_error(format!("no depth given"));
+            print_error("no depth given");
             return;
         }
 
@@ -581,7 +581,7 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         if args.len() == 1 {
-            print_error(format!("no filename given"));
+            print_error("no filename given");
             return;
         }
         let path = Path::new(args[1]);
@@ -610,7 +610,7 @@ impl CLI {
 
     fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            print_error(format!("no filename given"));
+            print_error("no filename given");
             return;
         }
         let time = if args.len() == 3 {
@@ -664,11 +664,11 @@ impl CLI {
     }
 
     fn cmd_error(&mut self, args: &[&str]) {
-        print_error(format!("unrecognized command '{}'", args[0]));
+        print_error(&format!("unrecognized command '{}'", args[0]));
     }
 }
 
-fn print_error(msg: String) {
+fn print_error(msg: &str) {
     println!("# {} {}", "error:".bold().red(), msg);
 }
 
