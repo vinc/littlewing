@@ -565,7 +565,7 @@ impl SearchExt for Game {
 
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
-            println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "dep", "score", "time", "nodes", "pv");
+            println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "ply", "score", "time", "nodes", "pv");
         }
     }
 

@@ -50,7 +50,7 @@ impl CLI {
             max_depth: (MAX_PLY - 10) as Depth,
             play_side: None,
             show_board: false,
-            show_san: false,
+            show_san: true,
         }
     }
 
