@@ -65,7 +65,7 @@ impl CLI {
 
         loop {
             if let Some(helper) = rl.helper_mut() {
-                helper.move_params = self.game.get_moves();
+                helper.move_params = self.game.get_moves().into_iter().map(|m| m.to_can()).collect()
             }
 
             match rl.readline("> ") {
