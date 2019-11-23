@@ -104,7 +104,7 @@ and in addition it has its own text-based user interface:
       +---+---+---+---+---+---+---+---+
         a   b   c   d   e   f   g   h
 
-    > move e2e4
+    > move e4
 
       +---+---+---+---+---+---+---+---+
       | r | n | b | q | k | b | n | r | 8
@@ -155,7 +155,7 @@ and in addition it has its own text-based user interface:
        12    -23     363    2254362  1. ... e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nc3 d5 6. exd5 Nxd5 7. Bc4
        13    -13     690    4457080  1. ... e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nc3 d5 6. exd5 Nxd5 7. Bc4
 
-    < move e7e5
+    < move e5
 
       +---+---+---+---+---+---+---+---+
       | r | n | b | q | k | b | n | r | 8
