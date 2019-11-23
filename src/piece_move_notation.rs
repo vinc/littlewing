@@ -12,11 +12,17 @@ use square::*;
 use square::SquareExt;
 use search::Search;
 
-static RE_SAN: &str =
-    r"^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-9])?(?P<capture>x)?(?P<to>[a-h][1-9])=?(?P<promotion>[KBRQ])?|(?P<queen>O-O-O)|(?P<king>O-O)";
+static RE_CAN: &str = r"^(?P<from>[a-h][0-9])(?P<to>[a-h][0-9])(?P<promotion>[nbrq])?$";
+static RE_SAN: &str = r"(?x)
+    ^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-9])?(?P<capture>x)?(?P<to>[a-h][1-9])=?(?P<promotion>[KBRQ])?
+    |(?P<queen>O-O-O)
+    |(?P<king>O-O)";
 
 /// PieceMoveList generator
 pub trait PieceMoveNotation {
+    /// Parse move from string
+    fn parse_move(&mut self, s: &str) -> Option<PieceMove>;
+
     /// Get move from the given CAN string (fast)
     fn move_from_can(&mut self, s: &str) -> PieceMove;
 
@@ -27,7 +33,15 @@ pub trait PieceMoveNotation {
     fn move_to_san(&mut self, m: PieceMove) -> String;
 }
 
+trait PieceMoveNotationExt {
+    fn move_from_can_checked(&mut self, s: &str) -> Option<PieceMove>;
+}
+
 impl PieceMoveNotation for Game {
+    fn parse_move(&mut self, s: &str) -> Option<PieceMove> {
+        self.move_from_san(s).or(self.move_from_can_checked(s))
+    }
+
     fn move_from_can(&mut self, s: &str) -> PieceMove {
         debug_assert!(s.len() == 4 || s.len() == 5);
 
@@ -172,6 +186,20 @@ impl PieceMoveNotation for Game {
     }
 }
 
+impl PieceMoveNotationExt for Game {
+    fn move_from_can_checked(&mut self, s: &str) -> Option<PieceMove> {
+        lazy_static! {
+            static ref RE: Regex = Regex::new(RE_CAN).unwrap();
+        }
+        if RE.is_match(s) {
+            Some(self.move_from_can(s))
+        } else {
+            None
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use common::*;
@@ -189,6 +217,20 @@ mod tests {
 
         let m = game.move_from_can("g1f3");
         assert_eq!(m, PieceMove::new(G1, F3, QUIET_MOVE));
+    }
+
+    #[test]
+    fn test_move_from_can_checked() {
+        let mut game = Game::from_fen(DEFAULT_FEN);
+
+        let m = game.move_from_can_checked("e2e4");
+        assert_eq!(m, Some(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH)));
+
+        let m = game.move_from_can_checked("g1f3");
+        assert_eq!(m, Some(PieceMove::new(G1, F3, QUIET_MOVE)));
+
+        let m = game.move_from_can_checked("none");
+        assert_eq!(m, None);
     }
 
     #[test]
@@ -226,5 +268,17 @@ mod tests {
             let san = game.move_to_san(m);
             assert_eq!(game.move_from_san(&san), Some(m));
         }
+    }
+
+    #[test]
+    fn test_parse_move() {
+        let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p1pP/2NPP3/1B3N2/1PPB1PP1/R3K2R w KQ g6 0 25";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.parse_move("O-O"), Some(PieceMove::new(E1, G1, KING_CASTLE)));
+        assert_eq!(game.parse_move("O-O-O"), Some(PieceMove::new(E1, C1, QUEEN_CASTLE)));
+        assert_eq!(game.parse_move("g3"), Some(PieceMove::new(G2, G3, QUIET_MOVE)));
+        assert_eq!(game.parse_move("Ng1"), Some(PieceMove::new(F3, G1, QUIET_MOVE)));
+        assert_eq!(game.parse_move("g2g3"), Some(PieceMove::new(G2, G3, QUIET_MOVE)));
+        assert_eq!(game.parse_move("f3g1"), Some(PieceMove::new(F3, G1, QUIET_MOVE)));
     }
 }

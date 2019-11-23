@@ -1,5 +1,4 @@
 use colored::Colorize;
-use regex::Regex;
 use rustyline::{Context, Editor, Helper};
 use rustyline::hint::Hinter;
 use rustyline::highlight::Highlighter;
@@ -448,48 +447,45 @@ impl CLI {
     }
 
     fn cmd_move(&mut self, args: &[&str]) {
-        let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
-        if !re.is_match(args[1]) {
-            print_error(format!("could not parse move '{}'", args[1]));
-            return;
-        }
-        let parsed_move = self.game.move_from_can(args[1]);
-
-        let mut is_valid = false;
-        let side = self.game.side();
-        self.game.moves.clear();
-        while let Some(m) = self.game.next_move() {
-            if m == parsed_move {
-                self.game.make_move(m);
-                if !self.game.is_check(side) {
-                    is_valid = true;
+        if let Some(parsed_move) = self.game.parse_move(args[1]) {
+            let mut is_valid = false;
+            let side = self.game.side();
+            self.game.moves.clear();
+            while let Some(m) = self.game.next_move() {
+                if m == parsed_move {
+                    self.game.make_move(m);
+                    if !self.game.is_check(side) {
+                        is_valid = true;
+                    }
+                    self.game.undo_move(m);
+                    break;
                 }
-                self.game.undo_move(m);
-                break;
             }
-        }
-        if !is_valid {
-            print_error(format!("move '{}' is not a valid move", args[1]));
-            return;
-        }
+            if !is_valid {
+                print_error(format!("move '{}' is not a valid move", args[1]));
+                return;
+            }
 
-        self.game.make_move(parsed_move);
-        self.game.history.push(parsed_move);
+            self.game.make_move(parsed_move);
+            self.game.history.push(parsed_move);
 
-        if self.show_board {
-            println!();
-            println!("{}", self.game.to_string());
-            if self.play_side == None || (!self.game.is_debug && !self.game.is_search_verbose) {
+            if self.show_board {
                 println!();
+                println!("{}", self.game.to_string());
+                if self.play_side == None || (!self.game.is_debug && !self.game.is_search_verbose) {
+                    println!();
+                }
             }
-        }
 
-        if self.play_side == Some(self.game.side()) {
-            self.think(true);
-        }
+            if self.play_side == Some(self.game.side()) {
+                self.think(true);
+            }
 
-        if self.game.is_mate() {
-            self.print_result(true);
+            if self.game.is_mate() {
+                self.print_result(true);
+            }
+        } else {
+            print_error(format!("could not parse move '{}'", args[1]));
         }
     }
 
