@@ -117,8 +117,8 @@ impl CLI {
         println!();
         println!("  quit                      Exit this program");
         println!("  help                      Display this screen");
-        println!("  load [<options>]          Load game from <options>");
-        println!("  save [<options>]          Save game to <options>");
+        println!("  load <options>            Load game from <options>");
+        println!("  save <options>            Save game to <options>");
         println!("  hint                      Search the best move");
         println!("  play [<color>]            Search and play [<color>] move[s]");
         println!("  undo                      Undo the last move");
@@ -151,7 +151,7 @@ impl CLI {
             ["coord", "board coordinates"],
             ["debug", "debug output"],
             ["think", "search output"],
-            ["san", "standard algebraic notation"],
+            ["san", "  standard algebraic notation"],
         ];
 
         println!("Subcommands:");
@@ -452,6 +452,11 @@ impl CLI {
     }
 
     fn cmd_move(&mut self, args: &[&str]) {
+        if args.len() < 2 {
+            print_error("no <move> given");
+            self.cmd_usage();
+            return;
+        }
         if let Some(parsed_move) = self.game.parse_move(args[1]) {
             let mut is_valid = false;
             let side = self.game.side();
@@ -494,23 +499,31 @@ impl CLI {
     }
 
     fn cmd_time(&mut self, args: &[&str]) {
+        if args.len() < 3 {
+            print_error("no <time> given");
+            if args.len() < 2 {
+                print_error("no <moves> given");
+            }
+            self.cmd_usage();
+            return;
+        }
         let moves = args[1].parse::<u16>().unwrap();
         let time = args[2].parse::<f64>().unwrap();
         self.game.clock = Clock::new(moves, (time * 1000.0).round() as u64);
     }
 
     fn cmd_divide(&mut self, args: &[&str]) {
+        if args.len() != 2 {
+            print_error("no <depth> given");
+            self.cmd_usage();
+            return;
+        }
+        let d = args[1].parse::<Depth>().unwrap();
+
         self.game.moves.skip_ordering = true;
         self.game.moves.skip_killers = true;
         let mut moves_count = 0u64;
         let mut nodes_count = 0u64;
-
-        if args.len() != 2 {
-            print_error("no depth given");
-            return;
-        }
-
-        let d = args[1].parse::<Depth>().unwrap();
 
         let side = self.game.side();
         self.game.moves.clear();
@@ -532,10 +545,20 @@ impl CLI {
     }
 
     fn cmd_threads(&mut self, args: &[&str]) {
+        if args.len() < 2 {
+            print_error("no <number> given");
+            self.cmd_usage();
+            return;
+        }
         self.game.threads_count = args[1].parse::<usize>().unwrap();
     }
 
     fn cmd_memory(&mut self, args: &[&str]) {
+        if args.len() < 2 {
+            print_error("no <size> given");
+            self.cmd_usage();
+            return;
+        }
         let memory = args[1].parse::<usize>().unwrap(); // In MB
         self.game.tt_resize(memory << 20);
     }
@@ -576,11 +599,18 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         if args.len() == 1 {
-            print_error("no filename given");
+            print_error("no <epd> given");
+            self.cmd_usage();
             return;
         }
         let path = Path::new(args[1]);
-        let file = BufReader::new(File::open(&path).unwrap());
+        let file = match File::open(&path) {
+            Ok(file) => BufReader::new(file),
+            Err(error) => {
+                print_error(&format!("{}", error).to_lowercase());
+                return;
+            }
+        };
         for line in file.lines() {
             let l = line.unwrap();
             let mut fields = l.split(';');
@@ -605,7 +635,8 @@ impl CLI {
 
     fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            print_error("no filename given");
+            print_error("no <epd> given");
+            self.cmd_usage();
             return;
         }
         let time = if args.len() == 3 {
@@ -614,7 +645,13 @@ impl CLI {
             10
         };
         let path = Path::new(args[1]);
-        let file = BufReader::new(File::open(&path).unwrap());
+        let file = match File::open(&path) {
+            Ok(file) => BufReader::new(file),
+            Err(error) => {
+                print_error(&format!("{}", error).to_lowercase());
+                return;
+            }
+        };
         let mut found_count = 0;
         let mut total_count = 0;
         for line in file.lines() {
