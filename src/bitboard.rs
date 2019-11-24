@@ -1,5 +1,8 @@
+use colored::Colorize;
+
 use common::*;
 use square::*;
+use board;
 
 pub type Bitboard = u64;
 
@@ -85,20 +88,15 @@ impl BitboardExt for Bitboard {
 
     fn to_debug_string(&self) -> String {
         let mut out = String::new();
-
-        out.push_str(&format!("DEBUG(bitboard): 0x{:016X}\n", *self));
-
-        out.push_str("+--------+\n");
-        for i in 0..8 {
-            out.push_str("|");
-            for j in 0..8 {
-                let s = 8 * i + j;
-                out.push_str(&format!("{:b}", self.get(s) as usize));
+        out.push_str(&format!(" Bitboard  (0x{:016X})\n", *self));
+        let squares = (0..64).map(|i| {
+            if self.get(i) {
+                "1".bold().green().to_string()
+            } else {
+                "0".to_string()
             }
-            out.push_str(&format!("|{}\n", i + 1));
-        }
-        out.push_str("+--------+\n abcdefgh\n");
-
+        }).collect();
+        out.push_str(&board::draw_compact_with_coordinates(squares));
         out
     }
 }

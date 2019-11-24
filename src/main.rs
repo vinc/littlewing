@@ -29,7 +29,6 @@ fn print_banner(mut board: String) {
     println!("  by Vincent Ollivier  _/ /     \\ '.");
     board.replace_range(23..35, "\"-\"`---+--'\\_>");
     println!("{}", board);
-    println!();
 }
 
 fn main() {

@@ -44,6 +44,7 @@ extern crate rustyline;
 extern crate time;
 
 mod attack;
+mod board;
 mod common;
 mod dumb7fill;
 mod hyperbola;

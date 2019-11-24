@@ -337,8 +337,7 @@ impl CLI {
                 self.show_board = value;
                 if value {
                     println!();
-                    println!("{}", self.game.to_string());
-                    println!();
+                    println!("{}", self.game);
                 }
             }
             "color" | "colors" => {
@@ -380,6 +379,10 @@ impl CLI {
             }
         }
 
+        if self.game.is_debug || self.game.is_search_verbose {
+            println!("");
+        }
+
         self.think(true);
 
         if self.game.is_mate() {
@@ -392,9 +395,6 @@ impl CLI {
     }
 
     fn think(&mut self, play: bool) {
-        if self.game.is_debug || self.game.is_search_verbose {
-            println!();
-        }
         let c = if play { "<" } else { "#" };
         let n = self.max_depth;
         let r = self.game.search(1..n);
@@ -410,8 +410,7 @@ impl CLI {
 
                 if self.show_board {
                     println!();
-                    println!("{}", self.game.to_string());
-                    println!();
+                    println!("{}", self.game);
                 }
             }
         }
@@ -448,8 +447,7 @@ impl CLI {
 
         if self.show_board {
             println!();
-            println!("{}", self.game.to_string());
-            println!();
+            println!("{}", self.game);
         }
     }
 
@@ -478,10 +476,9 @@ impl CLI {
 
             if self.show_board {
                 println!();
-                println!("{}", self.game.to_string());
-                if self.play_side == None || (!self.game.is_debug && !self.game.is_search_verbose) {
-                    println!();
-                }
+                println!("{}", self.game);
+            } else if self.game.is_debug || self.game.is_search_verbose {
+                println!("");
             }
 
             if self.play_side == Some(self.game.side()) {
