@@ -145,8 +145,6 @@ impl PieceMoveNotation for Game {
 
     // NOTE: this function assumes that the move has not been played yet
     fn move_to_san(&mut self, m: PieceMove) -> String {
-        let piece = self.board[m.from() as usize];
-
         let mut out = String::new();
 
         if m.is_castle() {
@@ -158,18 +156,19 @@ impl PieceMoveNotation for Game {
             return out;
         }
 
-        if piece.kind() != PAWN {
+        let piece = self.board[m.from() as usize];
+        if !piece.is_pawn() {
             out.push(piece.kind().to_char());
         }
 
         // Piece disambiguation or pawn capture
-        if piece.kind() != PAWN || m.is_capture() {
+        if !piece.is_pawn() || m.is_capture() || m.is_en_passant() {
             let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
             let pieces = self.bitboard(piece);
             let attacks = piece_attacks(piece, m.to(), occupied);
             let attackers = pieces & attacks;
-            if attackers.count() > 1 || piece.kind() == PAWN {
-                if attackers != attackers & FILES[m.from().file() as usize] {
+            if attackers.count() > 1 || piece.is_pawn() {
+                if (attackers != attackers & FILES[m.from().file() as usize]) || piece.is_pawn() {
                     out.push(m.from().file_to_char());
                 } else if attackers != attackers & RANKS[m.from().rank() as usize] {
                     out.push(m.from().rank_to_char());
@@ -180,14 +179,14 @@ impl PieceMoveNotation for Game {
             }
         }
 
-        if m.is_capture() {
+        // TODO: Should en passant be a capture?
+        if m.is_capture() || m.is_en_passant() {
             out.push('x');
         }
 
         out.push_str(m.to().to_coord().as_str());
 
         if m.is_promotion() {
-            out.push('=');
             out.push(m.promotion_kind().to_char());
         }
 
@@ -249,6 +248,24 @@ mod tests {
 
         // NOTE: This move should end with `#` but this is added in `search::get_pv()`.
         assert_eq!(game.move_to_san(PieceMove::new(F6, G7, CAPTURE)), "Qxg7");
+
+        let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p1pP/2NPP3/1B3N2/1PPB1PP1/R3K2R w KQ g6 0 25";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.move_to_san(PieceMove::new(D4, E5, CAPTURE)), "dxe5");
+        assert_eq!(game.move_to_san(PieceMove::new(F3, E5, CAPTURE)), "Nfxe5");
+        assert_eq!(game.move_to_san(PieceMove::new(C4, E5, CAPTURE)), "Ncxe5");
+        assert_eq!(game.move_to_san(PieceMove::new(A7, B8, KNIGHT_PROMOTION_CAPTURE)), "axb8N");
+        assert_eq!(game.move_to_san(PieceMove::new(H5, G6, EN_PASSANT)), "hxg6");
+
+        let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p2P/2NPP1p1/1B3N2/1PPB1PP1/R4RK1 w - - 0 26";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.move_to_san(PieceMove::new(A1, E1, QUIET_MOVE)), "Rae1");
+        assert_eq!(game.move_to_san(PieceMove::new(F1, E1, QUIET_MOVE)), "Rfe1");
+
+        let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/Rp2p2P/2NPP1p1/1B3N2/1PPB1PP1/R5K1 w - - 4 28";
+        let mut game = Game::from_fen(fen);
+        assert_eq!(game.move_to_san(PieceMove::new(A5, A4, QUIET_MOVE)), "R5a4");
+        assert_eq!(game.move_to_san(PieceMove::new(A1, A4, QUIET_MOVE)), "R1a4");
     }
 
     #[test]

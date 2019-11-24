@@ -43,6 +43,7 @@ impl PieceMove {
         self.0 == 0
     }
 
+    // TODO: Add en passant?
     pub fn is_capture(self) -> bool {
         self.kind() == CAPTURE || self.kind() & PROMOTION_KIND_MASK == PROMOTION_KIND_MASK
     }
