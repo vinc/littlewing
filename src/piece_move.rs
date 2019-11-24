@@ -67,7 +67,7 @@ impl PieceMove {
         PROMOTION_KINDS[(self.kind() & PROMOTION_KIND_MASK >> 2) as usize]
     }
 
-    pub fn to_can(self) -> String {
+    pub fn to_lan(self) -> String {
         self.to_string()
     }
 }

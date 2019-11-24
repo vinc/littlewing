@@ -25,7 +25,7 @@
 //!         game.make_move(m);
 //!         game.history.push(m); // Keep track of the moves played
 //!
-//!         println!("Engine played {}", m.to_can());
+//!         println!("Engine played {}", m.to_lan());
 //!     },
 //!     None => {
 //!         println!("Engine could not find a move to play");
