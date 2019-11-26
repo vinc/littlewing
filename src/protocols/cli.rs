@@ -24,6 +24,7 @@ use fen::FEN;
 use game::Game;
 use piece_move_generator::PieceMoveGenerator;
 use piece_move_notation::PieceMoveNotation;
+use pgn::ToPGN;
 use protocols::xboard::XBoard;
 use protocols::uci::UCI;
 use search::Search;
@@ -239,79 +240,27 @@ impl CLI {
                 println!("{}", self.game.to_fen());
             },
             "pgn" => {
-                let starting_fen = self.game.starting_fen.clone();
-
                 if args.len() == 2 {
                     print_error("no filename given");
                     return;
                 }
                 let path = Path::new(args[2]);
-                let mut buffer = File::create(&path).unwrap();
-
-                let version = version();
-                let result = if self.game.is_mate() {
-                    if self.game.is_check(WHITE) {
-                        "0-1"
-                    } else if self.game.is_check(BLACK) {
-                        "1-0"
-                    } else {
-                        "1/2-1/2"
+                let mut buffer = match File::create(&path) {
+                    Ok(buffer) => buffer,
+                    Err(error) => {
+                        print_error(&format!("{}", error).to_lowercase());
+                        return;
                     }
-                } else {
-                    "*"
                 };
 
-                writeln!(buffer, "[Event \"?\"]").unwrap();
-                writeln!(buffer, "[Site \"?\"]").unwrap();
+                let mut pgn = self.game.to_pgn();
                 if self.play_side == Some(WHITE) {
-                    writeln!(buffer, "[White \"{}\"]", version).unwrap();
-                } else {
-                    writeln!(buffer, "[White \"?\"]").unwrap();
+                    pgn.set_white(&version());
                 }
                 if self.play_side == Some(BLACK) {
-                    writeln!(buffer, "[Black \"{}\"]", version).unwrap();
-                } else {
-                    writeln!(buffer, "[Black \"?\"]").unwrap();
+                    pgn.set_black(&version());
                 }
-                writeln!(buffer, "[Result \"{}\"]", result).unwrap();
-                if starting_fen != String::from(DEFAULT_FEN) {
-                    writeln!(buffer, "[FEN \"{}\"]", starting_fen).unwrap();
-                    writeln!(buffer, "[SetUp \"1\"]").unwrap();
-                }
-                writeln!(buffer, "").unwrap();
-
-                let moves = self.game.history.clone();
-                self.game.load_fen(&starting_fen);
-                let mut first_move = true;
-                let mut line = String::new();
-                for m in moves {
-                    let fm = self.game.positions.fullmoves();
-                    if self.game.side() == WHITE {
-                        line.push_str(&format!("{}. ", fm));
-                    } else if first_move {
-                        line.push_str(&format!("{}. ... ", fm));
-                    }
-                    first_move = false;
-
-                    line.push_str(&self.game.move_to_san(m));
-
-                    self.game.make_move(m);
-                    self.game.history.push(m);
-
-                    if self.game.is_mate() {
-                        line.push('#');
-                    } else if self.game.is_check(self.game.side()) {
-                        line.push('+');
-                    }
-
-                    if line.len() > 70 {
-                        writeln!(buffer, "{}", line).unwrap();
-                        line = String::new();
-                    } else {
-                        line.push(' ');
-                    }
-                }
-                writeln!(buffer, "{}{}", line, result).unwrap();
+                write!(buffer, "{}", pgn).unwrap();
             }
             "help" => {
                 self.cmd_save_usage();
