@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fmt;
 
 use attack::*;
@@ -11,46 +12,50 @@ use search::*;
 
 #[derive(Debug)]
 pub struct PGN {
-    white: String,
-    black: String,
-    fen: String,
+    // Header keys are sorted by prefixing them with a number
+    headers: BTreeMap<String, String>,
     game: String,
-    result: String,
 }
 
 impl PGN {
     fn new() -> PGN {
         PGN {
-            white: "?".to_string(),
-            black: "?".to_string(),
-            fen: "".to_string(),
+            headers: vec![
+                ("1Event".to_string(), "?".to_string()),
+                ("2Site".to_string(), "?".to_string()),
+                ("3White".to_string(), "?".to_string()),
+                ("4Black".to_string(), "?".to_string()),
+                ("5Result".to_string(), "?".to_string())
+            ].into_iter().collect(),
             game: "".to_string(),
-            result: "*".to_string(),
         }
     }
 
-    pub fn set_white(&mut self, player: &str) {
-        self.white = player.to_string();
+    pub fn set_white(&mut self, white: &str) {
+        self.headers.insert("3White".to_string(), white.to_string());
     }
 
-    pub fn set_black(&mut self, player: &str) {
-        self.black = player.to_string();
+    pub fn set_black(&mut self, black: &str) {
+        self.headers.insert("4Black".to_string(), black.to_string());
+    }
+
+    pub fn set_result(&mut self, result: &str) {
+        self.headers.insert("5Result".to_string(), result.to_string());
+    }
+
+    pub fn set_fen(&mut self, fen: &str) {
+        self.headers.insert("6FEN".to_string(), fen.to_string());
+        self.headers.insert("7SetUp".to_string(), "1".to_string());
     }
 }
 
 impl fmt::Display for PGN {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "[Event \"?\"")?;
-        writeln!(f, "[Site \"?\"")?;
-        writeln!(f, "[White \"{}\"", self.white)?;
-        writeln!(f, "[Black \"{}\"", self.black)?;
-        writeln!(f, "[Result \"{}\"", self.result)?;
-        if self.fen != DEFAULT_FEN.to_string() {
-            writeln!(f, "[FEN \"{}\"", self.fen)?;
-            writeln!(f, "[SetUp \"1\"")?;
+        for (key, val) in self.headers.iter() {
+            writeln!(f, "[{} \"{}\"]", key.trim_start_matches(char::is_numeric), val)?;
         }
         writeln!(f, "")?;
-        writeln!(f, "{}{}", self.game, self.result)?;
+        writeln!(f, "{}{}", self.game, self.headers["5Result"])?;
         Ok(())
     }
 }
@@ -65,22 +70,26 @@ impl ToPGN for Game {
     fn to_pgn(&mut self) -> PGN {
         let mut pgn = PGN::new();
 
-        pgn.fen = self.starting_fen.clone();
+        let starting_fen = self.starting_fen.clone();
 
-        pgn.result = if self.is_mate() {
+        if starting_fen != DEFAULT_FEN {
+            pgn.set_fen(&starting_fen);
+        }
+
+        if self.is_mate() {
             if self.is_check(WHITE) {
-                "0-1".to_string()
+                pgn.set_result("0-1");
             } else if self.is_check(BLACK) {
-                "1-0".to_string()
+                pgn.set_result("1-0");
             } else {
-                "1/2-1/2".to_string()
+                pgn.set_result("1/2-1/2");
             }
         } else {
-            "*".to_string()
-        };
+            pgn.set_result("*");
+        }
 
         let moves = self.history.clone();
-        self.load_fen(&pgn.fen);
+        self.load_fen(&starting_fen);
 
         let mut first_move = true;
         let mut line = String::new();
