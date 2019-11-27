@@ -195,9 +195,21 @@ impl LoadPGN for Game {
         self.clear();
         let starting_fen = pgn.headers.get("FEN").map_or(DEFAULT_FEN, String::as_str);
         self.load_fen(starting_fen);
+        let mut comment_level = 0;
+        let mut variation_level = 0;
         for line in pgn.body.lines() {
             for word in line.split(" ") {
-                // TODO: Support variations
+                if word.starts_with(";") {
+                    break;
+                }
+                comment_level += word.matches("{").count();
+                comment_level -= word.matches("}").count();
+                variation_level += word.matches("(").count();
+                variation_level -= word.matches(")").count();
+                if comment_level > 0 || variation_level > 0 {
+                    continue;
+                }
+
                 if let Some(m) = self.parse_move(word) {
                     self.make_move(m);
                     self.history.push(m);
@@ -248,10 +260,16 @@ mod tests {
 
     #[test]
     fn test_game_load_pgn() {
+        let mut game = Game::new();
+
         let content = fs::read_to_string("tests/fool.pgn").unwrap();
         let pgn = PGN::from(content.clone());
-        let mut game = Game::new();
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 4);
+
+        let content = fs::read_to_string("tests/zukertort_vs_steinitz_1886.pgn").unwrap();
+        let pgn = PGN::from(content.clone());
+        game.load_pgn(pgn);
+        assert_eq!(game.history.len(), 58);
     }
 }
