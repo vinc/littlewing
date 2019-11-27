@@ -78,7 +78,7 @@ impl fmt::Display for PGN {
             writeln!(f, "[{} \"{}\"]", key.trim_start_matches(char::is_numeric), val)?;
         }
         writeln!(f, "")?;
-        writeln!(f, "{}", self.body)?;
+        write!(f, "{}", self.body)?;
         Ok(())
     }
 }
@@ -107,7 +107,10 @@ impl From<String> for PGN {
                     }
                 }
                 None => {
-                    pgn.body.push_str(line)
+                    if !line.is_empty() {
+                        pgn.body.push_str(line);
+                        pgn.body.push('\n');
+                    }
                 }
             }
         }
@@ -175,7 +178,7 @@ impl ToPGN for Game {
                 line.push(' ');
             }
         }
-        pgn.body.push_str(&format!("{}{}", line, result));
+        pgn.body.push_str(&format!("{}{}\n", line, result));
 
         pgn
     }
