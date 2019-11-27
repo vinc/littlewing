@@ -92,6 +92,11 @@ impl From<String> for PGN {
         for line in s.lines() {
             match RE.captures(line) {
                 Some(header) => {
+                    // Keep only the last game
+                    if !pgn.body.is_empty() {
+                        pgn = PGN::new();
+                    }
+
                     let key = header["key"].to_string();
                     let val = header["val"].to_string();
                     let mut is_default_header = false;
@@ -262,13 +267,17 @@ mod tests {
     fn test_game_load_pgn() {
         let mut game = Game::new();
 
-        let content = fs::read_to_string("tests/fool.pgn").unwrap();
-        let pgn = PGN::from(content.clone());
+        let s1 = fs::read_to_string("tests/fool.pgn").unwrap();
+        let pgn = PGN::from(s1.clone());
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 4);
 
-        let content = fs::read_to_string("tests/zukertort_vs_steinitz_1886.pgn").unwrap();
-        let pgn = PGN::from(content.clone());
+        let s2 = fs::read_to_string("tests/zukertort_vs_steinitz_1886.pgn").unwrap();
+        let pgn = PGN::from(s2.clone());
+        game.load_pgn(pgn);
+        assert_eq!(game.history.len(), 58);
+
+        let pgn = PGN::from(format!("{}\n{}", s1, s2));
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 58);
     }

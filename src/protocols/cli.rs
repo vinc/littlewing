@@ -225,8 +225,9 @@ impl CLI {
                         return;
                     }
                 };
-                // TODO: Support loading from files containing multiple games
-                // and add optional arg to specify which game should be loaded.
+                // TODO: Add cmd arg to select which game to load in PGN file
+                // that have more than one game. Right now the last one will
+                // be loaded.
                 let pgn = PGN::from(pgn_str);
                 self.game.load_pgn(pgn);
             }
