@@ -696,7 +696,7 @@ impl Completer for CommandHelper {
         let move_params = self.move_params.iter().map(AsRef::as_ref).collect();
         let play_params = vec!["black", "white" ];
         let conf_params = vec!["board", "color", "coord", "debug", "think", "san"];
-        let load_params = vec!["fen", "help"];
+        let load_params = vec!["fen", "pgn", "help"];
         let save_params = vec!["fen", "pgn", "help"];
         let commands = vec![
             "help", "quit", "load", "save", "play", "hint", "eval",
