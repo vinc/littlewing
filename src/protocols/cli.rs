@@ -24,7 +24,7 @@ use fen::FEN;
 use game::Game;
 use piece_move_generator::PieceMoveGenerator;
 use piece_move_notation::PieceMoveNotation;
-use pgn::ToPGN;
+use pgn::*;
 use protocols::xboard::XBoard;
 use protocols::uci::UCI;
 use search::Search;
@@ -171,7 +171,7 @@ impl CLI {
         println!("Subcommands:");
         println!();
         println!("  load fen <string>         Load game from FEN <string>");
-        //println!("  load pgn <file>           Load game from PGN <file>"); // TODO
+        println!("  load pgn <file>           Load game from PGN <file>");
         println!();
     }
 
@@ -213,8 +213,20 @@ impl CLI {
                 self.game.load_fen(&fen);
             },
             "pgn" => {
-                print_error("not implemented yet"); // TODO
-                println!();
+                if args.len() == 2 {
+                    print_error("no filename given");
+                    return;
+                }
+                let path = Path::new(args[2]);
+                let pgn_str = match fs::read_to_string(path) {
+                    Ok(pgn_str) => pgn_str,
+                    Err(error) => {
+                        print_error(&format!("{}", error).to_lowercase());
+                        return;
+                    }
+                };
+                let pgn = PGN::from(pgn_str);
+                self.game.load_pgn(pgn);
             }
             "help" => {
                 self.cmd_load_usage();

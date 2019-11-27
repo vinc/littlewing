@@ -16,7 +16,8 @@ use search::*;
 pub struct PGN {
     // Header keys are sorted by prefixing them with a number
     headers: BTreeMap<String, String>,
-    game: String,
+
+    body: String,
 }
 
 lazy_static! {
@@ -33,7 +34,7 @@ impl PGN {
     fn new() -> PGN {
         PGN {
             headers: DEFAULT_HEADERS.clone().into_iter().collect(),
-            game: "".to_string(),
+            body: "".to_string(),
         }
     }
 
@@ -77,7 +78,7 @@ impl fmt::Display for PGN {
             writeln!(f, "[{} \"{}\"]", key.trim_start_matches(char::is_numeric), val)?;
         }
         writeln!(f, "")?;
-        writeln!(f, "{}", self.game)?;
+        writeln!(f, "{}", self.body)?;
         Ok(())
     }
 }
@@ -106,7 +107,7 @@ impl From<String> for PGN {
                     }
                 }
                 None => {
-                    pgn.game.push_str(line)
+                    pgn.body.push_str(line)
                 }
             }
         }
@@ -114,9 +115,9 @@ impl From<String> for PGN {
     }
 }
 
-/// Portable Game Notation support
+/// Portable Game Notation export
 pub trait ToPGN {
-    /// Export Game to PGN
+    /// Export to PGN
     fn to_pgn(&mut self) -> PGN;
 }
 
@@ -168,23 +169,44 @@ impl ToPGN for Game {
             }
 
             if line.len() > 70 {
-                pgn.game.push_str(&format!("{}\n", line));
+                pgn.body.push_str(&format!("{}\n", line));
                 line = String::new();
             } else {
                 line.push(' ');
             }
         }
-        pgn.game.push_str(&format!("{}{}", line, result));
+        pgn.body.push_str(&format!("{}{}", line, result));
 
         pgn
     }
 }
 
+/// Portable Game Notation import
+pub trait LoadPGN {
+    /// Load PGN
+    fn load_pgn(&mut self, pgn: PGN);
+}
+
+impl LoadPGN for Game {
+    fn load_pgn(&mut self, pgn: PGN) {
+        self.clear();
+        let starting_fen = pgn.headers.get("FEN").map_or(DEFAULT_FEN, String::as_str);
+        self.load_fen(starting_fen);
+        for line in pgn.body.lines() {
+            for word in line.split(" ") {
+                // TODO: Support variations
+                if let Some(m) = self.parse_move(word) {
+                    self.make_move(m);
+                    self.history.push(m);
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-    use std::path::Path;
-    use std::io::prelude::*;
+    use std::fs;
 
     use square::*;
     use common::*;
@@ -209,23 +231,24 @@ mod tests {
         }
         let pgn = game.to_pgn();
 
-        let path = Path::new("tests/fool.pgn");
-        let mut file = File::open(&path).unwrap();
-        let mut content = String::new();
-        file.read_to_string(&mut content).unwrap();
-
+        let content = fs::read_to_string("tests/fool.pgn").unwrap();
         assert_eq!(pgn.to_string(), content);
     }
 
     #[test]
     fn test_string_to_pgn() {
-        let path = Path::new("tests/fool.pgn");
-        let mut file = File::open(&path).unwrap();
-        let mut content = String::new();
-        file.read_to_string(&mut content).unwrap();
-
+        let content = fs::read_to_string("tests/fool.pgn").unwrap();
         let pgn = PGN::from(content.clone());
         assert_eq!(pgn.to_string(), content);
         assert_eq!(pgn.result(), "0-1".to_string());
+    }
+
+    #[test]
+    fn test_game_load_pgn() {
+        let content = fs::read_to_string("tests/fool.pgn").unwrap();
+        let pgn = PGN::from(content.clone());
+        let mut game = Game::new();
+        game.load_pgn(pgn);
+        assert_eq!(game.history.len(), 4);
     }
 }
