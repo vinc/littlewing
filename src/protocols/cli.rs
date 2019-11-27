@@ -232,12 +232,19 @@ impl CLI {
             }
             "help" => {
                 self.cmd_load_usage();
+                return;
             }
             _ => {
                 print_error(&format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_load_usage();
+                return;
             }
+        }
+
+        if self.show_board {
+            println!();
+            println!("{}", self.game);
         }
     }
 
