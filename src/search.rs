@@ -144,14 +144,16 @@ impl Search for Game {
 
         debug_assert!(depths.start > 0);
         for mut depth in depths {
-            // Half of the threads should search at depth + 1
             if self.threads_count > 1 {
-                if self.threads_index == 0 {
+                if depth > self.current_depth() {
                     self.set_current_depth(depth);
-                } else if self.threads_index >= self.threads_count / 2 {
-                    if depth <= self.current_depth() {
-                        depth = self.current_depth() + 1;
-                    }
+                } if depth < self.current_depth() {
+                    continue;
+                }
+
+                // Half of the threads should search at depth + 1
+                if self.threads_index >= self.threads_count / 2 {
+                    depth += 1;
                 }
             }
 
@@ -183,8 +185,17 @@ impl Search for Game {
 
             let mut has_legal_moves = false;
             while let Some(m) = self.next_move() {
+                // Discard search at this depth if time is out
                 if self.clock.poll(self.nodes_count()) {
-                    break; // Discard search at this depth if time is out
+                    break;
+                }
+
+                // Discard search at this depth if another thread finished it
+                if depth < self.current_depth() {
+                    if let Some(t) = self.tt.get(hash) {
+                        best_move = t.best_move();
+                    }
+                    break;
                 }
 
                 self.make_move(m);
@@ -211,7 +222,7 @@ impl Search for Game {
 
             // Save the best move only if we found one and if we still have
             // some time left after the search at this depth.
-            if !best_moves[depth as usize].is_null() && !self.clock.poll(self.nodes_count()) {
+            if !best_moves[depth as usize].is_null() && !self.clock.poll(self.nodes_count()) && depth >= self.current_depth() {
                 best_move = best_moves[depth as usize];
                 best_score = best_scores[depth as usize];
 
