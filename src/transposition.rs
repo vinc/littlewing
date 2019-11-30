@@ -17,14 +17,6 @@ pub struct Transposition {
     depth: Depth,         //  8 bits => 1 bytes
     bound: Bound,         //  8 bits => 1 bytes
     age: u8,              //  8 bits => 1 bytes
-
-    // Total: 16 bytes
-    //
-    // NOTE: `depth` will never go above MAX_PLY, which is 128 so we can store
-    // it as `i8`.
-    //
-    // TODO: we don't need to store the whole hash as the first part is the
-    // index of the entry: `entries[hash % size]`
 }
 
 impl Transposition {
@@ -45,6 +37,24 @@ impl Transposition {
 
     pub fn hash(&self) -> u64 {
         self.hash
+    }
+
+    pub fn data(&self) -> u64 {
+        let m = self.best_move.to_u16() as u64;
+        let s = self.score as u64;
+        let d = self.depth as u64;
+        let b = self.bound as u64;
+        let a = self.age as u64;
+        // m 0x1111111111111111000000000000000000000000000000000000000000000000
+        // s 0x0000000000000000111111111111111100000000000000000000000000000000
+        // d 0x0000000000000000000000000000000011111111000000000000000000000000
+        // b 0x0000000000000000000000000000000000000000111111110000000000000000
+        // a 0x0000000000000000000000000000000000000000000000001111111100000000
+        m << 48 | s << 32 | d << 24 | b << 16 | a << 8
+    }
+
+    pub fn xored(&mut self) {
+        self.hash = self.hash ^ self.data();
     }
 
     pub fn depth(&self) -> Depth {

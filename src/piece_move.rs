@@ -70,6 +70,10 @@ impl PieceMove {
     pub fn to_can(self) -> String {
         self.to_string()
     }
+
+    pub fn to_u16(self) -> u16 {
+        self.0
+    }
 }
 
 impl fmt::Display for PieceMove {
