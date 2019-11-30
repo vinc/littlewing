@@ -65,19 +65,19 @@ impl Game {
     }
 
     pub fn current_depth(&mut self) -> Depth {
-        self.current_depth.load(Ordering::SeqCst) as Depth
+        self.current_depth.load(Ordering::Relaxed) as Depth
     }
 
     pub fn set_current_depth(&mut self, d: Depth) {
-        let old = self.current_depth.load(Ordering::SeqCst);
+        let old = self.current_depth.load(Ordering::Relaxed);
         let new = d as usize;
         if new > old {
-            self.current_depth.compare_and_swap(old, new, Ordering::SeqCst);
+            self.current_depth.compare_and_swap(old, new, Ordering::Relaxed);
         }
     }
 
     pub fn reset_current_depth(&mut self) {
-        self.current_depth.store(0, Ordering::SeqCst)
+        self.current_depth.store(0, Ordering::Relaxed)
     }
 
     /// Get the transposition table size in byte
@@ -104,12 +104,12 @@ impl Game {
 
     /// Get the shared nodes count
     pub fn nodes_count(&self) -> u64 {
-        self.nodes_count.load(Ordering::SeqCst)
+        self.nodes_count.load(Ordering::Relaxed)
     }
 
     /// Increment the shared nodes count
     pub fn inc_nodes_count(&mut self) {
-        self.nodes_count.fetch_add(1, Ordering::SeqCst);
+        self.nodes_count.fetch_add(1, Ordering::Relaxed);
     }
 
     /// Reset the shared nodes count
