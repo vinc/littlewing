@@ -43,6 +43,7 @@ impl PieceMove {
         self.0 == 0
     }
 
+    // TODO: Add en passant?
     pub fn is_capture(self) -> bool {
         self.kind() == CAPTURE || self.kind() & PROMOTION_KIND_MASK == PROMOTION_KIND_MASK
     }
@@ -67,7 +68,7 @@ impl PieceMove {
         PROMOTION_KINDS[(self.kind() & PROMOTION_KIND_MASK >> 2) as usize]
     }
 
-    pub fn to_can(self) -> String {
+    pub fn to_lan(self) -> String {
         self.to_string()
     }
 

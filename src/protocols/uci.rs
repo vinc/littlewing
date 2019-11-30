@@ -72,32 +72,35 @@ impl UCI {
         self.abort_search();
 
         let side = self.game.side();
-        let mut is_time = false;
-        let mut is_moves = false;
         let mut time = u64::max_value(); // Infinite time
         let mut moves = 1;
+        let mut next_arg_is_time = false;
+        let mut next_arg_is_moves = false;
         for &arg in args {
             match arg {
                 "wtime" => {
                     if side == WHITE {
-                        is_time = true;
+                        next_arg_is_time = true;
                     }
                 },
                 "btime" => {
                     if side == BLACK {
-                        is_time = true;
+                        next_arg_is_time = true;
                     }
                 },
+                "movetime" => {
+                    next_arg_is_time = true;
+                }
                 "movestogo" => {
-                    is_moves = true;
+                    next_arg_is_moves = true;
                 },
                 _ => {
-                    if is_time {
+                    if next_arg_is_time {
                         time = arg.parse::<u64>().unwrap();
-                        is_time = false;
-                    } else if is_moves {
+                        next_arg_is_time = false;
+                    } else if next_arg_is_moves {
                         moves = arg.parse::<u16>().unwrap();
-                        is_moves = false;
+                        next_arg_is_moves = false;
                     }
                 }
             }
@@ -142,7 +145,7 @@ impl UCI {
         self.game.load_fen(&fen.join(" "));
 
         for s in moves {
-            let m = self.game.move_from_can(s);
+            let m = self.game.move_from_lan(s);
             self.game.make_move(m);
             self.game.history.push(m);
         }
@@ -162,7 +165,7 @@ impl UCI {
 
             if print_bestmove.load(Ordering::Relaxed) {
                 match res {
-                    Some(m) => println!("bestmove {}", m.to_can()),
+                    Some(m) => println!("bestmove {}", m.to_lan()),
                     None    => println!("bestmove 0000")
                 }
             }

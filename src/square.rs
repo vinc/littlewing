@@ -71,7 +71,7 @@ pub const H8: Square = 63;
 pub const OUT: Square = 64;
 
 pub trait SquareExt {
-    fn from_coord(s: String) -> Self;
+    fn from_coord(s: &str) -> Self;
     fn to_coord(&self) -> String;
     fn file_to_char(&self) -> char;
     fn rank_to_char(&self) -> char;
@@ -81,7 +81,7 @@ pub trait SquareExt {
 }
 
 impl SquareExt for Square {
-    fn from_coord(s: String) -> Self {
+    fn from_coord(s: &str) -> Self {
         let bytes = s.as_bytes();
 
         ((bytes[0] - b'a') + 8 * (bytes[1] - b'1')) as Square
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_from_coord() {
-        let sq: Square = SquareExt::from_coord("e2".to_string());
+        let sq: Square = SquareExt::from_coord("e2");
         assert_eq!(sq, E2);
     }
 

@@ -1,5 +1,4 @@
 use colored::Colorize;
-use regex::Regex;
 use rustyline::{Context, Editor, Helper};
 use rustyline::hint::Hinter;
 use rustyline::highlight::Highlighter;
@@ -34,7 +33,8 @@ pub struct CLI {
     pub game: Game,
     max_depth: Depth,
     play_side: Option<Color>,
-    pub show_board: bool
+    pub show_board: bool,
+    pub show_san: bool,
 }
 
 impl CLI {
@@ -49,7 +49,8 @@ impl CLI {
             game,
             max_depth: (MAX_PLY - 10) as Depth,
             play_side: None,
-            show_board: false
+            show_board: false,
+            show_san: true,
         }
     }
 
@@ -65,7 +66,8 @@ impl CLI {
 
         loop {
             if let Some(helper) = rl.helper_mut() {
-                helper.move_params = self.game.get_moves();
+                helper.move_params = self.game.get_moves().into_iter().
+                    map(|m| if self.show_san { self.game.move_to_san(m) } else { m.to_lan() }).collect();
             }
 
             match rl.readline("> ") {
@@ -115,8 +117,8 @@ impl CLI {
         println!();
         println!("  quit                      Exit this program");
         println!("  help                      Display this screen");
-        println!("  load [<options>]          Load game from <options>");
-        println!("  save [<options>]          Save game to <options>");
+        println!("  load <options>            Load game from <options>");
+        println!("  save <options>            Save game to <options>");
         println!("  hint                      Search the best move");
         println!("  play [<color>]            Search and play [<color>] move[s]");
         println!("  undo                      Undo the last move");
@@ -148,7 +150,8 @@ impl CLI {
             ["color", "terminal colors"],
             ["coord", "board coordinates"],
             ["debug", "debug output"],
-            ["think", "search output"]
+            ["think", "search output"],
+            ["san", "  standard algebraic notation"],
         ];
 
         println!("Subcommands:");
@@ -197,7 +200,7 @@ impl CLI {
 
     fn cmd_load(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            print_error(format!("no subcommand given"));
+            print_error("no subcommand given");
             println!();
             self.cmd_load_usage();
             return;
@@ -209,14 +212,14 @@ impl CLI {
                 self.game.load_fen(&fen);
             },
             "pgn" => {
-                print_error(format!("not implemented yet")); // TODO
+                print_error("not implemented yet"); // TODO
                 println!();
             }
             "help" => {
                 self.cmd_load_usage();
             }
             _ => {
-                print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(&format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_load_usage();
             }
@@ -225,7 +228,7 @@ impl CLI {
 
     fn cmd_save(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            print_error(format!("no subcommand given"));
+            print_error("no subcommand given");
             println!();
             self.cmd_save_usage();
             return;
@@ -239,7 +242,7 @@ impl CLI {
                 let starting_fen = self.game.starting_fen.clone();
 
                 if args.len() == 2 {
-                    print_error(format!("no filename given"));
+                    print_error("no filename given");
                     return;
                 }
                 let path = Path::new(args[2]);
@@ -314,7 +317,7 @@ impl CLI {
                 self.cmd_save_usage();
             }
             _ => {
-                print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(&format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_save_usage();
             }
@@ -323,7 +326,7 @@ impl CLI {
 
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
-            print_error(format!("no subcommand given"));
+            print_error("no subcommand given");
             println!();
             self.cmd_config_usage(value);
             return;
@@ -334,8 +337,7 @@ impl CLI {
                 self.show_board = value;
                 if value {
                     println!();
-                    println!("{}", self.game.to_string());
-                    println!();
+                    println!("{}", self.game);
                 }
             }
             "color" | "colors" => {
@@ -350,11 +352,14 @@ impl CLI {
             "coord" | "coords" | "coordinates" => {
                 self.game.show_coordinates = value;
             }
+            "san" => {
+                self.show_san = value;
+            }
             "help" => {
                 self.cmd_config_usage(value);
             }
             _ => {
-                print_error(format!("unrecognized subcommand '{}'", args[1]));
+                print_error(&format!("unrecognized subcommand '{}'", args[1]));
                 println!();
                 self.cmd_config_usage(value);
             }
@@ -374,6 +379,10 @@ impl CLI {
             }
         }
 
+        if self.game.is_debug || self.game.is_search_verbose {
+            println!("");
+        }
+
         self.think(true);
 
         if self.game.is_mate() {
@@ -386,9 +395,6 @@ impl CLI {
     }
 
     fn think(&mut self, play: bool) {
-        if self.game.is_debug || self.game.is_search_verbose {
-            println!();
-        }
         let c = if play { "<" } else { "#" };
         let n = self.max_depth;
         let r = self.game.search(1..n);
@@ -396,7 +402,7 @@ impl CLI {
             println!();
         }
         if let Some(m) = r {
-            println!("{} move {}", c, m.to_can());
+            println!("{} move {}", c, if self.show_san { self.game.move_to_san(m) } else { m.to_lan() });
 
             if play {
                 self.game.make_move(m);
@@ -404,8 +410,7 @@ impl CLI {
 
                 if self.show_board {
                     println!();
-                    println!("{}", self.game.to_string());
-                    println!();
+                    println!("{}", self.game);
                 }
             }
         }
@@ -442,88 +447,94 @@ impl CLI {
 
         if self.show_board {
             println!();
-            println!("{}", self.game.to_string());
-            println!();
+            println!("{}", self.game);
         }
     }
 
     fn cmd_move(&mut self, args: &[&str]) {
-        let re = Regex::new(r"^[a-h][0-9][a-h][0-9][nbrq]?$").unwrap();
-        if !re.is_match(args[1]) {
-            print_error(format!("could not parse move '{}'", args[1]));
+        if args.len() < 2 {
+            print_error("no <move> given");
+            self.cmd_usage();
             return;
         }
-        let parsed_move = self.game.move_from_can(args[1]);
-
-        let mut is_valid = false;
-        let side = self.game.side();
-        self.game.moves.clear();
-        while let Some(m) = self.game.next_move() {
-            if m == parsed_move {
-                self.game.make_move(m);
-                if !self.game.is_check(side) {
-                    is_valid = true;
+        if let Some(parsed_move) = self.game.parse_move(args[1]) {
+            let mut is_valid = false;
+            let side = self.game.side();
+            self.game.moves.clear();
+            while let Some(m) = self.game.next_move() {
+                if m == parsed_move {
+                    self.game.make_move(m);
+                    if !self.game.is_check(side) {
+                        is_valid = true;
+                    }
+                    self.game.undo_move(m);
+                    break;
                 }
-                self.game.undo_move(m);
-                break;
             }
-        }
-        if !is_valid {
-            print_error(format!("move '{}' is not a valid move", args[1]));
-            return;
-        }
+            if !is_valid {
+                print_error(&format!("move '{}' is not valid", args[1]));
+                return;
+            }
 
-        self.game.make_move(parsed_move);
-        self.game.history.push(parsed_move);
+            self.game.make_move(parsed_move);
+            self.game.history.push(parsed_move);
 
-        if self.show_board {
-            println!();
-            println!("{}", self.game.to_string());
-            if self.play_side == None || (!self.game.is_debug && !self.game.is_search_verbose) {
+            if self.show_board {
                 println!();
+                println!("{}", self.game);
+            } else if self.game.is_debug || self.game.is_search_verbose {
+                println!("");
             }
-        }
 
-        if self.play_side == Some(self.game.side()) {
-            self.think(true);
-        }
+            if self.play_side == Some(self.game.side()) {
+                self.think(true);
+            }
 
-        if self.game.is_mate() {
-            self.print_result(true);
+            if self.game.is_mate() {
+                self.print_result(true);
+            }
+        } else {
+            print_error(&format!("could not parse move '{}'", args[1]));
         }
     }
 
     fn cmd_time(&mut self, args: &[&str]) {
+        if args.len() < 3 {
+            print_error("no <time> given");
+            if args.len() < 2 {
+                print_error("no <moves> given");
+            }
+            self.cmd_usage();
+            return;
+        }
         let moves = args[1].parse::<u16>().unwrap();
         let time = args[2].parse::<f64>().unwrap();
         self.game.clock = Clock::new(moves, (time * 1000.0).round() as u64);
     }
 
     fn cmd_divide(&mut self, args: &[&str]) {
+        if args.len() != 2 {
+            print_error("no <depth> given");
+            self.cmd_usage();
+            return;
+        }
+        let d = args[1].parse::<Depth>().unwrap();
+
         self.game.moves.skip_ordering = true;
         self.game.moves.skip_killers = true;
         let mut moves_count = 0u64;
         let mut nodes_count = 0u64;
 
-        if args.len() != 2 {
-            print_error(format!("no depth given"));
-            return;
-        }
-
-        let d = args[1].parse::<Depth>().unwrap();
-
         let side = self.game.side();
         self.game.moves.clear();
         while let Some(m) = self.game.next_move() {
+            let move_str = if self.show_san { self.game.move_to_san(m) } else { m.to_lan() };
             self.game.make_move(m);
-            //println!("{}", game.to_string());
             if !self.game.is_check(side) {
                 let r = self.game.perft(d);
-                println!("{} {}", m.to_can(), r);
+                println!("{} {}", move_str, r);
                 moves_count += 1;
                 nodes_count += r;
-            } else {
-                //println!("{} (illegal)", m.to_can());
             }
             self.game.undo_move(m);
         }
@@ -534,10 +545,20 @@ impl CLI {
     }
 
     fn cmd_threads(&mut self, args: &[&str]) {
+        if args.len() < 2 {
+            print_error("no <number> given");
+            self.cmd_usage();
+            return;
+        }
         self.game.threads_count = args[1].parse::<usize>().unwrap();
     }
 
     fn cmd_memory(&mut self, args: &[&str]) {
+        if args.len() < 2 {
+            print_error("no <size> given");
+            self.cmd_usage();
+            return;
+        }
         let memory = args[1].parse::<usize>().unwrap(); // In MB
         self.game.tt_resize(memory << 20);
     }
@@ -578,11 +599,18 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         if args.len() == 1 {
-            print_error(format!("no filename given"));
+            print_error("no <epd> given");
+            self.cmd_usage();
             return;
         }
         let path = Path::new(args[1]);
-        let file = BufReader::new(File::open(&path).unwrap());
+        let file = match File::open(&path) {
+            Ok(file) => BufReader::new(file),
+            Err(error) => {
+                print_error(&format!("{}", error).to_lowercase());
+                return;
+            }
+        };
         for line in file.lines() {
             let l = line.unwrap();
             let mut fields = l.split(';');
@@ -607,7 +635,8 @@ impl CLI {
 
     fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
-            print_error(format!("no filename given"));
+            print_error("no <epd> given");
+            self.cmd_usage();
             return;
         }
         let time = if args.len() == 3 {
@@ -616,7 +645,13 @@ impl CLI {
             10
         };
         let path = Path::new(args[1]);
-        let file = BufReader::new(File::open(&path).unwrap());
+        let file = match File::open(&path) {
+            Ok(file) => BufReader::new(file),
+            Err(error) => {
+                print_error(&format!("{}", error).to_lowercase());
+                return;
+            }
+        };
         let mut found_count = 0;
         let mut total_count = 0;
         for line in file.lines() {
@@ -661,11 +696,11 @@ impl CLI {
     }
 
     fn cmd_error(&mut self, args: &[&str]) {
-        print_error(format!("unrecognized command '{}'", args[0]));
+        print_error(&format!("unrecognized command '{}'", args[0]));
     }
 }
 
-fn print_error(msg: String) {
+fn print_error(msg: &str) {
     println!("# {} {}", "error:".bold().red(), msg);
 }
 
@@ -690,7 +725,7 @@ impl Completer for CommandHelper {
     fn complete(&self, line: &str, _pos: usize, _ctx: &Context<'_>) -> Result<(usize, Vec<String>), ReadlineError> {
         let move_params = self.move_params.iter().map(AsRef::as_ref).collect();
         let play_params = vec!["black", "white" ];
-        let conf_params = vec!["board", "color", "coord", "debug", "think"];
+        let conf_params = vec!["board", "color", "coord", "debug", "think", "san"];
         let load_params = vec!["fen", "help"];
         let save_params = vec!["fen", "pgn", "help"];
         let commands = vec![
@@ -744,6 +779,14 @@ mod tests {
         // Undo 0 moves
         cli.cmd_undo();
 
+        assert!(true);
+    }
+
+    #[test]
+    fn test_divide() {
+        let mut cli = CLI::new();
+
+        cli.cmd_divide(&["divide", "2"]);
         assert!(true);
     }
 }

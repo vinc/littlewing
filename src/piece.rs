@@ -54,6 +54,7 @@ impl PieceChar for Piece {
             _   => EMPTY // FIXME
         }
     }
+
     fn to_char(&self) -> char {
         match *self {
             WHITE_PAWN   => 'P',
@@ -80,6 +81,13 @@ pub trait PieceAttr {
 
     /// Get a piece without its color
     fn kind(&self) -> Piece;
+
+    fn is_pawn(&self) -> bool;
+    fn is_knight(&self) -> bool;
+    fn is_bishop(&self) -> bool;
+    fn is_rook(&self) -> bool;
+    fn is_queen(&self) -> bool;
+    fn is_king(&self) -> bool;
 }
 
 impl PieceAttr for Piece {
@@ -88,6 +96,24 @@ impl PieceAttr for Piece {
     }
     fn kind(&self) -> Piece {
         *self & 0b1110
+    }
+    fn is_pawn(&self) -> bool {
+        self.kind() == PAWN
+    }
+    fn is_knight(&self) -> bool {
+        self.kind() == KNIGHT
+    }
+    fn is_bishop(&self) -> bool {
+        self.kind() == BISHOP
+    }
+    fn is_rook(&self) -> bool {
+        self.kind() == ROOK
+    }
+    fn is_queen(&self) -> bool {
+        self.kind() == QUEEN
+    }
+    fn is_king(&self) -> bool {
+        self.kind() == KING
     }
 }
 

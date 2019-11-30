@@ -34,7 +34,7 @@ pub trait Search {
     fn quiescence(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
 
     fn is_mate(&mut self) -> bool;
-    fn get_moves(&mut self) -> Vec<String>;
+    fn get_moves(&mut self) -> Vec<PieceMove>;
 }
 
 trait SearchExt {
@@ -567,14 +567,14 @@ impl Search for Game {
         true
     }
 
-    fn get_moves(&mut self) -> Vec<String> {
+    fn get_moves(&mut self) -> Vec<PieceMove> {
         let mut res = Vec::new();
         let side = self.side();
         self.moves.clear();
         while let Some(m) = self.next_move() {
             self.make_move(m);
             if !self.is_check(side) {
-                res.push(m.to_can());
+                res.push(m);
             }
             self.undo_move(m);
         }
@@ -592,7 +592,7 @@ impl SearchExt for Game {
 
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
-            println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "dep", "score", "time", "nodes", "pv");
+            println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "ply", "score", "time", "nodes", "pv");
         }
     }
 
@@ -646,7 +646,7 @@ impl SearchExt for Game {
             let cur = if is_san_format {
                 self.move_to_san(m)
             } else {
-                m.to_can()
+                m.to_lan()
             };
             self.make_move(m);
 
@@ -780,7 +780,7 @@ mod tests {
         let mut game = Game::from_fen("8/pp3p1k/2p2q1p/3r1P1Q/5R2/7P/P1P2P2/7K w - - 1 30");
         let moves = vec!["h5e2", "f6e5", "e2h5", "e5f6", "h5e2", "d5e5", "e2d3", "e5d5", "d3e2"];
         for s in moves {
-            let m = game.move_from_can(s);
+            let m = game.move_from_lan(s);
             game.make_move(m);
             game.history.push(m);
         }
@@ -922,6 +922,6 @@ mod tests {
 
         // Initial position
         game.load_fen("8/8/8/8/r7/1k6/8/K7 w - - 0 1");
-        assert_eq!(game.get_moves(), vec!["a1b1"]);
+        assert_eq!(game.get_moves(), vec![PieceMove::new(A1, B1, QUIET_MOVE)])
     }
 }

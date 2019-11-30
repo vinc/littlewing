@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use colored::Colorize;
 
+use board;
 use color::*;
 use piece::*;
 use common::*;
@@ -131,51 +132,25 @@ impl Game {
 
 impl fmt::Display for Game {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut lines = vec![];
-
-        let sep = "+---".repeat(8) + "+";
-        lines.push(sep.clone());
-
-        for rank in 0..8 {
-            let mut line = String::new();
-
-            for file in 0..8 {
-                let p = self.board[8 * (7 - rank) + file];
-                let c = p.to_char().to_string();
-                let s = if p.color() == WHITE {
-                    format!("{}", c.bold().white())
-                } else if p.color() == BLACK {
-                    format!("{}", c.bold().red())
-                } else {
-                    format!("{}", c)
-                };
-                let s = format!("| {} ", s);
-                line.push_str(&s);
-            }
-
-            // Right border of the board
-            let s = if self.show_coordinates {
-                format!("| {}", 8 - rank)
+        let squares = (0..64).map(|i| {
+            let p = self.board[i];
+            let c = p.to_char().to_string();
+            if p.color() == WHITE {
+                c.bold().white().to_string()
+            } else if p.color() == BLACK {
+                c.bold().red().to_string()
             } else {
-                format!("|")
-            };
-            line.push_str(&s);
+                c
+            }
+        }).collect();
 
-            lines.push(line);
-            lines.push(sep.clone());
-        }
+        let board = if self.show_coordinates {
+            board::draw_with_coordinates(squares)
+        } else {
+            board::draw(squares)
+        };
 
-        if self.show_coordinates {
-            let line = "abcdefgh".chars().
-                map(|c| format!("  {} ", c)).collect();
-
-            lines.push(line);
-        }
-
-        let indented_lines: Vec<String> = lines.iter().
-            map(|l| format!("  {}", l)).collect();
-
-        write!(f, "{}", indented_lines.join("\n"))
+        write!(f, "{}", board)
     }
 }
 
