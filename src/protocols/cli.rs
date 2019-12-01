@@ -157,6 +157,7 @@ impl CLI {
             ["san", "  standard algebraic notation"],
         ];
 
+        println!();
         println!("Subcommands:");
         println!();
         for args in &cmds {
@@ -170,6 +171,7 @@ impl CLI {
     }
 
     fn cmd_load_usage(&self) {
+        println!();
         println!("Subcommands:");
         println!();
         println!("  load fen <string>         Load game from FEN <string>");
@@ -178,6 +180,7 @@ impl CLI {
     }
 
     fn cmd_save_usage(&self) {
+        println!();
         println!("Subcommands:");
         println!();
         println!("  save fen                  Save game to FEN <string>");
@@ -215,7 +218,6 @@ impl CLI {
     fn cmd_load(&mut self, args: &[&str]) {
         if args.len() == 1 {
             print_error("no subcommand given");
-            println!();
             self.cmd_load_usage();
             return;
         }
@@ -250,7 +252,6 @@ impl CLI {
             }
             _ => {
                 print_error(&format!("unrecognized subcommand '{}'", args[1]));
-                println!();
                 self.cmd_load_usage();
                 return;
             }
@@ -265,7 +266,6 @@ impl CLI {
     fn cmd_save(&mut self, args: &[&str]) {
         if args.len() == 1 {
             print_error("no subcommand given");
-            println!();
             self.cmd_save_usage();
             return;
         }
@@ -302,7 +302,6 @@ impl CLI {
             }
             _ => {
                 print_error(&format!("unrecognized subcommand '{}'", args[1]));
-                println!();
                 self.cmd_save_usage();
             }
         }
@@ -311,7 +310,6 @@ impl CLI {
     fn cmd_config(&mut self, value: bool, args: &[&str]) {
         if args.len() != 2 {
             print_error("no subcommand given");
-            println!();
             self.cmd_config_usage(value);
             return;
         }
@@ -344,7 +342,6 @@ impl CLI {
             }
             _ => {
                 print_error(&format!("unrecognized subcommand '{}'", args[1]));
-                println!();
                 self.cmd_config_usage(value);
             }
         }
@@ -355,7 +352,12 @@ impl CLI {
             self.play_side = match args[1] {
                 "white" => Some(WHITE),
                 "black" => Some(BLACK),
-                _       => None
+                "none"  => None,
+                _ => {
+                    print_error("<color> should be either 'white', 'black', or 'none'");
+                    self.cmd_usage();
+                    return;
+                }
             };
 
             if self.play_side != Some(self.game.side()) {
@@ -708,7 +710,7 @@ impl Completer for CommandHelper {
 
     fn complete(&self, line: &str, _pos: usize, _ctx: &Context<'_>) -> Result<(usize, Vec<String>), ReadlineError> {
         let move_params = self.move_params.iter().map(AsRef::as_ref).collect();
-        let play_params = vec!["black", "white" ];
+        let play_params = vec!["black", "white", "none"];
         let conf_params = vec!["board", "color", "coord", "debug", "think", "san"];
         let load_params = vec!["fen", "pgn", "help"];
         let save_params = vec!["fen", "pgn", "help"];
