@@ -80,6 +80,7 @@ impl CLI {
                         ""                         => (),
                         "quit" | "q" | "exit"      => { break },
                         "help" | "h"               => { self.cmd_usage() },
+                        "init" | "i"               => { self.cmd_init() },
                         "load" | "l"               => { self.cmd_load(&args) },
                         "save" | "s"               => { self.cmd_save(&args) },
                         "play" | "p" | "go"        => { self.cmd_play(&args) },
@@ -118,6 +119,7 @@ impl CLI {
         println!();
         println!("  quit                      Exit this program");
         println!("  help                      Display this screen");
+        println!("  init                      Initialize a new game");
         println!("  load <options>            Load game from <options>");
         println!("  save <options>            Save game to <options>");
         println!("  hint                      Search the best move");
@@ -197,6 +199,17 @@ impl CLI {
         xboard.game.threads_count = self.game.threads_count;
         xboard.game.tt = self.game.tt.clone();
         xboard.run();
+    }
+
+    fn cmd_init(&mut self) {
+        self.max_depth = (MAX_PLY - 10) as Depth;
+        self.game.clear();
+        self.game.load_fen(DEFAULT_FEN);
+
+        if self.show_board {
+            println!();
+            println!("{}", self.game);
+        }
     }
 
     fn cmd_load(&mut self, args: &[&str]) {
@@ -700,9 +713,9 @@ impl Completer for CommandHelper {
         let load_params = vec!["fen", "pgn", "help"];
         let save_params = vec!["fen", "pgn", "help"];
         let commands = vec![
-            "help", "quit", "load", "save", "play", "hint", "eval",
-            "undo", "move", "time", "show", "hide", "core", "hash",
-            "perft", "perftsuite", "testsuite", "divide", "xboard", "uci"
+            "help", "quit", "init", "load", "save", "play", "hint", "eval",
+            "undo", "move", "time", "show", "hide", "core", "hash", "perft",
+            "perftsuite", "testsuite", "divide", "xboard", "uci"
         ];
 
         let mut options = Vec::new();
