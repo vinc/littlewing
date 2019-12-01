@@ -30,6 +30,7 @@ impl FEN for Game {
         game
     }
 
+    // TODO: Return error if loading fail
     fn load_fen(&mut self, fen: &str) {
         self.clear();
         self.starting_fen = String::from(fen);
