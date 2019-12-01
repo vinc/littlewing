@@ -26,6 +26,8 @@ fn print_banner(mut board: String) {
     println!("                     `\"     ;  ``");
     if version.len() < 19 {
         version = format!("{}    \\   |   \\", version.bold());
+    } else {
+        version = format!("{}", version.bold());
     }
     println!("  {}", version);
     println!("                         '|-. _  \\");
