@@ -65,6 +65,7 @@ impl Search for Game {
 
     fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         self.reset_nodes_count();
+        self.reset_current_depth();
         self.tt.reset();
 
         // NOTE: `clear_all()` will zero everything internally, including
