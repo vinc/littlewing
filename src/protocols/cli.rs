@@ -36,6 +36,7 @@ pub struct CLI {
     play_side: Option<Color>,
     pub show_board: bool,
     pub show_san: bool,
+    pub prompt: String,
 }
 
 impl CLI {
@@ -52,6 +53,7 @@ impl CLI {
             play_side: None,
             show_board: false,
             show_san: true,
+            prompt: "> ".to_string(),
         }
     }
 
@@ -71,7 +73,7 @@ impl CLI {
                     map(|m| if self.show_san { self.game.move_to_san(m) } else { m.to_lan() }).collect();
             }
 
-            match rl.readline("> ") {
+            match rl.readline(&self.prompt) {
                 Ok(line) => {
                     rl.add_history_entry(line.as_str());
 
