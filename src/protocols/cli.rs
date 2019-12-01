@@ -81,7 +81,7 @@ impl CLI {
                     match args[0] {
                         ""                         => (),
                         "quit" | "q" | "exit"      => { break },
-                        "help" | "h"               => { self.cmd_usage() },
+                        "help" | "h"               => { self.cmd_usage("help") },
                         "init" | "i"               => { self.cmd_init() },
                         "load" | "l"               => { self.cmd_load(&args) },
                         "save" | "s"               => { self.cmd_save(&args) },
@@ -101,7 +101,7 @@ impl CLI {
                         "divide"                   => { self.cmd_divide(&args) },
                         "uci"                      => { self.cmd_uci(); break },
                         "xboard"                   => { self.cmd_xboard(); break },
-                        _                          => { self.cmd_error(&args); self.cmd_usage() }
+                        _                          => { self.cmd_error(&args); self.cmd_usage("") }
                     }
                 },
                 Err(_) => { break }
@@ -115,38 +115,47 @@ impl CLI {
         }
     }
 
-    fn cmd_usage(&self) {
-        println!();
-        println!("Commands:");
-        println!();
-        println!("  quit                      Exit this program");
-        println!("  help                      Display this screen");
-        println!("  init                      Initialize a new game");
-        println!("  load <options>            Load game from <options>");
-        println!("  save <options>            Save game to <options>");
-        println!("  hint                      Search the best move");
-        println!("  play [<color>]            Search and play [<color>] move[s]");
-        println!("  undo                      Undo the last move");
-        println!("  move <move>               Play <move> on the board");
-        println!();
-        println!("  show <feature>            Show <feature>");
-        println!("  hide <feature>            Hide <feature>");
-        println!("  time <moves> <time>       Set clock to <moves> in <time> (in seconds)");
-        println!("  hash <size>               Set the <size> of the memory (in MB)");
-        println!("  core <number>             Set the <number> of threads");
-        println!();
-        println!("  perft [<depth>]           Count the nodes at each depth");
-        println!("  perftsuite <epd>          Compare perft results to each position of <epd>");
-        println!("  testsuite <epd> [<time>]  Search each position of <epd> [for <time>]");
-        println!("  divide <depth>            Count the nodes at <depth> for each moves");
-        println!();
-        println!("  uci                       Start UCI mode");
-        println!("  xboard                    Start XBoard mode");
-        println!();
-        println!("Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>");
-        println!();
-        println!("Report bugs to https://github.com/vinc/littlewing/issues");
-        println!();
+    fn cmd_usage(&self, cmd: &str) {
+        let lines = vec![
+            "",
+            "Commands:",
+            "",
+            "  quit                      Exit this program",
+            "  help                      Display this screen",
+            "  init                      Initialize a new game",
+            "  load <options>            Load game from <options>",
+            "  save <options>            Save game to <options>",
+            "  hint                      Search the best move",
+            "  play [<color>]            Search and play [<color>] move[s]",
+            "  undo                      Undo the last move",
+            "  move <move>               Play <move> on the board",
+            "",
+            "  show <feature>            Show <feature>",
+            "  hide <feature>            Hide <feature>",
+            "  time <moves> <time>       Set clock to <moves> in <time> (in seconds)",
+            "  hash <size>               Set the <size> of the memory (in MB)",
+            "  core <number>             Set the <number> of threads",
+            "",
+            "  perft [<depth>]           Count the nodes at each depth",
+            "  perftsuite <epd>          Compare perft results to each position of <epd>",
+            "  testsuite <epd> [<time>]  Search each position of <epd> [for <time>]",
+            "  divide <depth>            Count the nodes at <depth> for each moves",
+            "",
+            "  uci                       Start UCI mode",
+            "  xboard                    Start XBoard mode",
+            "",
+            "Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>",
+            "",
+            "Report bugs to https://github.com/vinc/littlewing/issues",
+            "",
+        ];
+        for line in lines {
+            if line.starts_with(&format!("  {} ", cmd)) {
+                println!("{}", line.bold());
+            } else {
+                println!("{}", line);
+            }
+        }
     }
 
     fn cmd_config_usage(&self, value: bool) {
@@ -357,7 +366,7 @@ impl CLI {
                 "none"  => None,
                 _ => {
                     print_error("<color> should be either 'white', 'black', or 'none'");
-                    self.cmd_usage();
+                    self.cmd_usage("play");
                     return;
                 }
             };
@@ -442,7 +451,7 @@ impl CLI {
     fn cmd_move(&mut self, args: &[&str]) {
         if args.len() < 2 {
             print_error("no <move> given");
-            self.cmd_usage();
+            self.cmd_usage("move");
             return;
         }
         if let Some(parsed_move) = self.game.parse_move(args[1]) {
@@ -492,7 +501,7 @@ impl CLI {
             if args.len() < 2 {
                 print_error("no <moves> given");
             }
-            self.cmd_usage();
+            self.cmd_usage("time");
             return;
         }
         let moves = args[1].parse::<u16>().unwrap();
@@ -503,7 +512,7 @@ impl CLI {
     fn cmd_divide(&mut self, args: &[&str]) {
         if args.len() != 2 {
             print_error("no <depth> given");
-            self.cmd_usage();
+            self.cmd_usage("divide");
             return;
         }
         let d = args[1].parse::<Depth>().unwrap();
@@ -535,7 +544,7 @@ impl CLI {
     fn cmd_threads(&mut self, args: &[&str]) {
         if args.len() < 2 {
             print_error("no <number> given");
-            self.cmd_usage();
+            self.cmd_usage("core");
             return;
         }
         self.game.threads_count = args[1].parse::<usize>().unwrap();
@@ -544,7 +553,7 @@ impl CLI {
     fn cmd_memory(&mut self, args: &[&str]) {
         if args.len() < 2 {
             print_error("no <size> given");
-            self.cmd_usage();
+            self.cmd_usage("hash");
             return;
         }
         let memory = args[1].parse::<usize>().unwrap(); // In MB
@@ -588,7 +597,7 @@ impl CLI {
 
         if args.len() == 1 {
             print_error("no <epd> given");
-            self.cmd_usage();
+            self.cmd_usage("perftsuite");
             return;
         }
         let path = Path::new(args[1]);
@@ -624,7 +633,7 @@ impl CLI {
     fn cmd_testsuite(&mut self, args: &[&str]) {
         if args.len() == 1 {
             print_error("no <epd> given");
-            self.cmd_usage();
+            self.cmd_usage("testsuite");
             return;
         }
         let time = if args.len() == 3 {
