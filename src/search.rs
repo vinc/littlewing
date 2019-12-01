@@ -24,8 +24,8 @@ pub trait Search {
     /// Searh the best move at the given depth range
     fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove>;
 
-    /// Searh the best move from the root position at the given depth range
-    fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove>;
+    /// Searh the best score and move from the root position at the given depth range
+    fn search_root(&mut self, depths: Range<Depth>) -> Option<(Score, PieceMove)>;
 
     /// Searh the best score between alpha and beta from a node position at the given depth
     fn search_node(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
@@ -86,7 +86,10 @@ impl Search for Game {
         }
 
         if n == 0 {
-            return self.search_root(depths);
+            return match self.search_root(depths) {
+                Some((_, m)) => Some(m),
+                None => None
+            }
         }
 
         //self.clock.polling_nodes_count *= n as u64;
@@ -113,15 +116,21 @@ impl Search for Game {
             }).unwrap());
         }
 
-        let mut res = Vec::with_capacity(n);
+        let mut best_score = -INF;
+        let mut best_move = None;
         for child in children {
-            res.push(child.join().unwrap());
+            if let Some((s, m)) = child.join().unwrap() {
+                if s >= best_score {
+                    best_score = s;
+                    best_move = Some(m);
+                }
+            }
         }
 
-        res[0] // best move found by the first thread
+        best_move
     }
 
-    fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
+    fn search_root(&mut self, depths: Range<Depth>) -> Option<(Score, PieceMove)> {
         let hash = self.positions.top().hash;
         let side = self.side();
         let ply = 0;
@@ -253,7 +262,7 @@ impl Search for Game {
         if best_move.is_null() {
             None
         } else {
-            Some(best_move)
+            Some((best_score, best_move))
         }
     }
 
