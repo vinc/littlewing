@@ -74,6 +74,9 @@ pub mod fen;
 /// Game engine
 pub mod game;
 
+/// Portable Game Notation support
+pub mod pgn;
+
 /// Piece move generator
 pub mod piece_move_generator;
 
