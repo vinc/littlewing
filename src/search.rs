@@ -411,8 +411,7 @@ impl Search for Game {
 
                 if fp_allowed && depth == 1 {
                     let margin = 100;
-                    let score = self.eval_material(side)
-                        - self.eval_material(side ^ 1);
+                    let score = self.eval_material(side) - self.eval_material(side ^ 1);
 
                     if score + margin < alpha {
                         self.undo_move(m);
