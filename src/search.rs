@@ -89,7 +89,7 @@ impl Search for Game {
             return self.search_root(depths);
         }
 
-        self.clock.polling_nodes_count *= n as u64;
+        //self.clock.polling_nodes_count *= n as u64;
 
         let mut children = Vec::with_capacity(n);
 
