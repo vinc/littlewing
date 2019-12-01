@@ -65,7 +65,7 @@ impl Game {
         }
     }
 
-    pub fn current_depth(&mut self) -> Depth {
+    pub fn current_depth(&self) -> Depth {
         self.current_depth.load(Ordering::Relaxed) as Depth
     }
 
