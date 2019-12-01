@@ -177,13 +177,24 @@ impl Search for Game {
 
             // Mate pruning
             if depth > 6 {
-                // Stop the search if the position was already mate at
-                // previous shallower depths.
+                // Stop the search if the position was already mate at the last
+                // 3 previous shallower depths.
                 let mut is_mate = true;
+                let mut i = 0;
                 let inf = INF - (MAX_PLY as Score);
                 for d in (0..depth).rev() {
-                    let score = best_scores[d as usize];
-                    if -inf < score && score < inf {
+                    let s = best_scores[d as usize];
+                    let m = best_moves[d as usize];
+
+                    // Count only the depths that have not been skipped
+                    if s != 0 || !m.is_null() {
+                        i += 1;
+                    }
+                    if i > 3 {
+                        break;
+                    }
+
+                    if -inf < s && s < inf {
                         is_mate = false;
                         break;
                     }
