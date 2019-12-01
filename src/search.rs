@@ -153,15 +153,15 @@ impl Search for Game {
 
         debug_assert!(depths.start > 0);
         for mut depth in depths {
-            if self.threads_count > 1 {
+            if depth > 1 {
                 if depth > self.current_depth() {
                     self.set_current_depth(depth);
-                } if depth < self.current_depth() {
+                } else if depth < self.current_depth() {
                     continue;
                 }
 
                 // Half of the threads should search at depth + 1
-                if self.threads_index >= self.threads_count / 2 {
+                if self.threads_count > 0 && self.threads_index >= self.threads_count / 2 {
                     depth += 1;
                 }
             }
@@ -200,10 +200,7 @@ impl Search for Game {
                 }
 
                 // Discard search at this depth if another thread finished it
-                if depth < self.current_depth() {
-                    if let Some(t) = self.tt.get(hash) {
-                        best_move = t.best_move();
-                    }
+                if 1 < depth && depth < self.current_depth() {
                     break;
                 }
 
