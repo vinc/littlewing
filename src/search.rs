@@ -176,12 +176,12 @@ impl Search for Game {
 
             // Mate pruning
             if depth > 6 {
-                // Stop the search if the position was mate at the 3 previous
-                // shallower depths.
+                // Stop the search if the position was already mate at
+                // previous shallower depths.
                 let mut is_mate = true;
                 let inf = INF - (MAX_PLY as Score);
-                for d in 1..4 {
-                    let score = best_scores[(depth - d) as usize];
+                for d in (0..depth).rev() {
+                    let score = best_scores[d as usize];
                     if -inf < score && score < inf {
                         is_mate = false;
                         break;
@@ -229,26 +229,32 @@ impl Search for Game {
                 self.undo_move(m);
             }
 
+            if 1 < depth && depth < self.current_depth() {
+                continue;
+            }
+
+            // Break from iterative deepening
+            if !has_legal_moves || self.clock.poll(self.nodes_count()) {
+                //println!("# thread #{} is leaving iterative deepening at depth {}", self.threads_index, depth);
+                break;
+            }
+
             // Save the best move only if we found one and if we still have
             // some time left after the search at this depth.
-            if !best_moves[depth as usize].is_null() && !self.clock.poll(self.nodes_count()) && depth >= self.current_depth() {
+            if !best_moves[depth as usize].is_null() {
                 best_move = best_moves[depth as usize];
                 best_score = best_scores[depth as usize];
 
                 self.tt.set(hash, depth, best_score, best_move, Bound::Exact);
             }
 
-            // No need to iterate if there's no legal moves to play
-            if !has_legal_moves {
-                break;
-            }
         }
 
         self.clock.stop();
 
         if self.is_debug {
-            let n = self.nodes_count();
             let t = self.clock.elapsed_time();
+            let n = self.nodes_count();
             let nps = (n as f64) / ((t as f64) / 1000.0);
             if self.is_search_verbose {
                 println!();
