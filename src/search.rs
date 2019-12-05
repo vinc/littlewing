@@ -167,14 +167,6 @@ impl Search for Game {
                 }
             }
 
-            let mut alpha = -INF;
-            let beta = INF;
-
-            self.moves.clear();
-            if !best_move.is_null() {
-                self.moves.add_move(best_move);
-            }
-
             // Mate pruning
             if depth > 6 {
                 // Stop the search if the position was already mate at the last
@@ -202,6 +194,14 @@ impl Search for Game {
                 if is_mate {
                     break;
                 }
+            }
+
+            let mut alpha = -INF;
+            let beta = INF;
+
+            self.moves.clear();
+            if !best_move.is_null() {
+                self.moves.add_move(best_move);
             }
 
             let mut has_legal_moves = false;
