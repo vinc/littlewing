@@ -255,7 +255,7 @@ impl Search for Game {
 
         // Try to get the best move from transposition_table table
         if let Some(t) = self.tt.get(hash) {
-            if t.depth() >= depth { // This node has already been searched
+            if !is_pv && t.depth() >= depth {
                 match t.bound() {
                     Bound::Exact => {
                         return t.score();
