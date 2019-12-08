@@ -92,7 +92,7 @@ impl CLI {
                         "init" | "i"               => { self.cmd_init() },
                         "load" | "l"               => { self.cmd_load(&args) },
                         "save" | "s"               => { self.cmd_save(&args) },
-                        "play" | "p" | "go"        => { self.cmd_play(&args) },
+                        "play" | "p"               => { self.cmd_play(&args) },
                         "hint"                     => { self.cmd_hint() },
                         "eval" | "e"               => { self.cmd_eval() },
                         "undo" | "u"               => { self.cmd_undo() },
@@ -120,6 +120,8 @@ impl CLI {
                         Err(e) => {
                             print_error(&e.to_string());
                             match args[0] {
+                                "play" | "p" => Ok(State::Running),
+                                "move" | "m" => Ok(State::Running),
                                 "load" | "l" => self.cmd_load_usage(),
                                 "save" | "s" => self.cmd_save_usage(),
                                 "show"       => self.cmd_config_usage(true),
