@@ -152,7 +152,7 @@ impl ToPGN for Game {
         pgn.set_result(result);
 
         let moves = self.history.clone();
-        self.load_fen(&starting_fen);
+        self.load_fen(&starting_fen).unwrap();
 
         let mut first_move = true;
         let mut line = String::new();
@@ -199,7 +199,7 @@ impl LoadPGN for Game {
     fn load_pgn(&mut self, pgn: PGN) {
         self.clear();
         let starting_fen = pgn.headers.get("FEN").map_or(DEFAULT_FEN, String::as_str);
-        self.load_fen(starting_fen);
+        self.load_fen(starting_fen).unwrap();
         let mut comment_level = 0;
         let mut variation_level = 0;
         for line in pgn.body.lines() {
@@ -238,7 +238,7 @@ mod tests {
 
     #[test]
     fn test_game_to_pgn() {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         let moves = vec![
             PieceMove::new(F2, F3, QUIET_MOVE),
             PieceMove::new(E7, E5, DOUBLE_PAWN_PUSH),

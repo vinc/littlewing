@@ -453,7 +453,7 @@ mod tests {
     use super::*;
 
     fn perft(fen: &str) -> usize {
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         game.moves.next_stage();
         game.generate_moves(); // Captures
@@ -496,7 +496,7 @@ mod tests {
 
     #[test]
     fn test_make_move_hash() {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E3, QUIET_MOVE));
         game.make_move(PieceMove::new(E7, E6, QUIET_MOVE));
         game.make_move(PieceMove::new(E3, E4, QUIET_MOVE));
@@ -505,7 +505,7 @@ mod tests {
         game.make_move(PieceMove::new(G1, F3, QUIET_MOVE));
         let hash2 = game.positions.top().hash;
 
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         game.make_move(PieceMove::new(E7, E5, DOUBLE_PAWN_PUSH));
         // This position is identical to hash1 except for the en passant
@@ -526,7 +526,7 @@ mod tests {
 
     #[test]
     fn test_make_undo_move_hash() {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         let hash = game.positions.top().hash;
 
         let moves = vec![
@@ -548,7 +548,7 @@ mod tests {
             game.make_move(*m);
             let fen = game.to_fen();
             println!("{} {}", fen, m.to_lan());
-            let copy = Game::from_fen(&fen);
+            let copy = Game::from_fen(&fen).unwrap();
             assert_eq!(copy.to_fen().as_str(), fen);
             assert_eq!(copy.positions.top().hash, game.positions.top().hash);
         }
@@ -556,7 +556,7 @@ mod tests {
         for m in moves.iter().rev() {
             game.undo_move(*m);
             let fen = game.to_fen();
-            let copy = Game::from_fen(&fen);
+            let copy = Game::from_fen(&fen).unwrap();
             assert_eq!(copy.to_fen().as_str(), fen);
             assert_eq!(copy.positions.top().hash, game.positions.top().hash);
         }
@@ -578,7 +578,7 @@ mod tests {
         ];
 
         for (m, fen) in moves.iter().zip(fens) {
-            let mut game = Game::from_fen(DEFAULT_FEN);
+            let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
             let hash = game.positions.top().hash;
 
             game.make_move(*m);
@@ -598,7 +598,7 @@ mod tests {
         ];
         let m = PieceMove::new(B5, C6, CAPTURE);
 
-        let mut game = Game::from_fen(fens[0]);
+        let mut game = Game::from_fen(fens[0]).unwrap();
         assert_eq!(game.to_fen().as_str(), fens[0]);
         assert_eq!(game.positions.len(), 1);
         assert_eq!(game.positions.top().capture, EMPTY);
@@ -624,7 +624,7 @@ mod tests {
 
     #[test]
     fn test_mvv_lva() {
-        let mut game = Game::from_fen("8/8/8/8/8/1Qn5/1PpK1k2/8 w - - 0 1");
+        let mut game = Game::from_fen("8/8/8/8/8/1Qn5/1PpK1k2/8 w - - 0 1").unwrap();
 
         assert_eq!(game.mvv_lva(PieceMove::new(B2, C3, CAPTURE)), 15); // PxN
         assert_eq!(game.mvv_lva(PieceMove::new(B3, C3, CAPTURE)), 11); // QxN
@@ -650,7 +650,7 @@ mod tests {
     #[test]
     fn test_make_move_update_halfmoves_count() {
         let fen = "7r/k7/7p/r2p3P/p2PqB2/2R3P1/5K2/3Q3R w - - 25 45";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         assert_eq!(game.positions.top().halfmoves_count, 25);
 
@@ -667,7 +667,7 @@ mod tests {
     #[test]
     fn test_next_move() {
         let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         game.moves.add_move(PieceMove::new(C2, C3, QUIET_MOVE)); // Best move
 
@@ -686,14 +686,14 @@ mod tests {
     #[test]
     fn test_next_capture() {
         let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         assert_eq!(game.next_capture(), Some(PieceMove::new(C2, B3, CAPTURE)));
         assert_eq!(game.next_capture(), Some(PieceMove::new(A1, B3, CAPTURE)));
         assert_eq!(game.next_capture(), None);
 
         let fen = "k1K5/8/2p1N3/1p6/2rp1n2/1P2P3/3Q4/8 w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         let b3c4 = PieceMove::new(B3, C4, CAPTURE);
         let e3f4 = PieceMove::new(E3, F4, CAPTURE);
@@ -719,7 +719,7 @@ mod tests {
     #[test]
     fn test_is_legal_move() {
         let fen = "k1K5/8/8/8/8/1p6/2P5/N7 w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         assert!(game.is_legal_move(PieceMove::new(C2, C3, QUIET_MOVE)));
         assert!(game.is_legal_move(PieceMove::new(C2, B3, CAPTURE)));
@@ -741,7 +741,7 @@ mod tests {
     #[test]
     fn test_moves_order() {
         let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         let capture = game.move_from_lan("e4d5");
         let first_quiet_move = game.move_from_lan("a2a3");
@@ -763,7 +763,7 @@ mod tests {
     #[test]
     fn test_moves_order_with_best_and_killer_moves() {
         let fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         let capture = game.move_from_lan("e4d5");
         let first_quiet_move = game.move_from_lan("a2a3");
@@ -794,7 +794,7 @@ mod tests {
     fn test_moves_order_when_best_move_is_quiet_move() {
         // Ruy Lopez Opening: Morphy Defense (1. e4 e5 2. Nf3 Nc6 3. Bb5 a6)
         let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         let best_move     = game.move_from_lan("b5a4");
         let good_capture  = game.move_from_lan("b5c6");
@@ -827,7 +827,7 @@ mod tests {
     fn test_moves_order_when_best_move_is_bad_capture() {
         // Ruy Lopez Opening: Morphy Defense (1. e4 e5 2. Nf3 Nc6 3. Bb5 a6)
         let fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         let good_capture  = game.move_from_lan("b5c6");
         let bad_capture_1 = game.move_from_lan("f3e5");

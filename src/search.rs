@@ -663,47 +663,47 @@ mod tests {
         let mut game = Game::new();
 
         // Initial position
-        game.load_fen(DEFAULT_FEN);
+        game.load_fen(DEFAULT_FEN).unwrap();
         assert_eq!(game.perft(1), 20);
         assert_eq!(game.perft(2), 400);
         assert_eq!(game.perft(3), 8902);
         assert_eq!(game.perft(4), 197281);
 
         let fen = "7k/8/8/p7/1P6/8/8/7K b - - 0 1";
-        game.load_fen(fen);
+        game.load_fen(fen).unwrap();
         assert_eq!(game.perft(1), 5);
 
         let fen = "k6K/8/8/b6b/8/8/8/8 b - - 0 1";
-        game.load_fen(fen);
+        game.load_fen(fen).unwrap();
         assert_eq!(game.perft(1), 17);
 
         let fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -";
-        game.load_fen(fen);
+        game.load_fen(fen).unwrap();
         assert_eq!(game.perft(1), 14);
         assert_eq!(game.perft(2), 191);
         assert_eq!(game.perft(3), 2812);
 
         let fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
-        game.load_fen(fen);
+        game.load_fen(fen).unwrap();
         assert_eq!(game.perft(1), 6);
         assert_eq!(game.perft(2), 264);
         assert_eq!(game.perft(3), 9467);
 
         let fen = "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1";
-        game.load_fen(fen);
+        game.load_fen(fen).unwrap();
         assert_eq!(game.perft(1), 6);
         assert_eq!(game.perft(2), 264);
         assert_eq!(game.perft(3), 9467);
 
         // Kiwipete position
         let fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
-        game.load_fen(fen);
+        game.load_fen(fen).unwrap();
         assert_eq!(game.perft(1), 48);
         assert_eq!(game.perft(2), 2039);
         assert_eq!(game.perft(3), 97862);
 
         let fen = "rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6";
-        game.load_fen(fen);
+        game.load_fen(fen).unwrap();
         assert_eq!(game.perft(1), 42);
         assert_eq!(game.perft(2), 1352);
         assert_eq!(game.perft(3), 53392);
@@ -712,7 +712,7 @@ mod tests {
     #[test]
     fn test_search_node() {
         let fen = "4k3/8/4q3/8/8/4Q3/8/4K3 w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         game.nodes_count = 0;
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
@@ -731,7 +731,7 @@ mod tests {
 
     #[test]
     fn test_stalemate() {
-        let mut game = Game::from_fen("4k3/4P3/4K3/8/8/8/8/ b - - 0 1");
+        let mut game = Game::from_fen("4k3/4P3/4K3/8/8/8/8/ b - - 0 1").unwrap();
 
         game.nodes_count = 0;
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
@@ -750,7 +750,7 @@ mod tests {
     #[test]
     fn test_threefold_repetition() {
         // Fischer vs Petrosian (1971)
-        let mut game = Game::from_fen("8/pp3p1k/2p2q1p/3r1P1Q/5R2/7P/P1P2P2/7K w - - 1 30");
+        let mut game = Game::from_fen("8/pp3p1k/2p2q1p/3r1P1Q/5R2/7P/P1P2P2/7K w - - 1 30").unwrap();
         let moves = vec!["h5e2", "f6e5", "e2h5", "e5f6", "h5e2", "d5e5", "e2d3", "e5d5", "d3e2"];
         for s in moves {
             let m = game.move_from_lan(s);
@@ -775,7 +775,7 @@ mod tests {
     #[test]
     fn test_fifty_move_rule() {
         // Timman vs Lutz (1995)
-        let mut game = Game::from_fen("8/7k/8/1r3KR1/5B2/8/8/8 w - - 105 122");
+        let mut game = Game::from_fen("8/7k/8/1r3KR1/5B2/8/8/8 w - - 105 122").unwrap();
 
         game.nodes_count = 0;
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
@@ -795,7 +795,7 @@ mod tests {
     fn test_search() {
         let fen = "2k4r/ppp3pp/8/2b2p1P/PPP2p2/N4P2/3r2K1/1q5R w - - 4 29";
         let best_move = PieceMove::new(G2, H3, QUIET_MOVE);
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         let m = game.search(1..10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
@@ -803,14 +803,14 @@ mod tests {
 
         let fen = "r1bq2rk/pp3pbp/2p1p1pQ/7P/3P4/2PB1N2/PP3PPR/2KR4 w - -";
         let best_move = PieceMove::new(H6, H7, CAPTURE);
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         let m = game.search(1..10).unwrap();
         assert_eq!(m.to_string(), best_move.to_string());
 
 
         let fen = "1n6/2rp3p/5Bpk/2p1P3/p1P2P2/5K2/PPB3P1/R6R b - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         game.clock = Clock::new(1, 1 * 1000); // 1 seconds
         assert_eq!(game.search(1..10), None);
     }
@@ -818,7 +818,7 @@ mod tests {
     #[test]
     fn test_bug_promotion() {
         let fen = "5n2/1k4P1/8/8/8/8/6K1/8 w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         let m = PieceMove::new(G7, G8, KNIGHT_PROMOTION);
         game.make_move(m);
@@ -841,7 +841,7 @@ mod tests {
     #[test]
     fn test_repetitions() {
         let fen = "7r/k7/7p/r2p3P/p2PqB2/2R3P1/5K2/3Q3R w - - 25 45";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         let m1 = PieceMove::new(F2, G1, QUIET_MOVE);
         let m2 = PieceMove::new(A7, B7, QUIET_MOVE);
@@ -864,7 +864,7 @@ mod tests {
     fn test_null_move_pruning() {
         // Zugzwang #1
         let fen = "1q1k4/2Rr4/8/2Q3K1/8/8/8/8 w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         game.clock = Clock::new(1, 5000); // 1 second
         let m = game.search(1..100).unwrap();
         assert_eq!(m, PieceMove::new(G5, H6, QUIET_MOVE));
@@ -873,7 +873,7 @@ mod tests {
         /*
         //FIXME: this position takes too long at the moment
         let fen = "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         game.clock = Clock::new(1, 1000); // 1 second
         let m = game.search(1..100).unwrap();
         assert_eq!(m, PieceMove::new(E1, F1, QUIET_MOVE));
@@ -883,7 +883,7 @@ mod tests {
     #[test]
     fn test_is_mate() {
         let fen = "rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert!(!game.is_mate());
         game.make_move(PieceMove::new(D8, H4, QUIET_MOVE));
         assert!(game.is_mate());
@@ -891,10 +891,7 @@ mod tests {
 
     #[test]
     fn test_get_moves() {
-        let mut game = Game::new();
-
-        // Initial position
-        game.load_fen("8/8/8/8/r7/1k6/8/K7 w - - 0 1");
+        let mut game = Game::from_fen("8/8/8/8/r7/1k6/8/K7 w - - 0 1").unwrap();
         assert_eq!(game.get_moves(), vec![PieceMove::new(A1, B1, QUIET_MOVE)])
     }
 }

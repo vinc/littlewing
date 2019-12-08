@@ -126,7 +126,7 @@ mod tests {
     #[test]
     fn test_draw() {
         colored::control::set_override(false);
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         assert_eq!(format!("{}", game), PIECES_WITHOUT_COORDS);
     }
@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn test_draw_with_coordinates() {
         colored::control::set_override(false);
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.show_coordinates = true;
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         assert_eq!(format!("{}", game), PIECES_WITH_COORDS);
@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn test_draw_compact_with_coordinates() {
         colored::control::set_override(false);
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         let bb = game.bitboards[WHITE as usize] | game.bitboards[BLACK as usize];
         assert_eq!(format!("{}", bb.to_debug_string()), BITBOARD_WITH_COORDS);

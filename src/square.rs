@@ -81,7 +81,7 @@ pub trait SquareExt {
 }
 
 impl SquareExt for Square {
-    fn from_coord(s: &str) -> Self {
+    fn from_coord(s: &str) -> Self { // TODO: -> Option<Self>
         let bytes = s.as_bytes();
 
         ((bytes[0] - b'a') + 8 * (bytes[1] - b'1')) as Square
