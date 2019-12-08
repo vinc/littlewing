@@ -586,7 +586,12 @@ impl CLI {
             print!("{} -> ", fen);
             self.game.load_fen(fen)?;
             for field in fields {
-                let mut it = field.trim().split(' ');
+                let field = field.trim();
+                if !field.starts_with("D") {
+                    println!("");
+                    return Err("invalid perftsuite epd format".into());
+                }
+                let mut it = field.split(' ');
                 let d = it.next().unwrap()[1..].parse::<Depth>()?;
                 let n = it.next().unwrap().parse::<u64>()?;
                 if self.game.perft(d) == n {
@@ -615,8 +620,13 @@ impl CLI {
         let file = fs::read_to_string(&path)?;
         let mut found_count = 0;
         let mut total_count = 0;
-        for line in file.lines() {
-            let line = line.split(";").next().unwrap();
+        for mut line in file.lines() {
+            if let Some(i) = line.find(";") {
+                line = &line[0..i];
+            }
+            if !line.contains(" am ") && !line.contains(" bm ") {
+                return Err("invalid testsuite epd format".into());
+            }
 
             let i = line.find("m ").unwrap() - 1;
             let (fen, rem) = line.split_at(i);
