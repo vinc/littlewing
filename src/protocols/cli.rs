@@ -296,7 +296,7 @@ impl CLI {
                 return self.cmd_load_usage();
             }
             _ => {
-                return Err(format!("unrecognized subcommand '{}'", args[1]).into());
+                return Err(format!("unknown subcommand '{}'", args[1]).into());
             }
         }
 
@@ -342,7 +342,7 @@ impl CLI {
                 return self.cmd_save_usage();
             }
             _ => {
-                return Err(format!("unrecognized subcommand '{}'", args[1]).into());
+                return Err(format!("unknown subcommand '{}'", args[1]).into());
             }
         }
 
@@ -381,7 +381,7 @@ impl CLI {
                 return self.cmd_config_usage(value);
             }
             _ => {
-                return Err(format!("unrecognized subcommand '{}'", args[1]).into());
+                return Err(format!("unknown subcommand '{}'", args[1]).into());
             }
         }
 
