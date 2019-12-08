@@ -22,7 +22,7 @@ pub struct XBoard {
 impl XBoard {
     pub fn new() -> XBoard {
         XBoard {
-            game: Game::from_fen(DEFAULT_FEN),
+            game: Game::from_fen(DEFAULT_FEN).unwrap(),
             max_depth: (MAX_PLY - 10) as Depth,
             force: false
         }
@@ -63,7 +63,7 @@ impl XBoard {
     fn cmd_new(&mut self) {
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
-        self.game.load_fen(DEFAULT_FEN);
+        self.game.load_fen(DEFAULT_FEN).unwrap();
     }
 
     fn cmd_go(&mut self) {
@@ -112,7 +112,7 @@ impl XBoard {
         let fen = args[1..].join(" ");
 
         self.game.clear();
-        self.game.load_fen(&fen);
+        self.game.load_fen(&fen).unwrap();
     }
 
     fn cmd_level(&mut self, args: &[&str]) {

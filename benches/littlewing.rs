@@ -15,7 +15,7 @@ use littlewing::search::Search;
 
 #[bench]
 fn bench_next_move(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
 
     b.iter(|| {
         let mut n = 0;
@@ -29,7 +29,7 @@ fn bench_next_move(b: &mut Bencher) {
 
 #[bench]
 fn bench_next_move_without_ordering(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
     game.moves.skip_ordering = true;
 
     b.iter(|| {
@@ -44,7 +44,7 @@ fn bench_next_move_without_ordering(b: &mut Bencher) {
 
 #[bench]
 fn bench_make_undo_move(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
     let m = game.move_from_lan("e2e4");
 
     b.iter(|| {
@@ -55,7 +55,7 @@ fn bench_make_undo_move(b: &mut Bencher) {
 
 #[bench]
 fn bench_eval(b: &mut Bencher) {
-    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
 
     b.iter(|| {
         game.eval()
@@ -64,7 +64,7 @@ fn bench_eval(b: &mut Bencher) {
 
 #[bench]
 fn bench_eval_material(b: &mut Bencher) {
-    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
 
     b.iter(|| {
         game.eval_material(color::WHITE)
@@ -73,7 +73,7 @@ fn bench_eval_material(b: &mut Bencher) {
 
 #[bench]
 fn bench_see(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkb1r/pp2pppp/2p2n2/1B1p4/4P3/2N5/PPPP1PPP/R1BQK1NR w KQkq - 0 4");
+    let mut game = Game::from_fen("rnbqkb1r/pp2pppp/2p2n2/1B1p4/4P3/2N5/PPPP1PPP/R1BQK1NR w KQkq - 0 4").unwrap();
     let m = game.move_from_lan("c2d5");
 
     b.iter(|| {
@@ -83,7 +83,7 @@ fn bench_see(b: &mut Bencher) {
 
 #[bench]
 fn bench_search(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
 
     b.iter(|| {
         game.search(1..5)
@@ -92,7 +92,7 @@ fn bench_search(b: &mut Bencher) {
 
 #[bench]
 fn bench_perft(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
     b.iter(|| {
         game.perft(3)
     });
@@ -100,7 +100,7 @@ fn bench_perft(b: &mut Bencher) {
 
 #[bench]
 fn bench_move_from_lan(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
     b.iter(|| {
         game.move_from_lan("e2e4");
     });
@@ -108,7 +108,7 @@ fn bench_move_from_lan(b: &mut Bencher) {
 
 #[bench]
 fn bench_move_from_san(b: &mut Bencher) {
-    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
     b.iter(|| {
         game.move_from_san("e4");
     });

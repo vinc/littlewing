@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn test_move_from_lan() {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
 
         let m = game.move_from_lan("e2e4");
         assert_eq!(m, PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_move_from_lan_checked() {
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
 
         let m = game.move_from_lan_checked("e2e4");
         assert_eq!(m, Some(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH)));
@@ -244,13 +244,13 @@ mod tests {
     #[test]
     fn test_move_to_san() {
         let fen = "7k/3P1ppp/4PQ2/8/8/8/8/6RK w - - 0 1";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
 
         // NOTE: This move should end with `#` but this is added in `search::get_pv()`.
         assert_eq!(game.move_to_san(PieceMove::new(F6, G7, CAPTURE)), "Qxg7");
 
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p1pP/2NPP3/1B3N2/1PPB1PP1/R3K2R w KQ g6 0 25";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert_eq!(game.move_to_san(PieceMove::new(D4, E5, CAPTURE)), "dxe5");
         assert_eq!(game.move_to_san(PieceMove::new(F3, E5, CAPTURE)), "Nfxe5");
         assert_eq!(game.move_to_san(PieceMove::new(C4, E5, CAPTURE)), "Ncxe5");
@@ -258,12 +258,12 @@ mod tests {
         assert_eq!(game.move_to_san(PieceMove::new(H5, G6, EN_PASSANT)), "hxg6");
 
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p2P/2NPP1p1/1B3N2/1PPB1PP1/R4RK1 w - - 0 26";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert_eq!(game.move_to_san(PieceMove::new(A1, E1, QUIET_MOVE)), "Rae1");
         assert_eq!(game.move_to_san(PieceMove::new(F1, E1, QUIET_MOVE)), "Rfe1");
 
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/Rp2p2P/2NPP1p1/1B3N2/1PPB1PP1/R5K1 w - - 4 28";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert_eq!(game.move_to_san(PieceMove::new(A5, A4, QUIET_MOVE)), "R5a4");
         assert_eq!(game.move_to_san(PieceMove::new(A1, A4, QUIET_MOVE)), "R1a4");
     }
@@ -271,7 +271,7 @@ mod tests {
     #[test]
     fn test_move_from_san() {
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p1pP/2NPP3/1B3N2/1PPB1PP1/R3K2R w KQ g6 0 25";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert_eq!(game.move_from_san("none"), None);
         assert_eq!(game.move_from_san("O-O"), Some(PieceMove::new(E1, G1, KING_CASTLE)));
         assert_eq!(game.move_from_san("O-O-O"), Some(PieceMove::new(E1, C1, QUEEN_CASTLE)));
@@ -296,7 +296,7 @@ mod tests {
         }
 
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p2P/2NPP1p1/1B3N2/1PPB1PP1/R4RK1 w - - 0 26";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert_eq!(game.move_from_san("Rae1"), Some(PieceMove::new(A1, E1, QUIET_MOVE)));
         assert_eq!(game.move_from_san("Rfe1"), Some(PieceMove::new(F1, E1, QUIET_MOVE)));
         for m in game.get_moves() {
@@ -305,7 +305,7 @@ mod tests {
         }
 
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/Rp2p2P/2NPP1p1/1B3N2/1PPB1PP1/R5K1 w - - 4 28";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert_eq!(game.move_from_san("R5a4"), Some(PieceMove::new(A5, A4, QUIET_MOVE)));
         assert_eq!(game.move_from_san("R1a4"), Some(PieceMove::new(A1, A4, QUIET_MOVE)));
         for m in game.get_moves() {
@@ -317,7 +317,7 @@ mod tests {
     #[test]
     fn test_parse_move() {
         let fen = "1q3rk1/Pbpp1p1p/2nb1n1Q/1p2p1pP/2NPP3/1B3N2/1PPB1PP1/R3K2R w KQ g6 0 25";
-        let mut game = Game::from_fen(fen);
+        let mut game = Game::from_fen(fen).unwrap();
         assert_eq!(game.parse_move("O-O"), Some(PieceMove::new(E1, G1, KING_CASTLE)));
         assert_eq!(game.parse_move("O-O-O"), Some(PieceMove::new(E1, C1, QUEEN_CASTLE)));
         assert_eq!(game.parse_move("g3"), Some(PieceMove::new(G2, G3, QUIET_MOVE)));

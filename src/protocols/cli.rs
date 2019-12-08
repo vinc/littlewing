@@ -46,7 +46,7 @@ enum State {
 impl CLI {
     pub fn new() -> CLI {
         // Load startup position
-        let mut game = Game::from_fen(DEFAULT_FEN);
+        let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
 
         // Set default clock to 40 moves in 5 minutes
         game.clock = Clock::new(40, 5 * 60 * 1000);
@@ -250,7 +250,7 @@ impl CLI {
     fn cmd_init(&mut self) -> Result<State, Box<dyn Error>> {
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
-        self.game.load_fen(DEFAULT_FEN);
+        self.game.load_fen(DEFAULT_FEN)?;
 
         if self.show_board {
             println!();
@@ -270,7 +270,7 @@ impl CLI {
                     return Err("no fen string given".into());
                 }
                 let fen = args[2..].join(" ");
-                self.game.load_fen(&fen);
+                self.game.load_fen(&fen)?;
             },
             "pgn" => {
                 if args.len() == 2 {
@@ -584,7 +584,7 @@ impl CLI {
             let mut fields = line.split(';');
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
-            self.game.load_fen(fen);
+            self.game.load_fen(fen)?;
             for field in fields {
                 let mut it = field.trim().split(' ');
                 let d = it.next().unwrap()[1..].parse::<Depth>()?;
@@ -624,7 +624,7 @@ impl CLI {
 
             print!("{}{}{} -> ", fen, mt, moves);
 
-            self.game.load_fen(fen);
+            self.game.load_fen(fen)?;
             self.game.clock = Clock::new(1, time * 1000);
 
             let n = self.max_depth;

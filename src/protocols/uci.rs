@@ -24,7 +24,7 @@ pub struct UCI {
 impl UCI {
     pub fn new() -> UCI {
         UCI {
-            game: Game::from_fen(DEFAULT_FEN),
+            game: Game::from_fen(DEFAULT_FEN).unwrap(),
             max_depth: (MAX_PLY - 10) as Depth,
             searcher: None,
             print_bestmove: Arc::new(AtomicBool::new(false))
@@ -142,7 +142,7 @@ impl UCI {
             }
         }
 
-        self.game.load_fen(&fen.join(" "));
+        self.game.load_fen(&fen.join(" ")).unwrap();
 
         for s in moves {
             let m = self.game.move_from_lan(s);
