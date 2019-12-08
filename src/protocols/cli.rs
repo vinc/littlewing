@@ -269,6 +269,9 @@ impl CLI {
 
         match args[1] {
             "fen" => {
+                if args.len() == 2 {
+                    return Err("no fen string given".into());
+                }
                 let fen = args[2..].join(" ");
                 self.game.load_fen(&fen);
             },
