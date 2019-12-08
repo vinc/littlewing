@@ -9,8 +9,6 @@ use time::precise_time_s;
 use std::io;
 use std::fs;
 use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::error::Error;
@@ -118,10 +116,9 @@ impl CLI {
                         Ok(State::Running) => {
                         },
                         Err(e) => {
-                            print_error(&e.to_string());
+                            print_error(&e.to_string().to_lowercase());
                             match args[0] {
-                                "play" | "p" => Ok(State::Running),
-                                "move" | "m" => Ok(State::Running),
+                                "move" | "m" => Ok(State::Running), // Skip usage on common errors
                                 "load" | "l" => self.cmd_load_usage(),
                                 "save" | "s" => self.cmd_save_usage(),
                                 "show"       => self.cmd_config_usage(true),
@@ -280,12 +277,7 @@ impl CLI {
                     return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
-                let pgn_str = match fs::read_to_string(path) {
-                    Ok(pgn_str) => pgn_str,
-                    Err(error) => {
-                        return Err(format!("{}", error).to_lowercase().into());
-                    }
-                };
+                let pgn_str = fs::read_to_string(path)?;
                 // TODO: Add cmd arg to select which game to load in PGN file
                 // that have more than one game. Right now the last one will
                 // be loaded.
@@ -322,13 +314,7 @@ impl CLI {
                     return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
-                let mut buffer = match File::create(&path) {
-                    Ok(buffer) => buffer,
-                    Err(error) => {
-                        return Err(format!("{}", error).to_lowercase().into());
-                    }
-                };
-
+                let mut buffer = File::create(&path)?;
                 let mut pgn = self.game.to_pgn();
                 if self.play_side == Some(WHITE) {
                     pgn.set_white(&version());
@@ -592,15 +578,9 @@ impl CLI {
             return Err("no <epd> given".into());
         }
         let path = Path::new(args[1]);
-        let file = match File::open(&path) {
-            Ok(file) => BufReader::new(file),
-            Err(error) => {
-                return Err(format!("{}", error).to_lowercase().into());
-            }
-        };
+        let file = fs::read_to_string(&path)?;
         for line in file.lines() {
-            let l = line.unwrap();
-            let mut fields = l.split(';');
+            let mut fields = line.split(';');
             let fen = fields.next().unwrap().trim();
             print!("{} -> ", fen);
             self.game.load_fen(fen);
@@ -625,22 +605,16 @@ impl CLI {
         if args.len() == 1 {
             return Err("no <epd> given".into());
         }
-        let time = if args.len() == 3 {
+        let time = if args.len() > 2 {
             args[2].parse::<u64>()? // `time` is given in seconds
         } else {
             10
         };
         let path = Path::new(args[1]);
-        let file = match File::open(&path) {
-            Ok(file) => BufReader::new(file),
-            Err(error) => {
-                return Err(format!("{}", error).to_lowercase().into()); // TODO: Propagate
-            }
-        };
+        let file = fs::read_to_string(&path)?;
         let mut found_count = 0;
         let mut total_count = 0;
         for line in file.lines() {
-            let line = line.unwrap();
             let line = line.split(";").next().unwrap();
 
             let i = line.find("m ").unwrap() - 1;
