@@ -493,8 +493,8 @@ impl CLI {
             2 => { return Err("no <moves>".into()) },
             _ => {}
         }
-        let moves = args[1].parse::<u16>().unwrap();
-        let time = args[2].parse::<f64>().unwrap();
+        let moves = args[1].parse::<u16>()?;
+        let time = args[2].parse::<f64>()?;
         self.game.clock = Clock::new(moves, (time * 1000.0).round() as u64);
         Ok(State::Running)
     }
@@ -503,7 +503,7 @@ impl CLI {
         if args.len() != 2 {
             return Err("no <depth> given".into());
         }
-        let d = args[1].parse::<Depth>().unwrap();
+        let d = args[1].parse::<Depth>()?;
 
         self.game.moves.skip_ordering = true;
         self.game.moves.skip_killers = true;
@@ -534,7 +534,7 @@ impl CLI {
         if args.len() < 2 {
             return Err("no <number> given".into());
         }
-        self.game.threads_count = args[1].parse::<usize>().unwrap();
+        self.game.threads_count = args[1].parse::<usize>()?;
         Ok(State::Running)
     }
 
@@ -542,14 +542,14 @@ impl CLI {
         if args.len() < 2 {
             return Err("no <size> given".into());
         }
-        let memory = args[1].parse::<usize>().unwrap(); // In MB
+        let memory = args[1].parse::<usize>()?; // In MB
         self.game.tt_resize(memory << 20);
         Ok(State::Running)
     }
 
     fn cmd_perft(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         let mut depth = if args.len() == 2 {
-            args[1].parse::<Depth>().unwrap()
+            args[1].parse::<Depth>()?
         } else {
             1
         };
@@ -601,8 +601,8 @@ impl CLI {
             self.game.load_fen(fen);
             for field in fields {
                 let mut it = field.trim().split(' ');
-                let d = it.next().unwrap()[1..].parse::<Depth>().unwrap();
-                let n = it.next().unwrap().parse::<u64>().unwrap();
+                let d = it.next().unwrap()[1..].parse::<Depth>()?;
+                let n = it.next().unwrap().parse::<u64>()?;
                 if self.game.perft(d) == n {
                     print!("{}", ".".bold().green());
                     io::stdout().flush().unwrap();
@@ -621,7 +621,7 @@ impl CLI {
             return Err("no <epd> given".into());
         }
         let time = if args.len() == 3 {
-            args[2].parse::<u64>().unwrap() // `time` is given in seconds
+            args[2].parse::<u64>()? // `time` is given in seconds
         } else {
             10
         };
