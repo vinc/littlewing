@@ -757,17 +757,17 @@ mod tests {
         let mut cli = CLI::new();
 
         // Undo 1 move
-        cli.cmd_play(&[]);
-        cli.cmd_undo();
+        cli.cmd_play(&[]).unwrap();
+        cli.cmd_undo().unwrap();
 
         // Undo 2 moves
-        cli.cmd_play(&[]);
-        cli.cmd_play(&[]);
-        cli.cmd_undo();
-        cli.cmd_undo();
+        cli.cmd_play(&[]).unwrap();
+        cli.cmd_play(&[]).unwrap();
+        cli.cmd_undo().unwrap();
+        cli.cmd_undo().unwrap();
 
         // Undo 0 moves
-        cli.cmd_undo();
+        cli.cmd_undo().unwrap();
 
         assert!(true);
     }
@@ -776,7 +776,7 @@ mod tests {
     fn test_divide() {
         let mut cli = CLI::new();
 
-        cli.cmd_divide(&["divide", "2"]);
+        cli.cmd_divide(&["divide", "2"]).unwrap();
         assert!(true);
     }
 }
