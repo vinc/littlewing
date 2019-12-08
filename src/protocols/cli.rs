@@ -322,7 +322,7 @@ impl CLI {
                 if self.play_side == Some(BLACK) {
                     pgn.set_black(&version());
                 }
-                write!(buffer, "{}", pgn).unwrap();
+                write!(buffer, "{}", pgn)?;
             }
             "help" => {
                 return self.cmd_save_usage();
