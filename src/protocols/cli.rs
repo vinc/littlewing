@@ -422,8 +422,9 @@ impl CLI {
 
     fn cmd_undo(&mut self) -> Result<State, Box<dyn Error>> {
         if self.game.history.len() > 0 {
-            let m = self.game.history.pop().unwrap();
-            self.game.undo_move(m);
+            if let Some(m) = self.game.history.pop() {
+                self.game.undo_move(m);
+            }
         }
 
         if self.show_board {
