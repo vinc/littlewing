@@ -63,6 +63,7 @@ impl CLI {
     }
 
     pub fn run(&mut self) {
+        // Setup line editor
         let mut rl = Editor::new();
         if let Some(path) = history_path() {
             let _ = rl.load_history(&path);
@@ -72,72 +73,24 @@ impl CLI {
         };
         rl.set_helper(Some(helper));
 
+        // Execute commands
         let mut state = State::Running;
         while state != State::Stopped {
+            // Add chess moves currently available to the autocomplete
             if let Some(helper) = rl.helper_mut() {
                 helper.move_params = self.game.get_moves().into_iter().
                     map(|m| if self.show_san { self.game.move_to_san(m) } else { m.to_lan() }).collect();
             }
 
-            match rl.readline(&self.prompt) {
-                Err(_) => {
-                    state = State::Stopped
-                }
+            state = match rl.readline(&self.prompt) {
                 Ok(line) => {
-                    rl.add_history_entry(line.as_str());
-
-                    for cmd in line.split(';') {
-                        if state == State::Stopped {
-                            break
-                        }
-
-                        let args: Vec<&str> = cmd.trim().split(' ').collect();
-
-                        let res = match args[0] {
-                            ""                         => Ok(State::Running),
-                            "quit" | "q" | "exit"      => { Ok(State::Stopped) },
-                            "help" | "h"               => { self.cmd_usage("help") },
-                            "init" | "i"               => { self.cmd_init() },
-                            "load" | "l"               => { self.cmd_load(&args) },
-                            "save" | "s"               => { self.cmd_save(&args) },
-                            "play" | "p"               => { self.cmd_play(&args) },
-                            "hint"                     => { self.cmd_hint() },
-                            "eval" | "e"               => { self.cmd_eval() },
-                            "undo" | "u"               => { self.cmd_undo() },
-                            "move" | "m"               => { self.cmd_move(&args) },
-                            "time" | "t" | "level"     => { self.cmd_time(&args) },
-                            "show"                     => { self.cmd_config(true, &args) },
-                            "hide"                     => { self.cmd_config(false, &args) },
-                            "core" | "threads"         => { self.cmd_threads(&args) },
-                            "hash" | "memory"          => { self.cmd_memory(&args) },
-                            "perft"                    => { self.cmd_perft(&args) },
-                            "perftsuite"               => { self.cmd_perftsuite(&args) },
-                            "testsuite"                => { self.cmd_testsuite(&args) },
-                            "divide"                   => { self.cmd_divide(&args) },
-                            "uci"                      => { self.cmd_uci() },
-                            "xboard"                   => { self.cmd_xboard() },
-                            _                          => { Err(format!("unknown command '{}'", args[0]).into()) }
-                        };
-
-                        state = match res {
-                            Ok(state) => {
-                                state
-                            },
-                            Err(e) => {
-                                print_error(&e.to_string().to_lowercase());
-                                match args[0] {
-                                    "move" | "m" => Ok(State::Running), // Skip usage on common errors
-                                    "load" | "l" => self.cmd_load_usage(),
-                                    "save" | "s" => self.cmd_save_usage(),
-                                    "show"       => self.cmd_config_usage(true),
-                                    "hide"       => self.cmd_config_usage(false),
-                                    _            => self.cmd_usage(args[0]),
-                                }.unwrap_or(State::Stopped)
-                            }
-                        }
-                    }
+                    rl.add_history_entry(&line);
+                    self.exec(&line)
+                },
+                Err(_) => {
+                    State::Stopped
                 }
-            }
+            };
 
             if let Some(path) = history_path() {
                 if fs::create_dir_all(path.parent().unwrap()).is_ok() {
@@ -145,6 +98,64 @@ impl CLI {
                 }
             }
         }
+    }
+
+    fn exec(&mut self, line: &str) -> State {
+        let mut state = State::Running;
+
+        // A line can have multiple commands separated by semicolons
+        for cmd in line.split(';') {
+            if state == State::Stopped {
+                break
+            }
+
+            let args: Vec<&str> = cmd.trim().split(' ').collect();
+
+            let res = match args[0] {
+                "init" | "i"           => self.cmd_init(),
+                "load" | "l"           => self.cmd_load(&args),
+                "save" | "s"           => self.cmd_save(&args),
+                "play" | "p"           => self.cmd_play(&args),
+                "hint"                 => self.cmd_hint(),
+                "eval" | "e"           => self.cmd_eval(),
+                "undo" | "u"           => self.cmd_undo(),
+                "move" | "m"           => self.cmd_move(&args),
+                "time" | "t" | "level" => self.cmd_time(&args),
+                "show"                 => self.cmd_config(true, &args),
+                "hide"                 => self.cmd_config(false, &args),
+                "core" | "threads"     => self.cmd_threads(&args),
+                "hash" | "memory"      => self.cmd_memory(&args),
+                "perft"                => self.cmd_perft(&args),
+                "perftsuite"           => self.cmd_perftsuite(&args),
+                "testsuite"            => self.cmd_testsuite(&args),
+                "divide"               => self.cmd_divide(&args),
+                "uci"                  => self.cmd_uci(),
+                "xboard"               => self.cmd_xboard(),
+                "help" | "h"           => self.cmd_usage("help"),
+                "quit" | "q" | "exit"  => Ok(State::Stopped),
+                ""                     => Ok(State::Running),
+                _                      => Err(format!("unknown command '{}'", args[0]).into()),
+            };
+
+            state = match res {
+                Ok(state) => {
+                    state
+                },
+                Err(e) => {
+                    print_error(&e.to_string().to_lowercase());
+                    match args[0] {
+                        "move" | "m" => Ok(State::Running), // Skip usage on common errors
+                        "load" | "l" => self.cmd_load_usage(),
+                        "save" | "s" => self.cmd_save_usage(),
+                        "show"       => self.cmd_config_usage(true),
+                        "hide"       => self.cmd_config_usage(false),
+                        _            => self.cmd_usage(args[0]),
+                    }.unwrap_or(State::Stopped)
+                }
+            }
+        }
+
+        state
     }
 
     fn cmd_usage(&self, cmd: &str) -> Result<State, Box<dyn Error>> {
