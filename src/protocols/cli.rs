@@ -13,6 +13,7 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::error::Error;
 
 use version;
 use color::*;
@@ -37,6 +38,11 @@ pub struct CLI {
     pub show_board: bool,
     pub show_san: bool,
     pub prompt: String,
+}
+
+enum State {
+    Running,
+    Stopped
 }
 
 impl CLI {
@@ -78,9 +84,10 @@ impl CLI {
                     rl.add_history_entry(line.as_str());
 
                     let args: Vec<&str> = line.trim().split(' ').collect();
-                    match args[0] {
-                        ""                         => (),
-                        "quit" | "q" | "exit"      => { break },
+
+                    let res = match args[0] {
+                        ""                         => Ok(State::Running),
+                        "quit" | "q" | "exit"      => { Ok(State::Stopped) },
                         "help" | "h"               => { self.cmd_usage("help") },
                         "init" | "i"               => { self.cmd_init() },
                         "load" | "l"               => { self.cmd_load(&args) },
@@ -99,12 +106,32 @@ impl CLI {
                         "perftsuite"               => { self.cmd_perftsuite(&args) },
                         "testsuite"                => { self.cmd_testsuite(&args) },
                         "divide"                   => { self.cmd_divide(&args) },
-                        "uci"                      => { self.cmd_uci(); break },
-                        "xboard"                   => { self.cmd_xboard(); break },
-                        _                          => { self.cmd_error(&args); self.cmd_usage("") }
+                        "uci"                      => { self.cmd_uci() },
+                        "xboard"                   => { self.cmd_xboard() },
+                        _                          => { Err(format!("unknown command '{}'", args[0]).into()) }
+                    };
+
+                    match res {
+                        Ok(State::Stopped) => {
+                            break;
+                        },
+                        Ok(State::Running) => {
+                        },
+                        Err(e) => {
+                            print_error(&e.to_string());
+                            match args[0] {
+                                "load" | "l" => self.cmd_load_usage(),
+                                "save" | "s" => self.cmd_save_usage(),
+                                "show"       => self.cmd_config_usage(true),
+                                "hide"       => self.cmd_config_usage(false),
+                                _            => self.cmd_usage(args[0]),
+                            }.unwrap();
+                        }
                     }
                 },
-                Err(_) => { break }
+                Err(_) => {
+                    break
+                }
             }
 
             if let Some(path) = history_path() {
@@ -115,7 +142,7 @@ impl CLI {
         }
     }
 
-    fn cmd_usage(&self, cmd: &str) {
+    fn cmd_usage(&self, cmd: &str) -> Result<State, Box<dyn Error>> {
         let lines = vec![
             "",
             "Commands:",
@@ -156,9 +183,10 @@ impl CLI {
                 println!("{}", line);
             }
         }
+        Ok(State::Running)
     }
 
-    fn cmd_config_usage(&self, value: bool) {
+    fn cmd_config_usage(&self, value: bool) -> Result<State, Box<dyn Error>> {
         let cmds = [
             ["board", "board"],
             ["color", "terminal colors"],
@@ -179,43 +207,48 @@ impl CLI {
             }
         }
         println!();
+        Ok(State::Running)
     }
 
-    fn cmd_load_usage(&self) {
+    fn cmd_load_usage(&self) -> Result<State, Box<dyn Error>> {
         println!();
         println!("Subcommands:");
         println!();
         println!("  load fen <string>         Load game from FEN <string>");
         println!("  load pgn <file>           Load game from PGN <file>");
         println!();
+        Ok(State::Running)
     }
 
-    fn cmd_save_usage(&self) {
+    fn cmd_save_usage(&self) -> Result<State, Box<dyn Error>> {
         println!();
         println!("Subcommands:");
         println!();
         println!("  save fen                  Save game to FEN <string>");
         println!("  save pgn <file>           Save game to PGN <file>");
         println!();
+        Ok(State::Running)
     }
 
-    fn cmd_uci(&self) {
+    fn cmd_uci(&self) -> Result<State, Box<dyn Error>> {
         let mut uci = UCI::new();
         uci.game.is_debug = self.game.is_debug;
         uci.game.threads_count = self.game.threads_count;
         uci.game.tt = self.game.tt.clone();
         uci.run();
+        Ok(State::Stopped)
     }
 
-    fn cmd_xboard(&self) {
+    fn cmd_xboard(&self) -> Result<State, Box<dyn Error>> {
         let mut xboard = XBoard::new();
         xboard.game.is_debug = self.game.is_debug;
         xboard.game.threads_count = self.game.threads_count;
         xboard.game.tt = self.game.tt.clone();
         xboard.run();
+        Ok(State::Stopped)
     }
 
-    fn cmd_init(&mut self) {
+    fn cmd_init(&mut self) -> Result<State, Box<dyn Error>> {
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
         self.game.load_fen(DEFAULT_FEN);
@@ -224,13 +257,12 @@ impl CLI {
             println!();
             println!("{}", self.game);
         }
+        Ok(State::Running)
     }
 
-    fn cmd_load(&mut self, args: &[&str]) {
+    fn cmd_load(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() == 1 {
-            print_error("no subcommand given");
-            self.cmd_load_usage();
-            return;
+            return Err("no subcommand given".into());
         }
 
         match args[1] {
@@ -240,15 +272,13 @@ impl CLI {
             },
             "pgn" => {
                 if args.len() == 2 {
-                    print_error("no filename given");
-                    return;
+                    return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
                 let pgn_str = match fs::read_to_string(path) {
                     Ok(pgn_str) => pgn_str,
                     Err(error) => {
-                        print_error(&format!("{}", error).to_lowercase());
-                        return;
+                        return Err(format!("{}", error).to_lowercase().into());
                     }
                 };
                 // TODO: Add cmd arg to select which game to load in PGN file
@@ -258,13 +288,10 @@ impl CLI {
                 self.game.load_pgn(pgn);
             }
             "help" => {
-                self.cmd_load_usage();
-                return;
+                return self.cmd_load_usage();
             }
             _ => {
-                print_error(&format!("unrecognized subcommand '{}'", args[1]));
-                self.cmd_load_usage();
-                return;
+                return Err(format!("unrecognized subcommand '{}'", args[1]).into());
             }
         }
 
@@ -272,13 +299,13 @@ impl CLI {
             println!();
             println!("{}", self.game);
         }
+
+        Ok(State::Running)
     }
 
-    fn cmd_save(&mut self, args: &[&str]) {
+    fn cmd_save(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() == 1 {
-            print_error("no subcommand given");
-            self.cmd_save_usage();
-            return;
+            return Err("no subcommand given".into());
         }
 
         match args[1] {
@@ -287,15 +314,13 @@ impl CLI {
             },
             "pgn" => {
                 if args.len() == 2 {
-                    print_error("no filename given");
-                    return;
+                    return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
                 let mut buffer = match File::create(&path) {
                     Ok(buffer) => buffer,
                     Err(error) => {
-                        print_error(&format!("{}", error).to_lowercase());
-                        return;
+                        return Err(format!("{}", error).to_lowercase().into());
                     }
                 };
 
@@ -309,20 +334,19 @@ impl CLI {
                 write!(buffer, "{}", pgn).unwrap();
             }
             "help" => {
-                self.cmd_save_usage();
+                return self.cmd_save_usage();
             }
             _ => {
-                print_error(&format!("unrecognized subcommand '{}'", args[1]));
-                self.cmd_save_usage();
+                return Err(format!("unrecognized subcommand '{}'", args[1]).into());
             }
         }
+
+        Ok(State::Running)
     }
 
-    fn cmd_config(&mut self, value: bool, args: &[&str]) {
+    fn cmd_config(&mut self, value: bool, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() != 2 {
-            print_error("no subcommand given");
-            self.cmd_config_usage(value);
-            return;
+            return Err("no subcommand given".into());
         }
 
         match args[1] {
@@ -349,30 +373,29 @@ impl CLI {
                 self.show_san = value;
             }
             "help" => {
-                self.cmd_config_usage(value);
+                return self.cmd_config_usage(value);
             }
             _ => {
-                print_error(&format!("unrecognized subcommand '{}'", args[1]));
-                self.cmd_config_usage(value);
+                return Err(format!("unrecognized subcommand '{}'", args[1]).into());
             }
         }
+
+        Ok(State::Running)
     }
 
-    fn cmd_play(&mut self, args: &[&str]) {
+    fn cmd_play(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() > 1 {
             self.play_side = match args[1] {
                 "white" => Some(WHITE),
                 "black" => Some(BLACK),
                 "none"  => None,
                 _ => {
-                    print_error("<color> should be either 'white', 'black', or 'none'");
-                    self.cmd_usage("play");
-                    return;
+                    return Err("<color> should be either 'white', 'black', or 'none'".into());
                 }
             };
 
             if self.play_side != Some(self.game.side()) {
-                return;
+                return Ok(State::Running);
             }
         }
 
@@ -385,48 +408,17 @@ impl CLI {
         if self.game.is_mate() {
             self.print_result(true);
         }
+
+        Ok(State::Running)
     }
 
-    fn cmd_hint(&mut self) {
+    fn cmd_hint(&mut self) -> Result<State, Box<dyn Error>> {
         self.think(false);
+        Ok(State::Running)
     }
 
-    fn think(&mut self, play: bool) {
-        let c = if play { "<" } else { "#" };
-        let n = self.max_depth;
-        let r = self.game.search(1..n);
-        if self.game.is_debug || self.game.is_search_verbose {
-            println!();
-        }
-        if let Some(m) = r {
-            println!("{} move {}", c, if self.show_san { self.game.move_to_san(m) } else { m.to_lan() });
-
-            if play {
-                self.game.make_move(m);
-                self.game.history.push(m);
-
-                if self.show_board {
-                    println!();
-                    println!("{}", self.game);
-                }
-            }
-        }
-    }
-
-    fn print_result(&self, play: bool) {
-        let c = if play { "<" } else { "#" };
-        if self.game.is_check(WHITE) {
-            println!("{} black mates", c);
-        } else if self.game.is_check(BLACK) {
-            println!("{} white mates", c);
-        } else {
-            println!("{} draw", c);
-        }
-    }
-
-    fn cmd_eval(&mut self) {
+    fn cmd_eval(&mut self) -> Result<State, Box<dyn Error>> {
         let c = self.game.side();
-
         println!("Static evaluation of the current position:");
         println!();
         self.game.is_eval_verbose = true;
@@ -434,9 +426,10 @@ impl CLI {
         self.game.is_eval_verbose = false;
         println!();
         println!("(score in pawn, relative to {})", if c == WHITE { "white" } else { "black"});
+        Ok(State::Running)
     }
 
-    fn cmd_undo(&mut self) {
+    fn cmd_undo(&mut self) -> Result<State, Box<dyn Error>> {
         if self.game.history.len() > 0 {
             let m = self.game.history.pop().unwrap();
             self.game.undo_move(m);
@@ -446,13 +439,12 @@ impl CLI {
             println!();
             println!("{}", self.game);
         }
+        Ok(State::Running)
     }
 
-    fn cmd_move(&mut self, args: &[&str]) {
+    fn cmd_move(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() < 2 {
-            print_error("no <move> given");
-            self.cmd_usage("move");
-            return;
+            return Err("no <move> given".into());
         }
         if let Some(parsed_move) = self.game.parse_move(args[1]) {
             let mut is_valid = false;
@@ -469,8 +461,7 @@ impl CLI {
                 }
             }
             if !is_valid {
-                print_error(&format!("move '{}' is not valid", args[1]));
-                return;
+                return Err(format!("move '{}' is not valid", args[1]).into());
             }
 
             self.game.make_move(parsed_move);
@@ -490,30 +481,27 @@ impl CLI {
             if self.game.is_mate() {
                 self.print_result(true);
             }
+            Ok(State::Running)
         } else {
-            print_error(&format!("could not parse move '{}'", args[1]));
+            Err(format!("could not parse move '{}'", args[1]).into())
         }
     }
 
-    fn cmd_time(&mut self, args: &[&str]) {
-        if args.len() < 3 {
-            print_error("no <time> given");
-            if args.len() < 2 {
-                print_error("no <moves> given");
-            }
-            self.cmd_usage("time");
-            return;
+    fn cmd_time(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
+        match args.len() {
+            1 => { return Err("no <moves> and <time> given".into()) },
+            2 => { return Err("no <moves>".into()) },
+            _ => {}
         }
         let moves = args[1].parse::<u16>().unwrap();
         let time = args[2].parse::<f64>().unwrap();
         self.game.clock = Clock::new(moves, (time * 1000.0).round() as u64);
+        Ok(State::Running)
     }
 
-    fn cmd_divide(&mut self, args: &[&str]) {
+    fn cmd_divide(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() != 2 {
-            print_error("no <depth> given");
-            self.cmd_usage("divide");
-            return;
+            return Err("no <depth> given".into());
         }
         let d = args[1].parse::<Depth>().unwrap();
 
@@ -539,28 +527,27 @@ impl CLI {
         println!();
         println!("Moves: {}", moves_count);
         println!("Nodes: {}", nodes_count);
+        Ok(State::Running)
     }
 
-    fn cmd_threads(&mut self, args: &[&str]) {
+    fn cmd_threads(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() < 2 {
-            print_error("no <number> given");
-            self.cmd_usage("core");
-            return;
+            return Err("no <number> given".into());
         }
         self.game.threads_count = args[1].parse::<usize>().unwrap();
+        Ok(State::Running)
     }
 
-    fn cmd_memory(&mut self, args: &[&str]) {
+    fn cmd_memory(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() < 2 {
-            print_error("no <size> given");
-            self.cmd_usage("hash");
-            return;
+            return Err("no <size> given".into());
         }
         let memory = args[1].parse::<usize>().unwrap(); // In MB
         self.game.tt_resize(memory << 20);
+        Ok(State::Running)
     }
 
-    fn cmd_perft(&mut self, args: &[&str]) {
+    fn cmd_perft(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         let mut depth = if args.len() == 2 {
             args[1].parse::<Depth>().unwrap()
         } else {
@@ -589,23 +576,21 @@ impl CLI {
                 depth += 1;
             }
         }
+        Ok(State::Running)
     }
 
-    fn cmd_perftsuite(&mut self, args: &[&str]) {
+    fn cmd_perftsuite(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         self.game.moves.skip_ordering = true;
         self.game.moves.skip_killers = true;
 
         if args.len() == 1 {
-            print_error("no <epd> given");
-            self.cmd_usage("perftsuite");
-            return;
+            return Err("no <epd> given".into());
         }
         let path = Path::new(args[1]);
         let file = match File::open(&path) {
             Ok(file) => BufReader::new(file),
             Err(error) => {
-                print_error(&format!("{}", error).to_lowercase());
-                return;
+                return Err(format!("{}", error).to_lowercase().into());
             }
         };
         for line in file.lines() {
@@ -628,13 +613,12 @@ impl CLI {
             }
             println!();
         }
+        Ok(State::Running)
     }
 
-    fn cmd_testsuite(&mut self, args: &[&str]) {
+    fn cmd_testsuite(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         if args.len() == 1 {
-            print_error("no <epd> given");
-            self.cmd_usage("testsuite");
-            return;
+            return Err("no <epd> given".into());
         }
         let time = if args.len() == 3 {
             args[2].parse::<u64>().unwrap() // `time` is given in seconds
@@ -645,8 +629,7 @@ impl CLI {
         let file = match File::open(&path) {
             Ok(file) => BufReader::new(file),
             Err(error) => {
-                print_error(&format!("{}", error).to_lowercase());
-                return;
+                return Err(format!("{}", error).to_lowercase().into()); // TODO: Propagate
             }
         };
         let mut found_count = 0;
@@ -690,10 +673,40 @@ impl CLI {
             total_count += 1;
         }
         println!("Result {}/{}", found_count, total_count);
+        Ok(State::Running)
     }
 
-    fn cmd_error(&mut self, args: &[&str]) {
-        print_error(&format!("unrecognized command '{}'", args[0]));
+    fn think(&mut self, play: bool) {
+        let c = if play { "<" } else { "#" };
+        let n = self.max_depth;
+        let r = self.game.search(1..n);
+        if self.game.is_debug || self.game.is_search_verbose {
+            println!();
+        }
+        if let Some(m) = r {
+            println!("{} move {}", c, if self.show_san { self.game.move_to_san(m) } else { m.to_lan() });
+
+            if play {
+                self.game.make_move(m);
+                self.game.history.push(m);
+
+                if self.show_board {
+                    println!();
+                    println!("{}", self.game);
+                }
+            }
+        }
+    }
+
+    fn print_result(&self, play: bool) {
+        let c = if play { "<" } else { "#" };
+        if self.game.is_check(WHITE) {
+            println!("{} black mates", c);
+        } else if self.game.is_check(BLACK) {
+            println!("{} white mates", c);
+        } else {
+            println!("{} draw", c);
+        }
     }
 }
 
