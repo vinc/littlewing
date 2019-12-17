@@ -209,7 +209,7 @@ impl CLI {
             ["coord", "board coordinates"],
             ["debug", "debug output"],
             ["think", "search output"],
-            ["san", "  standard algebraic notation"],
+            ["san  ", "standard algebraic notation"],
         ];
 
         println!();
