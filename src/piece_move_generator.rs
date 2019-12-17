@@ -177,12 +177,16 @@ impl PieceMoveGenerator for Game {
 
             if piece.kind() == PAWN {
                 position.halfmoves_count = 0;
-            } else if piece.kind() == KING || (piece.kind() == ROOK && m.from() == H1.flip(side)) {
+            }
+
+            if piece.kind() == KING || (piece.kind() == ROOK && m.from() == H1.flip(side)) {
                 if position.castling_right(side, KING) {
                     position.reset_castling_right(side, KING);
                     position.hash ^= self.zobrist.castling_right(side, KING);
                 }
-            } else if piece.kind() == KING || (piece.kind() == ROOK && m.from() == A1.flip(side)) {
+            }
+
+            if piece.kind() == KING || (piece.kind() == ROOK && m.from() == A1.flip(side)) {
                 if position.castling_right(side, QUEEN) {
                     position.reset_castling_right(side, QUEEN);
                     position.hash ^= self.zobrist.castling_right(side, QUEEN);
