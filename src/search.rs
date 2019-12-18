@@ -588,14 +588,14 @@ impl SearchExt for Game {
                     let mut width = 34;
                     let mut lines = Vec::new();
                     let mut line = Vec::new();
-                    for s in pv.trim().split(" ") {
-                        if width + s.len() < 80 {
-                            width += s.len() + 1;
-                        } else {
+                    for chunk in pv.trim().split(" ").collect::<Vec<&str>>().chunks(3) {
+                        let s = chunk.join(" ");
+                        if width + s.len() >= 80 {
                             width = 34;
                             lines.push(line.join(" "));
                             line.clear();
                         }
+                        width += s.len() + 1;
                         line.push(s);
                     }
                     if line.len() > 0 {
