@@ -584,6 +584,8 @@ impl SearchExt for Game {
                     let fm = self.positions.fullmoves();
                     pv = format!("{}. ... {}", fm, pv);
                 }
+
+                // Split PV over multiple lines of 80 chars max in CLI mode
                 if self.protocol == Protocol::CLI {
                     let mut width = 34;
                     let mut lines = Vec::new();
@@ -603,6 +605,7 @@ impl SearchExt for Game {
                     }
                     pv = lines.join(&format!("{:<34}", "\n"));
                 }
+
                 println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", depth, score, time / 10, nodes, pv);
             }
         }
