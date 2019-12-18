@@ -584,6 +584,25 @@ impl SearchExt for Game {
                     let fm = self.positions.fullmoves();
                     pv = format!("{}. ... {}", fm, pv);
                 }
+                if self.protocol == Protocol::CLI {
+                    let mut width = 34;
+                    let mut lines = Vec::new();
+                    let mut line = Vec::new();
+                    for s in pv.trim().split(" ") {
+                        if width + s.len() < 80 {
+                            width += s.len() + 1;
+                        } else {
+                            width = 34;
+                            lines.push(line.join(" "));
+                            line.clear();
+                        }
+                        line.push(s);
+                    }
+                    if line.len() > 0 {
+                        lines.push(line.join(" "));
+                    }
+                    pv = lines.join(&format!("{:<34}", "\n"));
+                }
                 println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", depth, score, time / 10, nodes, pv);
             }
         }
