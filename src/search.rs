@@ -281,7 +281,7 @@ impl Search for Game {
 
         let is_in_check = self.is_check(side);
 
-        // Null PieceMove Pruning (NMP)
+        // Null Move Pruning (NMP)
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
@@ -325,6 +325,8 @@ impl Search for Game {
             self.moves.add_move(best_move);
         }
 
+        let eval = self.eval_material(side) - self.eval_material(side ^ 1);
+
         let mut has_legal_moves = false;
         let mut is_first_move = true;
         while let Some(m) = self.next_move() {
@@ -358,12 +360,9 @@ impl Search for Game {
                     !m.is_capture() &&
                     !m.is_promotion();
 
-                if fp_allowed && depth == 1 {
-                    let margin = 100;
-                    let score = self.eval_material(side)
-                              - self.eval_material(side ^ 1);
-
-                    if score + margin < alpha {
+                if fp_allowed && depth < 6 {
+                    let margin = 100 * depth as Score;
+                    if eval + margin < alpha {
                         self.undo_move(m);
                         continue;
                     }
