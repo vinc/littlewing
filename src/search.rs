@@ -386,8 +386,13 @@ impl Search for Game {
                 // Search the other moves with the reduced window
                 score = -self.search_node(-alpha - 1, -alpha, depth - r - 1, ply + 1);
 
+                // LMR re-search
+                if r > 0 && score > alpha {
+                    score = -self.search_node(-alpha - 1, -alpha, depth - 1, ply + 1);
+                }
+
+                // Re-search with the full window
                 if alpha < score && score < beta {
-                    // Re-search with the full window
                     score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
                 }
             }
