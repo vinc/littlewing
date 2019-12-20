@@ -378,6 +378,9 @@ impl Search for Game {
 
                 if lmr_allowed && depth > 2 {
                     r += 1; // Do the search at a reduced depth
+                    if depth > 4 {
+                        r += depth / 4;
+                    }
                 }
 
                 // Search the other moves with the reduced window
