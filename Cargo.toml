@@ -4,7 +4,7 @@ description = """
 A chess engine rated at 2050+ ELO, compatible with both UCI and XBoard
 protocols, with a nice CLI, and a documented library.
 """
-version = "0.5.0"
+version = "0.6.0"
 license = "GPL-3.0"
 authors = ["Vincent Ollivier <v@vinc.cc>"]
 repository = "https://github.com/vinc/littlewing"
