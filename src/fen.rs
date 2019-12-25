@@ -1,4 +1,5 @@
 use std;
+use std::error::Error;
 
 use color::*;
 use piece::*;
@@ -13,24 +14,24 @@ use positions::Position;
 /// Forsyth–Edwards Notation support
 pub trait FEN {
     /// Create `Game` from a given FEN string
-    fn from_fen(fen: &str) -> Self;
+    fn from_fen(fen: &str) -> Result<Game, Box<dyn Error>>;
 
     /// Load game state from a given FEN string
-    fn load_fen(&mut self, fen: &str);
+    fn load_fen(&mut self, fen: &str) -> Result<(), Box<dyn Error>>;
 
     /// Export game state to a FEN string
     fn to_fen(&self) -> String;
 }
 
 impl FEN for Game {
-    fn from_fen(fen: &str) -> Game {
+    fn from_fen(fen: &str) -> Result<Game, Box<dyn Error>> {
         let mut game = Game::new();
-
-        game.load_fen(fen);
-        game
+        game.load_fen(fen)?;
+        Ok(game)
     }
 
-    fn load_fen(&mut self, fen: &str) {
+    // TODO: Return error if loading fail
+    fn load_fen(&mut self, fen: &str) -> Result<(), Box<dyn Error>> {
         self.clear();
         self.starting_fen = String::from(fen);
         let mut position = Position::new();
@@ -38,59 +39,77 @@ impl FEN for Game {
         let mut fields = fen.split_whitespace();
 
         let mut sq = A8;
-        for c in fields.next().unwrap().chars() {
-            let dir = if c == '/' {
-                2 * DOWN
-            } else if '1' <= c && c <= '8' {
-                c.to_digit(10).unwrap() as Shift
-            } else {
-                let p = PieceChar::from_char(c);
-                self.board[sq as usize] = p;
-                self.bitboards[(p) as usize].set(sq);
-                self.bitboards[(p & 1) as usize].set(sq); // TODO: p.color()
-                position.hash ^= self.zobrist.pieces[p as usize][sq as usize];
-
-                1
-            };
-            //sq += dir;
-            sq = ((sq as i8) + dir) as Square;
+        if let Some(field) = fields.next() {
+            for c in field.chars() {
+                let dir = match c {
+                    '/' => {
+                        2 * DOWN
+                    },
+                    '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' => {
+                        c.to_digit(10).unwrap() as Shift
+                    },
+                    'P' | 'N' | 'B' | 'R' | 'Q' | 'K' |
+                    'p' | 'n' | 'b' | 'r' | 'q' | 'k' => {
+                        let p = PieceChar::from_char(c);
+                        self.board[sq as usize] = p;
+                        self.bitboards[(p) as usize].set(sq);
+                        self.bitboards[(p & 1) as usize].set(sq); // TODO: p.color()
+                        position.hash ^= self.zobrist.pieces[p as usize][sq as usize];
+                        1
+                    },
+                    _ => {
+                        self.load_fen(DEFAULT_FEN)?;
+                        return Err("invalid fen string".into());
+                    }
+                };
+                //sq += dir;
+                sq = ((sq as i8) + dir) as Square;
+            }
+        } else {
+            self.load_fen(DEFAULT_FEN)?;
+            return Err("invalid fen string".into());
         }
 
-        position.side = match fields.next().unwrap() {
-            "w" => WHITE,
-            "b" => BLACK,
-            _   => panic!("wrong side char")
+        position.side = match fields.next() {
+            Some("w") => WHITE,
+            Some("b") => BLACK,
+            _ => {
+                self.load_fen(DEFAULT_FEN)?;
+                return Err("invalid fen string".into());
+            }
         };
 
         if position.side == BLACK {
             position.hash ^= self.zobrist.side;
         }
 
-        for c in fields.next().unwrap().chars() {
-            match c {
-                'K' => {
-                    position.set_castling_right(WHITE, KING);
-                    position.hash ^= self.zobrist.castling_right(WHITE, KING);
+        if let Some(field) = fields.next() {
+            for c in field.chars() {
+                match c {
+                    'K' => {
+                        position.set_castling_right(WHITE, KING);
+                        position.hash ^= self.zobrist.castling_right(WHITE, KING);
+                    }
+                    'Q' => {
+                        position.set_castling_right(WHITE, QUEEN);
+                        position.hash ^= self.zobrist.castling_right(WHITE, QUEEN);
+                    }
+                    'k' => {
+                        position.set_castling_right(BLACK, KING);
+                        position.hash ^= self.zobrist.castling_right(BLACK, KING);
+                    }
+                    'q' => {
+                        position.set_castling_right(BLACK, QUEEN);
+                        position.hash ^= self.zobrist.castling_right(BLACK, QUEEN);
+                    }
+                    _   => break
                 }
-                'Q' => {
-                    position.set_castling_right(WHITE, QUEEN);
-                    position.hash ^= self.zobrist.castling_right(WHITE, QUEEN);
-                }
-                'k' => {
-                    position.set_castling_right(BLACK, KING);
-                    position.hash ^= self.zobrist.castling_right(BLACK, KING);
-                }
-                'q' => {
-                    position.set_castling_right(BLACK, QUEEN);
-                    position.hash ^= self.zobrist.castling_right(BLACK, QUEEN);
-                }
-                _   => break
             }
         }
 
         if let Some(ep) = fields.next() {
             if ep != "-" {
-                position.en_passant = SquareExt::from_coord(ep.into());
+                position.en_passant = SquareExt::from_coord(ep.into()); // TODO: check square
                 position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
             }
         };
@@ -108,6 +127,8 @@ impl FEN for Game {
                 self.positions.set_fullmoves(n);
             }
         };
+
+        Ok(())
     }
 
     fn to_fen(&self) -> String {
@@ -202,7 +223,7 @@ mod tests {
 
     #[test]
     fn test_from_fen() {
-        let game = Game::from_fen(DEFAULT_FEN);
+        let game = Game::from_fen(DEFAULT_FEN).unwrap();
         assert_eq!(game.board[E2 as usize], WHITE_PAWN);
     }
 
@@ -216,7 +237,7 @@ mod tests {
             "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 4 23"
         ];
         for &fen in fens.iter() {
-            let game = Game::from_fen(fen);
+            let game = Game::from_fen(fen).unwrap();
             assert_eq!(&game.to_fen(), fen);
         }
     }

@@ -1,10 +1,12 @@
 extern crate littlewing;
+extern crate colored;
 extern crate getopts;
 extern crate atty;
 
 use std::env;
 use atty::Stream;
 use getopts::Options;
+use colored::Colorize;
 use littlewing::protocols::cli::CLI;
 
 fn print_usage(opts: Options) {
@@ -13,6 +15,7 @@ fn print_usage(opts: Options) {
 }
 
 fn print_banner(mut board: String) {
+    let author = "Vincent Ollivier";
     let mut version = littlewing::version();
     println!("                                      _,;");
     println!("               ,       .--.       _,-'.-;");
@@ -22,11 +25,13 @@ fn print_banner(mut board: String) {
     println!("                    <_ ;   \\     _>");
     println!("                     `\"     ;  ``");
     if version.len() < 19 {
-        version = format!("{}    \\   |   \\", version);
+        version = format!("{}    \\   |   \\", version.bold());
+    } else {
+        version = format!("{}", version.bold());
     }
     println!("  {}", version);
     println!("                         '|-. _  \\");
-    println!("  by Vincent Ollivier  _/ /     \\ '.");
+    println!("  by {}  _/ /     \\ '.", author.bold());
     board.replace_range(23..35, "\"-\"`---+--'\\_>");
     println!("{}", board);
 }

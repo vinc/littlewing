@@ -14,7 +14,7 @@
 //! // Byrne vs Fischer (1956)
 //! let fen = "r3r1k1/pp3pbp/1Bp1b1p1/8/2BP4/Q1n2N2/P4PPP/3R1K1R b - - 0 18";
 //!
-//! let mut game = Game::from_fen(fen);
+//! let mut game = Game::from_fen(fen).unwrap();
 //!
 //! game.clock = Clock::new(1, 5000); // Search 1 move in 5 seconds
 //!
@@ -73,6 +73,9 @@ pub mod fen;
 
 /// Game engine
 pub mod game;
+
+/// Portable Game Notation support
+pub mod pgn;
 
 /// Piece move generator
 pub mod piece_move_generator;

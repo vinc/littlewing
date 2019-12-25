@@ -82,7 +82,7 @@ and in addition it has its own text-based user interface:
                       <_`".| `\    `  _.>
                         <_ ;   \     _>
                          `"     ;  ``
-      Little Wing v0.5.0    \   |   \
+      Little Wing v0.6.0    \   |   \
                              '|-. _  \
       by Vincent Ollivier  _/ /     \ '.
       +---+---+---+---+---+"-"`---+--'\_>
@@ -129,7 +129,7 @@ and in addition it has its own text-based user interface:
     > show think
     > play black
 
-      dep  score    time      nodes  pv
+      ply  score    time      nodes  pv
         1    -46       0          1  1. ... a6
         1    -45       0          3  1. ... c6
         1    -22       0          4  1. ... d6
@@ -141,19 +141,26 @@ and in addition it has its own text-based user interface:
         3      9       0        278  1. ... Nc6 2. Nc3 Nf6
         4    -45       0        860  1. ... Nc6 2. Nc3 Nf6 3. Nf3
         4    -31       1       2437  1. ... d5 2. exd5 Qxd5 3. Nc3
-        5    -32       1       4856  1. ... d5 2. exd5 Qxd5 3. Nc3 Qd4
-        5    -20       2       7520  1. ... d6 2. Nc3 Nf6 3. Nf3 Nc6
-        5     -3       3      11132  1. ... e5 2. Qh5 d6 3. d3 Nc6
-        5      1       3      12703  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5
-        6    -21       3      13728  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5 4. d3
-        7     -7       8      41121  1. ... Nc6 2. Nf3 Nf6 3. e5 Ng4 4. d4 d5
-        8    -30      12      60887  1. ... Nc6 2. Nf3 Nf6 3. Nc3 e6 4. d4 d5 5. e5
-        9    -25      29     162011  1. ... Nc6 2. d4 d5 3. e5 e6 4. Nc3 Bb4 5. Nf3 Nge7
-        9    -15      40     226461  1. ... e5 2. Nc3 Nf6 3. Bc4 Nc6 4. Nge2 d6 5. d3 Bg4
-       10    -10      66     392169  1. ... e5 2. Nc3 Nc6 3. Nf3 Nf6 4. d4 exd4 5. Nxd4 d5 6. f3
-       11    -10     130     783585  1. ... e5 2. Ne2 Nf6 3. Nbc3 Nc6 4. d4 exd4 5. Nxd4 d5 6. Nxc6 bxc6
-       12    -23     363    2254362  1. ... e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nc3 d5 6. exd5 Nxd5 7. Bc4
-       13    -13     690    4457080  1. ... e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6 5. Nc3 d5 6. exd5 Nxd5 7. Bc4
+        5    -32       1       4647  1. ... d5 2. exd5 Qxd5 3. Nc3 Qd4
+        5    -20       2       7442  1. ... d6 2. Nc3 Nf6 3. Nf3 Nc6
+        5      0       2      11381  1. ... e5 2. Nc3 Nf6 3. Nf3 Nc6
+        5      1       2      12946  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5
+        6    -21       3      14052  1. ... Nc6 2. Nc3 Nf6 3. Nf3 d5 4. d3
+        7     -7       6      34813  1. ... Nc6 2. Nf3 Nf6 3. e5 Ng4 4. d4 d5
+        8    -29       9      53113  1. ... Nc6 2. Nf3 Nf6 3. e5 Ng4 4. d4 d6
+                                     5. h3
+        9    -25      27     181431  1. ... Nc6 2. d4 d5 3. e5 e6 4. Nc3 Bb4
+                                     5. Nf3 Nge7
+        9    -12      35     241217  1. ... e5 2. Nc3 Nf6 3. Nf3 Nc6 4. d4 exd4
+                                     5. Nxd4 d5
+       10    -10      50     363028  1. ... e5 2. Nc3 Nf6 3. Nf3 Nc6 4. d4 exd4
+                                     5. Nxd4 d5 6. f3
+       11     -7     109     815399  1. ... e5 2. Nf3 Nf6 3. Nxe5 d6 4. Nc4 Nxe4
+                                     5. d3 Nf6 6. Nc3 Nc6
+       12    -23     218    1686098  1. ... e5 2. Nf3 Nf6 3. Nc3 Nc6 4. d4 exd4
+                                     5. Nxd4 d5 6. exd5 Nxd5 7. Bc4
+       13    -13     467    3791367  1. ... e5 2. Nf3 Nf6 3. Nc3 Nc6 4. d4 exd4
+                                     5. Nxd4 d5 6. exd5 Nxd5 7. Bc4
 
     < move e5
 

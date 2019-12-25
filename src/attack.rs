@@ -121,7 +121,7 @@ mod tests {
     #[test]
     fn test_piece_attacks() {
         let fen = "r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQR1K1 b kq - 5 6";
-        let game = Game::from_fen(fen);
+        let game = Game::from_fen(fen).unwrap();
 
         let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
 
@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn test_bishop_attacks() {
         let fen = "r1bqk1nr/ppppbppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4";
-        let game = Game::from_fen(fen);
+        let game = Game::from_fen(fen).unwrap();
         let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
 
         bishop_attacks(B5, occupied).debug();
@@ -167,7 +167,7 @@ mod tests {
     #[test]
     fn test_rook_attacks() {
         let fen = "r3k3/8/8/8/3R4/8/8/R3K3 w - - 0 1";
-        let game = Game::from_fen(fen);
+        let game = Game::from_fen(fen).unwrap();
         let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
 
         rook_attacks(A1, occupied).debug();

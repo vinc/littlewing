@@ -1,21 +1,36 @@
 # Changelog
 
-## [Unreleased]
-
+## Unreleased
+### Fixed
+- Fix castling right update bug
+- Fix pawn move disambiguation in SAN
+- Fix white pieces color with black on white terminals in CLI
+- Avoid panicking in CLI
 ### Added
-- Save command history to file
-- Improve colored output
-- Add autocompletion to CLI
+- Add makefile
+- Parse moves in SAN format (#41)
+- Add `go movetime` command to UCI (#40)
+- Add `load pgn` and `save pgn` commands to CLI (#42)
+- Add `play none` subcommand to CLI
+- Add `init` command to CLI
+- Add command history file to CLI (#38)
+- Add autocompletion to CLI (#36)
+### Changed
+- Increase futility pruning depth (#44)
+- Avoid TT cutoff on PV-nodes
+- Split PV over multiple lines in CLI mode (#45)
+- Add error propagation to CLI commands (#43)
+- Improve colors in CLI
+- Refactor board drawing
+- Update dependencies
 
-## [0.5.0] - 2018-07-18
-
+## 0.5.0 (2018-07-18)
 ### Added
 - Use Hyperbola Quintessence and First Rank Attacks for sliding piece attacks
 - Use Xorshift random number generator for Zobrist hashing
 - Add depth parameter to `perft` CLI command
 - Add `save fen` and `save pgn` CLI commands
 - Add `--silent` flag to executable
-
 ### Changed
 - Improve CLI output
 - Rename `load` CLI command to `load fen`
@@ -25,8 +40,7 @@
 - Use fail-soft instead of fail-hard in search
 - Refactor many parts of the code
 
-## [0.4.0] - 2017-11-20
-
+## 0.4.0 (2017-11-20)
 ### Added
 - Add library with public API and documentation
 - Add getopt to parse program options
@@ -38,7 +52,6 @@
 - Add transposition table to quiescence search
 - Add basic UCI support
 - Add very basic parallel search in threads with shared transposition table
-
 ### Changed
 - Improve CLI
 - Improve statistics debug output
@@ -46,8 +59,7 @@
 - Allow NMP, IID, and LMR at shallower depth
 - Set NMP R to 3
 
-## [0.3.0] - 2017-10-11
-
+## 0.3.0 (2017-10-11)
 ### Added
 - Add principal variation search
 - Add internal iterative deepening
@@ -57,14 +69,11 @@
 - Add basic futility pruning
 - Add basic mobility evaluation
 - Add static exchange evaluation
-
 ### Changed
 - Use static exchange evaluation in moves ordering
 - Skip bad captures in quiescence search
 
-
-## [0.2.0] - 2016-08-22
-
+## 0.2.0 (2016-08-22)
 ### Added
 - Add basic quiescence search
 - Add basic transposition table
@@ -75,33 +84,25 @@
 - Add mate pruning
 - Add XBoard `memory` command
 - Add `color` and `debug` command line flag
-
-
 ### Changed
 - Improve user interface
 - Display game result in XBoard
 - Save best move during iterative deepening
 - Print principal variation from transpositions table
-
 ### Fixed
 - Fix compiler warnings
 - Fix castling bug
 - Fix bug when undoing promotions
 
-
-## [0.1.0] - 2016-08-10
-
+## 0.1.0 (2016-08-10)
 ### Changed
 - Improve time management
-
 ### Fixed
 - Fix compiler errors and warnings
 - Fix bug in search function
 - Fix promotion parsing bug
 
-
-## [0.0.1] - 2015-06-09
-
+## 0.0.1 (2015-06-09)
 ### Added
 - Add bitboard moves generation with De Bruijn sequence
 - Add board array representation
@@ -115,8 +116,6 @@
 - Add `perft`, `perftsuite`, and `divide` commands in user interface
 - Add Travis CI
 
-
-## [0.0.0] - 2014-12-23
-
+## 0.0.0 (2014-12-23)
 ### Added
 - Initial commit
