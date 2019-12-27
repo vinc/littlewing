@@ -293,7 +293,7 @@ impl Search for Game {
             !is_pawn_ending;
 
         if nmp_allowed {
-            let r = cmp::min(depth - 1, 3);
+            let r = cmp::min(depth - 1, 3 + depth / 4);
             let m = PieceMove::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
@@ -378,13 +378,21 @@ impl Search for Game {
 
                 if lmr_allowed && depth > 2 {
                     r += 1; // Do the search at a reduced depth
+                    if depth > 4 {
+                        r += depth / 4;
+                    }
                 }
 
                 // Search the other moves with the reduced window
                 score = -self.search_node(-alpha - 1, -alpha, depth - r - 1, ply + 1);
 
+                // LMR re-search
+                if r > 0 && score > alpha {
+                    score = -self.search_node(-alpha - 1, -alpha, depth - 1, ply + 1);
+                }
+
+                // Re-search with the full window
                 if alpha < score && score < beta {
-                    // Re-search with the full window
                     score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
                 }
             }
