@@ -4,13 +4,13 @@ use rustyline::hint::Hinter;
 use rustyline::highlight::Highlighter;
 use rustyline::completion::Completer;
 use rustyline::error::ReadlineError;
-use time::precise_time_s;
 
 use std::io;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::time::Instant;
 use std::error::Error;
 
 use version;
@@ -572,10 +572,9 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         loop {
-            let started_at = precise_time_s();
+            let started_at = Instant::now();
             let n = self.game.perft(depth);
-            let ended_at = precise_time_s();
-            let s = ended_at - started_at;
+            let s = started_at.elapsed().as_secs_f64();
             let nps = (n as f64) / s;
             println!("perft {} -> {} ({:.2} s, {:.2e} nps)", depth, n, s, nps);
 

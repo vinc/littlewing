@@ -41,7 +41,6 @@ extern crate rand;
 extern crate rand_xorshift;
 extern crate regex;
 extern crate rustyline;
-extern crate time;
 
 mod attack;
 mod board;
