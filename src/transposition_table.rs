@@ -82,13 +82,8 @@ impl TranspositionTable {
     }
 
     pub fn clear(&mut self) {
-        {
-            let h = self.entries.get();
-            let n = self.len();
-            for i in 0..n {
-                h[i] = Transposition::new_null();
-            }
-        }
+        let n = self.len();
+        self.entries = Arc::new(SharedTable::with_capacity(n));
         self.clear_stats();
     }
 
@@ -167,7 +162,15 @@ unsafe impl Sync for SharedTable {}
 impl SharedTable {
     pub fn with_capacity(capacity: usize) -> SharedTable {
         SharedTable {
-            inner: UnsafeCell::new(vec![Transposition::new_null(); capacity].into_boxed_slice())
+            // NOTE: Transmuting a boxed slice of zeroed 128 bit integers into
+            // empty transpositions is much faster than creating a boxed slice
+            // of transitions directly.
+            // inner: UnsafeCell::new(vec![Transposition::new_null(); capacity].into_boxed_slice())
+            inner: UnsafeCell::new(unsafe {
+                mem::transmute::<Box<[u128]>, Box<[Transposition]>>(
+                    vec![0u128; capacity].into_boxed_slice()
+                )
+            })
         }
     }
 
