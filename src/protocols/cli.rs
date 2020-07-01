@@ -1,9 +1,8 @@
 use colored::Colorize;
-use rustyline::{Context, Editor, Helper};
-use rustyline::hint::Hinter;
-use rustyline::highlight::Highlighter;
+use rustyline::{Context, Editor};
 use rustyline::completion::Completer;
 use rustyline::error::ReadlineError;
+use rustyline_derive::{Helper, Validator, Highlighter, Hinter};
 
 use std::io;
 use std::fs;
@@ -728,13 +727,11 @@ fn history_path() -> Option<PathBuf> {
     }
 }
 
+#[derive(Helper, Validator, Highlighter, Hinter)]
 struct CommandHelper {
     move_params: Vec<String>
 }
 
-impl Helper for CommandHelper {}
-impl Hinter for CommandHelper {}
-impl Highlighter for CommandHelper {}
 impl Completer for CommandHelper {
     type Candidate = String;
 
