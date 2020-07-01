@@ -41,6 +41,7 @@ extern crate rand;
 extern crate rand_xorshift;
 extern crate regex;
 extern crate rustyline;
+extern crate rustyline_derive;
 
 mod attack;
 mod board;
