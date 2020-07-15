@@ -22,7 +22,7 @@ doc = false
 
 [dependencies]
 atty = "0.2.14"
-colored = "1.9.3"
+colored = "2.0.0"
 dirs = "3.0.0"
 getopts = "0.2.21"
 lazy_static = "1.4.0"
