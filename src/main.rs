@@ -53,7 +53,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let matches = match opts.parse(&args) {
         Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()) }
+        Err(f) => { panic!("{}", f.to_string()) }
     };
 
     if matches.opt_present("h") {
