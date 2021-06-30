@@ -39,6 +39,9 @@ fn print_banner(mut board: String) {
 fn main() {
     let mut cli = CLI::new();
 
+    #[cfg(windows)]
+    colored::control::set_virtual_terminal(true).ok();
+
     if !atty::is(Stream::Stdout) {
         colored::control::set_override(false);
     }
