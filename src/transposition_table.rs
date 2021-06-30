@@ -51,11 +51,10 @@ impl TranspositionTable {
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
             None
-        } else if t.hash() != hash {
+        } else if t.hash() ^ t.data() != hash {
             self.stats_collisions += 1;
             None
         } else {
-            debug_assert_eq!(t.hash(), hash);
             self.stats_hits += 1;
             Some(t)
         }
@@ -72,6 +71,7 @@ impl TranspositionTable {
         if age > h[k].age() || (age == 0 && h[k].age() > 0) || depth >= h[k].depth() {
             let t = Transposition::new(hash, depth, score, best_move, bound, age);
             h[k] = t;
+            h[k].xored();
             self.stats_inserts += 1;
         }
     }
