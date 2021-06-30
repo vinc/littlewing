@@ -20,11 +20,11 @@ pub const QUEEN_VALUE:      Score =  1000; // R + B + P + bonus bishop pair
 pub const KING_VALUE:       Score = 10000;
 
 const BONUS_BISHOP_PAIR:    Score =    50;
-//const BONUS_HALF_OPEN_FILE: Score =     5;
-//const BONUS_KNIGHT_PAWNS:   Score =     5;
-//const BONUS_ROOK_OPEN_FILE: Score =    20;
-//const BONUS_ROOK_PAWNS:     Score =     5;
-//const MALUS_DOUBLED_PAWN:   Score =   -10;
+const BONUS_HALF_OPEN_FILE: Score =     5;
+const BONUS_KNIGHT_PAWNS:   Score =     5;
+const BONUS_ROOK_OPEN_FILE: Score =    20;
+const BONUS_ROOK_PAWNS:     Score =     5;
+const MALUS_DOUBLED_PAWN:   Score =   -10;
 
 lazy_static! {
     static ref PIECE_VALUES: [Score; 14] = {
@@ -133,7 +133,6 @@ impl Eval for Game {
     fn eval_material(&self, c: Color) -> Score {
         let mut score = 0;
 
-        /*
         let mut pawns_count = 0;
 
         let color_pawns = self.bitboards[(c | PAWN) as usize];
@@ -144,7 +143,6 @@ impl Eval for Game {
         let half_open_files = half_open_files(color_pawns, other_pawns);
         let half_open_files_count = (half_open_files & RANK_1).count() as Score;
         score += half_open_files_count * BONUS_HALF_OPEN_FILE;
-        */
 
         for &p in &PIECES {
             let piece = c | p;
@@ -152,7 +150,6 @@ impl Eval for Game {
             let n = pieces.count() as Score;
             score += n * PIECE_VALUES[piece as usize];
 
-            /*
             match p { // FIXME: Slows eval from 65 to 130ns
                 PAWN => {
                     pawns_count = n;
@@ -175,7 +172,6 @@ impl Eval for Game {
                 },
                 _ => { }
             }
-            */
         }
 
         score
