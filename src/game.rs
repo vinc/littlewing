@@ -1,5 +1,7 @@
-use std::fmt;
-use colored::Colorize;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
+use core::fmt;
 
 use board;
 use color::*;
@@ -10,15 +12,18 @@ use clock::Clock;
 use piece_move::PieceMove;
 use piece_move_list::PieceMoveList;
 use positions::Positions;
-use protocols::Protocol;
 use transposition_table::TranspositionTable;
 use zobrist::Zobrist;
 use piece::{PieceAttr, PieceChar};
+#[cfg(feature = "std")]
+use protocols::Protocol;
 
 /// A `Game` type to store the state of a chess game
 #[derive(Clone)]
 pub struct Game {
+    #[cfg(feature = "std")]
     pub protocol: Protocol,
+
     pub starting_fen: String,
     pub is_debug: bool,  // Print debugging
     pub is_eval_verbose: bool, // Print thinking in eval
@@ -40,7 +45,9 @@ impl Game {
     /// Create a new `Game`
     pub fn new() -> Game {
         Game {
+            #[cfg(feature = "std")]
             protocol: Protocol::CLI,
+
             starting_fen: String::from(DEFAULT_FEN),
             is_debug: false,
             is_eval_verbose: false,
@@ -98,9 +105,9 @@ impl fmt::Display for Game {
             let p = self.board[i];
             let c = p.to_char().to_string();
             if p.color() == WHITE {
-                c.bold().to_string()
+                format!("{}", bold(&c))
             } else if p.color() == BLACK {
-                c.bold().red().to_string()
+                format!("{}", bold_red(&c))
             } else {
                 c
             }

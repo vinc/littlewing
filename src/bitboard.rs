@@ -1,4 +1,5 @@
-use colored::Colorize;
+use alloc::string::String;
+use alloc::string::ToString;
 
 use common::*;
 use square::*;
@@ -30,6 +31,7 @@ pub trait BitboardExt {
     /// Reset occupancy bit at the given square
     fn reset(&mut self, sq: Square);
 
+    #[cfg(feature = "std")]
     fn debug(&self);
     fn to_debug_string(&self) -> String;
 }
@@ -82,6 +84,7 @@ impl BitboardExt for Bitboard {
 
     // FIXME: remove this method
     // #[deprecated(since="0.2.0", note="please use `to_debug_string` instead")]
+    #[cfg(feature = "std")]
     fn debug(&self) {
         println!("{}", self.to_debug_string());
     }
@@ -91,7 +94,7 @@ impl BitboardExt for Bitboard {
         out.push_str(&format!(" Bitboard  (0x{:016X})\n", *self));
         let squares = (0..64).map(|i| {
             if self.get(i) {
-                "1".bold().green().to_string()
+                bold_green("1")
             } else {
                 "0".to_string()
             }

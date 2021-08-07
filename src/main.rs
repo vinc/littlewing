@@ -1,13 +1,13 @@
 extern crate littlewing;
-extern crate colored;
 extern crate getopts;
 extern crate atty;
+extern crate core;
 
 use std::env;
 use atty::Stream;
 use getopts::Options;
-use colored::Colorize;
 use littlewing::protocols::cli::CLI;
+use littlewing::{colorize, bold, version};
 
 fn print_usage(opts: Options) {
     let brief = format!("Usage: littlewing [options]");
@@ -16,7 +16,7 @@ fn print_usage(opts: Options) {
 
 fn print_banner(mut board: String) {
     let author = "Vincent Ollivier";
-    let mut version = littlewing::version();
+    let mut version = version();
     println!("                                      _,;");
     println!("               ,       .--.       _,-'.-;");
     println!("                \\`-, <) o  `._ ,-' ,'`_7");
@@ -25,13 +25,13 @@ fn print_banner(mut board: String) {
     println!("                    <_ ;   \\     _>");
     println!("                     `\"     ;  ``");
     if version.len() < 19 {
-        version = format!("{}    \\   |   \\", version.bold());
+        version = format!("{}    \\   |   \\", bold(&version));
     } else {
-        version = format!("{}", version.bold());
+        version = format!("{}", bold(&version));
     }
     println!("  {}", version);
     println!("                         '|-. _  \\");
-    println!("  by {}  _/ /     \\ '.", author.bold());
+    println!("  by {}  _/ /     \\ '.", bold(author));
     board.replace_range(23..35, "\"-\"`---+--'\\_>");
     println!("{}", board);
 }
@@ -40,7 +40,7 @@ fn main() {
     let mut cli = CLI::new();
 
     if !atty::is(Stream::Stdout) {
-        colored::control::set_override(false);
+        colorize(false);
     }
 
     let mut opts = Options::new();
@@ -66,7 +66,7 @@ fn main() {
     }
 
     if matches.opt_present("v") {
-        println!("{}", littlewing::version());
+        println!("{}", version());
         return;
     }
 

@@ -70,7 +70,7 @@ impl Transposition {
 
 #[cfg(test)]
 mod tests {
-    use std::mem;
+    use core::mem;
 
     use super::*;
     use piece_move::PieceMove;

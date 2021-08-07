@@ -1,6 +1,7 @@
-use std::mem;
-use std::cell::UnsafeCell;
-use std::sync::Arc;
+use alloc::boxed::Box;
+use core::mem;
+use core::cell::UnsafeCell;
+use alloc::sync::Arc;
 
 use common::*;
 use piece_move::PieceMove;
@@ -103,6 +104,7 @@ impl TranspositionTable {
     }
 
     /// Print transposition table stats
+    #[cfg(feature = "std")]
     pub fn print_stats(&mut self) {
         // Memory size
         let v = self.memory() as u64;
@@ -182,7 +184,9 @@ impl SharedTable {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
     use std::sync::{Arc, Barrier};
+    #[cfg(feature = "std")]
     use std::thread;
 
     use super::*;
@@ -225,6 +229,7 @@ mod tests {
         assert_eq!(tt.get(h), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_transposition_table_in_threads() {
         // Transposition content

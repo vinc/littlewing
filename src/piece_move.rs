@@ -1,4 +1,6 @@
-use std::fmt;
+use alloc::string::String;
+use alloc::string::ToString;
+use core::fmt;
 
 use color::*;
 use piece::*;

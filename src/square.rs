@@ -2,6 +2,8 @@
 
 use color::*;
 
+use alloc::string::String;
+
 pub type Square = u8;
 
 pub const A1: Square = 0;

@@ -1,3 +1,6 @@
+use alloc::string::String;
+
+#[cfg(feature = "std")]
 use regex::Regex;
 
 use attack::piece_attacks;
@@ -12,7 +15,10 @@ use square::*;
 use square::SquareExt;
 use search::Search;
 
+#[cfg(feature = "std")]
 static RE_LAN: &str = r"^(?P<from>[a-h][1-8])(?P<to>[a-h][1-8])(?P<promotion>[nbrq])?$";
+
+#[cfg(feature = "std")]
 static RE_SAN: &str = r"(?x)
     ^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-8])?(?P<capture>x)?(?P<to>[a-h][1-8])=?(?P<promotion>[KBRQ])?
     |(?P<queen>O-O-O)
@@ -21,12 +27,14 @@ static RE_SAN: &str = r"(?x)
 /// PieceMoveList generator
 pub trait PieceMoveNotation {
     /// Parse move from string
+    #[cfg(feature = "std")]
     fn parse_move(&mut self, s: &str) -> Option<PieceMove>;
 
     /// Get move from string in long algebraic notation (LAN)
     fn move_from_lan(&mut self, s: &str) -> PieceMove;
 
     /// Get move from string in standard algebraic notation (SAN)
+    #[cfg(feature = "std")]
     fn move_from_san(&mut self, s: &str) -> Option<PieceMove>;
 
     /// Get SAN string from move
@@ -34,10 +42,12 @@ pub trait PieceMoveNotation {
 }
 
 trait PieceMoveNotationExt {
+    #[cfg(feature = "std")]
     fn move_from_lan_checked(&mut self, s: &str) -> Option<PieceMove>;
 }
 
 impl PieceMoveNotation for Game {
+    #[cfg(feature = "std")]
     fn parse_move(&mut self, s: &str) -> Option<PieceMove> {
         self.move_from_san(s).or(self.move_from_lan_checked(s))
     }
@@ -84,6 +94,7 @@ impl PieceMoveNotation for Game {
         PieceMove::new(from, to, mt)
     }
 
+    #[cfg(feature = "std")]
     fn move_from_san(&mut self, s: &str) -> Option<PieceMove> {
         lazy_static! {
             static ref RE: Regex = Regex::new(RE_SAN).unwrap();
@@ -195,6 +206,7 @@ impl PieceMoveNotation for Game {
 }
 
 impl PieceMoveNotationExt for Game {
+    #[cfg(feature = "std")]
     fn move_from_lan_checked(&mut self, s: &str) -> Option<PieceMove> {
         lazy_static! {
             static ref RE: Regex = Regex::new(RE_LAN).unwrap();

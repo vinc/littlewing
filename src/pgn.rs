@@ -1,7 +1,11 @@
-use regex::Regex;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
+use alloc::collections::BTreeMap;
+use core::fmt;
 
-use std::collections::BTreeMap;
-use std::fmt;
+#[cfg(feature = "std")]
+use regex::Regex;
 
 use attack::*;
 use color::*;
@@ -83,6 +87,7 @@ impl fmt::Display for PGN {
     }
 }
 
+#[cfg(feature = "std")]
 impl From<String> for PGN {
     fn from(s: String) -> PGN {
         lazy_static! {
@@ -190,11 +195,13 @@ impl ToPGN for Game {
 }
 
 /// Portable Game Notation import
+#[cfg(feature = "std")]
 pub trait LoadPGN {
     /// Load PGN
     fn load_pgn(&mut self, pgn: PGN);
 }
 
+#[cfg(feature = "std")]
 impl LoadPGN for Game {
     fn load_pgn(&mut self, pgn: PGN) {
         self.clear();
@@ -224,6 +231,7 @@ impl LoadPGN for Game {
     }
 }
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
     use std::fs;

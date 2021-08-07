@@ -33,14 +33,26 @@
 //! }
 //! ```
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(feature = "std")]
+extern crate core;
+
+#[macro_use]
+extern crate alloc;
+
 #[macro_use]
 extern crate lazy_static;
-extern crate colored;
-extern crate dirs;
 extern crate rand;
 extern crate rand_xorshift;
+
+#[cfg(feature = "std")]
+extern crate dirs;
+#[cfg(feature = "std")]
 extern crate regex;
+#[cfg(feature = "std")]
 extern crate rustyline;
+#[cfg(feature = "std")]
 extern crate rustyline_derive;
 
 mod attack;
@@ -87,6 +99,7 @@ pub mod piece_move_notation;
 pub mod piece;
 
 /// Communication protocols
+#[cfg(feature = "std")]
 pub mod protocols;
 
 /// Search algorithms
@@ -95,9 +108,13 @@ pub mod search;
 /// Square type
 pub mod square;
 
+use alloc::string::String;
+
 /// Return Little Wing's version
 pub fn version() -> String {
     let ver = String::from("v") + env!("CARGO_PKG_VERSION");
     let ver = option_env!("LITTLEWING_VERSION").unwrap_or(&ver);
     format!("Little Wing {}", ver)
 }
+
+pub use common::{colorize, bold, bold_green, bold_red};

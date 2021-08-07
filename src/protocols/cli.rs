@@ -1,15 +1,14 @@
-use colored::Colorize;
 use rustyline::{Context, Editor};
 use rustyline::completion::Completer;
 use rustyline::error::ReadlineError;
 use rustyline_derive::{Helper, Validator, Highlighter, Hinter};
 
+use std::prelude::v1::*;
 use std::io;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::time::Instant;
 use std::error::Error;
 
 use version;
@@ -193,7 +192,7 @@ impl CLI {
         ];
         for line in lines {
             if line.starts_with(&format!("  {} ", cmd)) {
-                println!("{}", line.bold());
+                println!("{}", bold(line));
             } else {
                 println!("{}", line);
             }
@@ -365,7 +364,7 @@ impl CLI {
                 }
             }
             "color" | "colors" => {
-                colored::control::set_override(value);
+                colorize(value);
             }
             "debug" => {
                 self.game.is_debug = value;
@@ -571,9 +570,9 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         loop {
-            let started_at = Instant::now();
+            let started_at = (self.game.clock.system_time)();
             let n = self.game.perft(depth);
-            let s = started_at.elapsed().as_secs_f64();
+            let s = (((self.game.clock.system_time)() - started_at) as f64) / 1000.0;
             let nps = (n as f64) / s;
             println!("perft {} -> {} ({:.2} s, {:.2e} nps)", depth, n, s, nps);
 
@@ -610,10 +609,10 @@ impl CLI {
                 let d = it.next().unwrap()[1..].parse::<Depth>()?;
                 let n = it.next().unwrap().parse::<u64>()?;
                 if self.game.perft(d) == n {
-                    print!("{}", ".".bold().green());
+                    print!("{}", bold_green("."));
                     io::stdout().flush().unwrap();
                 } else {
-                    print!("{}", "x".bold().red());
+                    print!("{}", bold_red("x"));
                     break;
                 }
             }
@@ -671,9 +670,9 @@ impl CLI {
             };
             if found {
                 found_count += 1;
-                println!("{}", best_move_str.bold().green());
+                println!("{}", bold_green(&best_move_str));
             } else {
-                println!("{}", best_move_str.bold().red());
+                println!("{}", bold_red(&best_move_str));
             }
             total_count += 1;
         }
@@ -716,7 +715,7 @@ impl CLI {
 }
 
 fn print_error(msg: &str) {
-    println!("# {} {}", "error:".bold().red(), msg);
+    println!("# {} {}", bold_red("error:"), msg);
 }
 
 fn history_path() -> Option<PathBuf> {

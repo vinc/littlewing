@@ -4,6 +4,9 @@ use piece::*;
 use square::*;
 use bitboard::Bitboard;
 
+use alloc::string::ToString;
+use core::sync::atomic::{AtomicBool, Ordering};
+
 pub type Shift = i8;
 pub type Direction = usize;
 pub type PieceMoveType = u8;
@@ -213,6 +216,36 @@ lazy_static! {
 
         piece_masks
     };
+
+    static ref COLORIZE: AtomicBool = AtomicBool::new(true);
+}
+
+pub fn colorize(b: bool) {
+    COLORIZE.store(b, Ordering::Relaxed);
+}
+
+pub fn bold(s: &str) -> String {
+    if COLORIZE.load(Ordering::Relaxed) {
+        format!("\x1b[1m{}\x1b[0m", s)
+    } else {
+        s.to_string()
+    }
+}
+
+pub fn bold_green(s: &str) -> String {
+    if COLORIZE.load(Ordering::Relaxed) {
+        format!("\x1b[1;31m{}\x1b[0m", s)
+    } else {
+        s.to_string()
+    }
+}
+
+pub fn bold_red(s: &str) -> String {
+    if COLORIZE.load(Ordering::Relaxed) {
+        format!("\x1b[1;32m{}\x1b[0m", s)
+    } else {
+        s.to_string()
+    }
 }
 
 #[cfg(test)]
