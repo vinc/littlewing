@@ -151,7 +151,6 @@ impl Search for Game {
 
         // Current best move
         let mut best_move = PieceMove::new_null();
-        #[cfg(feature = "std")]
         let mut best_score = 0;
 
         // Keep track of previous values at shallower depths
