@@ -54,7 +54,7 @@ pub trait PieceMoveGenerator {
     fn undo_move(&mut self, m: PieceMove);
 }
 
-trait PieceMoveGeneratorExt {
+pub trait PieceMoveGeneratorExt {
     fn is_legal_move(&mut self, m: PieceMove) -> bool;
     fn mvv_lva(&self, m: PieceMove) -> u8;
     fn can_king_castle(&mut self, side: Color) -> bool;

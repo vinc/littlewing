@@ -12,6 +12,7 @@ use common::*;
 use attack::Attack;
 use bitboard::BitboardExt;
 use eval::Eval;
+#[cfg(feature = "std")]
 use fen::FEN;
 use game::Game;
 use piece_move::PieceMove;
@@ -150,6 +151,7 @@ impl Search for Game {
 
         // Current best move
         let mut best_move = PieceMove::new_null();
+        #[cfg(feature = "std")]
         let mut best_score = 0;
 
         // Keep track of previous values at shallower depths

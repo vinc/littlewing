@@ -13,6 +13,7 @@ use piece::{PieceAttr, PieceChar};
 use piece_move::*;
 use square::*;
 use square::SquareExt;
+#[cfg(feature = "std")]
 use search::Search;
 
 #[cfg(feature = "std")]
