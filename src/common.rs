@@ -232,7 +232,7 @@ pub fn bold(s: &str) -> String {
     }
 }
 
-pub fn bold_green(s: &str) -> String {
+pub fn bold_red(s: &str) -> String {
     if COLORIZE.load(Ordering::Relaxed) {
         format!("\x1b[1;31m{}\x1b[0m", s)
     } else {
@@ -240,7 +240,7 @@ pub fn bold_green(s: &str) -> String {
     }
 }
 
-pub fn bold_red(s: &str) -> String {
+pub fn bold_green(s: &str) -> String {
     if COLORIZE.load(Ordering::Relaxed) {
         format!("\x1b[1;32m{}\x1b[0m", s)
     } else {
