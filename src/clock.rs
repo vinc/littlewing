@@ -9,7 +9,7 @@ fn default_system_time() -> u128 {
 
 #[cfg(not(feature = "std"))]
 fn default_system_time() -> u128 {
-    0 // TODO
+    0 // NOTE: Must be overrided in Clock by external crates
 }
 
 #[derive(Clone)]

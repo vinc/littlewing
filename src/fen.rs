@@ -143,7 +143,7 @@ impl FEN for Game {
                 n += 1;
             } else {
                 if n > 0 {
-                    assert!(n < 10);
+                    debug_assert!(n < 10);
                     let c = (b'0' + n) as char;
                     fen.push(c);
                     n = 0;
@@ -157,7 +157,7 @@ impl FEN for Game {
 
             if sq & H1 == H1 { // TODO: is_file_h!(sq)
                 if n > 0 { // TODO: DRY
-                    assert!(n < 10);
+                    debug_assert!(n < 10);
                     let c = (b'0' + n) as char;
                     fen.push(c);
                     n = 0;

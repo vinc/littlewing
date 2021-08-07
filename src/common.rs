@@ -4,7 +4,7 @@ use piece::*;
 use square::*;
 use bitboard::Bitboard;
 
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 pub type Shift = i8;
