@@ -1,11 +1,13 @@
 extern crate littlewing;
 extern crate getopts;
 extern crate atty;
-extern crate core;
 
+use std::prelude::v1::*;
 use std::env;
+
 use atty::Stream;
 use getopts::Options;
+
 use littlewing::protocols::cli::CLI;
 use littlewing::{colorize, bold, version};
 

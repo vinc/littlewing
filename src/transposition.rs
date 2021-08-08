@@ -1,3 +1,5 @@
+use std::prelude::v1::*;
+
 use common::*;
 use piece_move::PieceMove;
 
@@ -70,7 +72,7 @@ impl Transposition {
 
 #[cfg(test)]
 mod tests {
-    use core::mem;
+    use std::mem;
 
     use super::*;
     use piece_move::PieceMove;

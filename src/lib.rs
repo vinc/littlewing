@@ -33,13 +33,11 @@
 //! }
 //! ```
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 
-#[cfg(feature = "std")]
-extern crate core;
-
+#[allow(unused_imports)]
 #[macro_use]
-extern crate alloc;
+extern crate no_std_compat as std;
 
 #[macro_use]
 extern crate lazy_static;
@@ -108,7 +106,7 @@ pub mod search;
 /// Square type
 pub mod square;
 
-use alloc::string::String;
+use std::prelude::v1::*;
 
 /// Return Little Wing's version
 pub fn version() -> String {

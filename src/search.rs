@@ -1,7 +1,6 @@
-use alloc::string::String;
-use alloc::vec::Vec;
-use core::cmp;
-use core::ops::Range;
+use std::prelude::v1::*;
+use std::cmp;
+use std::ops::Range;
 
 #[cfg(feature = "std")]
 use std::thread;
@@ -44,13 +43,14 @@ pub trait Search {
 }
 
 trait SearchExt {
+    fn get_pv(&mut self, depth: Depth) -> String;
+
     #[cfg(feature = "std")]
     fn print_debug_init(&self, depth: Depth);
     #[cfg(feature = "std")]
     fn print_thinking_init(&self);
     #[cfg(feature = "std")]
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
-    fn get_pv(&mut self, depth: Depth) -> String;
 }
 
 impl Search for Game {
@@ -91,7 +91,6 @@ impl Search for Game {
         let n = if cfg!(std) { self.threads_count } else { 0 };
 
         if self.is_debug {
-            #[cfg(feature = "std")]
             println!("# using {} threads", n);
         }
 
@@ -701,6 +700,8 @@ impl SearchExt for Game {
 
 #[cfg(test)]
 mod tests {
+    use std::prelude::v1::*;
+
     use color::*;
     use piece::*;
     use square::*;

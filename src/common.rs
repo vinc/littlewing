@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 
+use std::prelude::v1::*;
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use piece::*;
 use square::*;
 use bitboard::Bitboard;
-
-use alloc::string::{String, ToString};
-use core::sync::atomic::{AtomicBool, Ordering};
 
 pub type Shift = i8;
 pub type Direction = usize;

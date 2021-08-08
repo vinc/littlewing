@@ -1,7 +1,7 @@
-use alloc::boxed::Box;
-use core::mem;
-use core::cell::UnsafeCell;
-use alloc::sync::Arc;
+use std::prelude::v1::*;
+use std::cell::UnsafeCell;
+use std::mem;
+use std::sync::Arc;
 
 use common::*;
 use piece_move::PieceMove;

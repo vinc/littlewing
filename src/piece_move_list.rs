@@ -1,4 +1,5 @@
-use core::ops::{Index, IndexMut};
+use std::prelude::v1::*;
+use std::ops::{Index, IndexMut};
 
 use color::*;
 use piece::*;
@@ -10,8 +11,6 @@ use square::SquareExt;
 use bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use hyperbola::bishop_attacks;
 use hyperbola::rook_attacks;
-//use dumb7fill::bishop_attacks;
-//use dumb7fill::rook_attacks;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Scored<T, S> {

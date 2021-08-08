@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use color::*;
+use std::prelude::v1::*;
 
-use alloc::string::String;
+use color::*;
 
 pub type Square = u8;
 

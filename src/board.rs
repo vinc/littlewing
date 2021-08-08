@@ -1,5 +1,4 @@
-use alloc::string::String;
-use alloc::vec::Vec;
+use std::prelude::v1::*;
 
 pub fn draw(squares: Vec<String>) -> String {
     let line = "  +---+---+---+---+---+---+---+---+\n";

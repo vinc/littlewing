@@ -1,4 +1,5 @@
-use core::ops::Index;
+use std::prelude::v1::*;
+use std::ops::Index;
 
 use color::*;
 use piece::*;
@@ -162,7 +163,7 @@ impl Index<usize> for Positions {
 
 #[cfg(test)]
 mod tests {
-    use core::mem;
+    use std::mem;
     use super::*;
 
     #[test]

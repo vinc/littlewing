@@ -6,8 +6,6 @@ use bitboard::{Bitboard, BitboardExt};
 use game::Game;
 use hyperbola::bishop_attacks;
 use hyperbola::rook_attacks;
-//use dumb7fill::bishop_attacks;
-//use dumb7fill::rook_attacks;
 
 pub trait Attack {
     fn is_check(&self, side: Color) -> bool;

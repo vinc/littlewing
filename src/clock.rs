@@ -1,5 +1,6 @@
-use alloc::sync::Arc;
-use core::sync::atomic::{AtomicBool, Ordering};
+use std::prelude::v1::*;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 #[cfg(feature = "std")]
 fn default_system_time() -> u128 {

@@ -1,8 +1,6 @@
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec::Vec;
-use alloc::collections::BTreeMap;
-use core::fmt;
+use std::prelude::v1::*;
+use std::collections::BTreeMap;
+use std::fmt;
 
 #[cfg(feature = "std")]
 use regex::Regex;

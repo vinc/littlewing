@@ -1,4 +1,4 @@
-use alloc::string::String;
+use std::prelude::v1::*;
 
 use color::*;
 use piece::*;

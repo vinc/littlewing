@@ -1,5 +1,4 @@
-use alloc::string::String;
-use alloc::string::ToString;
+use std::prelude::v1::*;
 
 use common::*;
 use square::*;
@@ -31,7 +30,6 @@ pub trait BitboardExt {
     /// Reset occupancy bit at the given square
     fn reset(&mut self, sq: Square);
 
-    #[cfg(feature = "std")]
     fn debug(&self);
     fn to_debug_string(&self) -> String;
 }
@@ -84,7 +82,6 @@ impl BitboardExt for Bitboard {
 
     // FIXME: remove this method
     // #[deprecated(since="0.2.0", note="please use `to_debug_string` instead")]
-    #[cfg(feature = "std")]
     fn debug(&self) {
         println!("{}", self.to_debug_string());
     }

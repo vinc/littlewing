@@ -1,4 +1,5 @@
-use core::cmp;
+use std::prelude::v1::*;
+use std::cmp;
 
 use color::*;
 use piece::*;
@@ -120,7 +121,6 @@ impl Eval for Game {
 
         let score = position_score + material_score + mobility_score;
 
-        #[cfg(feature = "std")]
         if self.is_eval_verbose {
             println!("material: {:>5.2}", 0.01 * material_score as f64);
             println!("position: {:>5.2}", 0.01 * position_score as f64);

@@ -1,7 +1,5 @@
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec::Vec;
-use core::fmt;
+use std::prelude::v1::*;
+use std::fmt;
 
 use board;
 use color::*;
@@ -105,9 +103,9 @@ impl fmt::Display for Game {
             let p = self.board[i];
             let c = p.to_char().to_string();
             if p.color() == WHITE {
-                format!("{}", bold(&c))
+                bold(&c)
             } else if p.color() == BLACK {
-                format!("{}", bold_red(&c))
+                bold_red(&c)
             } else {
                 c
             }
