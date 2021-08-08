@@ -150,12 +150,13 @@ impl Search for Game {
         }
 
         // Current best move
+        #[allow(unused_assignments)]
+        let mut best_score = 0; // Overwritten before being read in no_std
         let mut best_move = PieceMove::new_null();
-        let mut best_score = 0;
 
         // Keep track of previous values at shallower depths
-        let mut best_moves = [PieceMove::new_null(); MAX_PLY];
         let mut best_scores = [0; MAX_PLY];
+        let mut best_moves = [PieceMove::new_null(); MAX_PLY];
 
         debug_assert!(depths.start > 0);
         for depth in depths {
@@ -240,6 +241,7 @@ impl Search for Game {
             println!("# {:15} {:>8}", "score:", best_score);
             println!("# {:15} {:>8} ms", "time:", t);
             println!("# {:15} {:>8} ({:.2e} nps)", "nodes:", n, nps);
+
             self.tt.print_stats();
         }
 
