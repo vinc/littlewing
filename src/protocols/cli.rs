@@ -497,7 +497,7 @@ impl CLI {
     fn cmd_time(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         match args.len() {
             1 => { return Err("no <moves> and <time> given".into()) },
-            2 => { return Err("no <moves>".into()) },
+            2 => { return Err("no <time> given".into()) },
             _ => {}
         }
         let moves = args[1].parse::<u16>()?;
