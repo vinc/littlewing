@@ -53,7 +53,7 @@ extern crate rustyline;
 #[cfg(feature = "std")]
 extern crate rustyline_derive;
 
-mod attack;
+pub mod attack;
 mod board;
 mod common;
 mod dumb7fill;
