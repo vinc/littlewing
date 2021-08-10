@@ -103,7 +103,7 @@ impl fmt::Display for Game {
             let p = self.board[i];
             let c = p.to_char().to_string();
             if p.color() == WHITE {
-                bold(&c)
+                bold_white(&c)
             } else if p.color() == BLACK {
                 bold_red(&c)
             } else {

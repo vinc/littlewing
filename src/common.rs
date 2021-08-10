@@ -224,9 +224,9 @@ pub fn colorize(b: bool) {
     COLORIZE.store(b, Ordering::Relaxed);
 }
 
-pub fn bold(s: &str) -> String {
+pub fn bold_white(s: &str) -> String {
     if COLORIZE.load(Ordering::Relaxed) {
-        format!("\x1b[1m{}\x1b[0m", s)
+        format!("\x1b[1;97m{}\x1b[0m", s)
     } else {
         s.to_string()
     }
@@ -234,7 +234,7 @@ pub fn bold(s: &str) -> String {
 
 pub fn bold_red(s: &str) -> String {
     if COLORIZE.load(Ordering::Relaxed) {
-        format!("\x1b[1;31m{}\x1b[0m", s)
+        format!("\x1b[1;91m{}\x1b[0m", s)
     } else {
         s.to_string()
     }
@@ -242,7 +242,7 @@ pub fn bold_red(s: &str) -> String {
 
 pub fn bold_green(s: &str) -> String {
     if COLORIZE.load(Ordering::Relaxed) {
-        format!("\x1b[1;32m{}\x1b[0m", s)
+        format!("\x1b[1;92m{}\x1b[0m", s)
     } else {
         s.to_string()
     }

@@ -115,4 +115,4 @@ pub fn version() -> String {
     format!("Little Wing {}", ver)
 }
 
-pub use common::{colorize, bold, bold_green, bold_red};
+pub use common::{colorize, bold_white, bold_green, bold_red};

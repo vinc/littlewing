@@ -192,7 +192,7 @@ impl CLI {
         ];
         for line in lines {
             if line.starts_with(&format!("  {} ", cmd)) {
-                println!("{}", bold(line));
+                println!("{}", bold_white(line));
             } else {
                 println!("{}", line);
             }

@@ -9,7 +9,7 @@ use atty::Stream;
 use getopts::Options;
 
 use littlewing::protocols::cli::CLI;
-use littlewing::{colorize, bold, version};
+use littlewing::{colorize, bold_white, version};
 
 fn print_usage(opts: Options) {
     let brief = format!("Usage: littlewing [options]");
@@ -27,13 +27,13 @@ fn print_banner(mut board: String) {
     println!("                    <_ ;   \\     _>");
     println!("                     `\"     ;  ``");
     if version.len() < 19 {
-        version = format!("{}    \\   |   \\", bold(&version));
+        version = format!("{}    \\   |   \\", bold_white(&version));
     } else {
-        version = format!("{}", bold(&version));
+        version = format!("{}", bold_white(&version));
     }
     println!("  {}", version);
     println!("                         '|-. _  \\");
-    println!("  by {}  _/ /     \\ '.", bold(author));
+    println!("  by {}  _/ /     \\ '.", bold_white(author));
     board.replace_range(23..35, "\"-\"`---+--'\\_>");
     println!("{}", board);
 }
