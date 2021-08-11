@@ -4,12 +4,7 @@
 //! # Example
 //!
 //! ```rust
-//! use littlewing::game::Game;
-//! use littlewing::fen::FEN;
-//! use littlewing::clock::Clock;
-//! use littlewing::search::Search;
-//! use littlewing::piece_move_generator::PieceMoveGenerator;
-//! use littlewing::piece_move_notation::PieceMoveNotation;
+//! use littlewing::chess::*;
 //!
 //! // Byrne vs Fischer (1956)
 //! let fen = "r3r1k1/pp3pbp/1Bp1b1p1/8/2BP4/Q1n2N2/P4PPP/3R1K1R b - - 0 18";
@@ -94,6 +89,18 @@ pub mod search;
 
 /// Square type
 pub mod square;
+
+/// Chess prelude
+pub mod chess {
+    pub use attack::Attack;
+    pub use clock::Clock;
+    pub use color;
+    pub use fen::FEN;
+    pub use game::Game;
+    pub use piece_move_generator::PieceMoveGenerator;
+    pub use piece_move_notation::PieceMoveNotation;
+    pub use search::Search;
+}
 
 /// Return Little Wing's version
 pub fn version() -> String {
