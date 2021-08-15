@@ -1,6 +1,9 @@
+use std::prelude::v1::*;
 use std::cmp;
-use std::thread;
 use std::ops::Range;
+
+#[cfg(feature = "std")]
+use std::thread;
 
 use color::*;
 use piece::*;
@@ -8,13 +11,15 @@ use common::*;
 use attack::Attack;
 use bitboard::BitboardExt;
 use eval::Eval;
+#[cfg(feature = "std")]
 use fen::FEN;
 use game::Game;
 use piece_move::PieceMove;
 use piece_move_generator::PieceMoveGenerator;
 use piece_move_notation::PieceMoveNotation;
-use protocols::Protocol;
 use transposition::Bound;
+#[cfg(feature = "std")]
+use protocols::Protocol;
 
 /// Search the game
 pub trait Search {
@@ -38,10 +43,14 @@ pub trait Search {
 }
 
 trait SearchExt {
-    fn print_debug_init(&self, depth: Depth);
-    fn print_thinking_init(&self);
-    fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
     fn get_pv(&mut self, depth: Depth) -> String;
+
+    #[cfg(feature = "std")]
+    fn print_debug_init(&self, depth: Depth);
+    #[cfg(feature = "std")]
+    fn print_thinking_init(&self);
+    #[cfg(feature = "std")]
+    fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
 }
 
 impl Search for Game {
@@ -79,7 +88,7 @@ impl Search for Game {
 
         self.clock.start(self.positions.len());
 
-        let n = self.threads_count;
+        let n = if cfg!(std) { self.threads_count } else { 0 };
 
         if self.is_debug {
             println!("# using {} threads", n);
@@ -89,33 +98,39 @@ impl Search for Game {
             return self.search_root(depths);
         }
 
-        let mut children = Vec::with_capacity(n);
+        #[cfg(not(feature = "std"))]
+        unreachable!();
 
-        for i in 0..n {
-            let mut clone = self.clone();
-            if i > 0 {
-                clone.is_search_verbose = false;
-                clone.is_debug = false;
+        #[cfg(feature = "std")]
+        {
+            let mut children = Vec::with_capacity(n);
+
+            for i in 0..n {
+                let mut clone = self.clone();
+                if i > 0 {
+                    clone.is_search_verbose = false;
+                    clone.is_debug = false;
+                }
+
+                let min_depth = depths.start; // TODO: + i as usize;
+                let max_depth = depths.end;
+
+                let builder = thread::Builder::new().
+                    name(format!("search_{}", i)).
+                    stack_size(4 << 20);
+
+                children.push(builder.spawn(move || {
+                    clone.search_root(min_depth..max_depth)
+                }).unwrap());
             }
 
-            let min_depth = depths.start; // TODO: + i as usize;
-            let max_depth = depths.end;
+            let mut res = Vec::with_capacity(n);
+            for child in children {
+                res.push(child.join().unwrap());
+            }
 
-            let builder = thread::Builder::new().
-                name(format!("search_{}", i)).
-                stack_size(4 << 20);
-
-            children.push(builder.spawn(move || {
-                clone.search_root(min_depth..max_depth)
-            }).unwrap());
+            return res[0] // best move found by the first thread
         }
-
-        let mut res = Vec::with_capacity(n);
-        for child in children {
-            res.push(child.join().unwrap());
-        }
-
-        res[0] // best move found by the first thread
     }
 
     fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
@@ -123,21 +138,24 @@ impl Search for Game {
         let side = self.side();
         let ply = 0;
 
+        #[cfg(feature = "std")]
         if self.is_debug {
             self.print_debug_init(depths.start);
         }
 
+        #[cfg(feature = "std")]
         if self.is_search_verbose {
             self.print_thinking_init();
         }
 
         // Current best move
+        #[allow(unused_assignments)]
+        let mut best_score = 0; // Overwritten before being read in no_std
         let mut best_move = PieceMove::new_null();
-        let mut best_score = 0;
 
         // Keep track of previous values at shallower depths
-        let mut best_moves = [PieceMove::new_null(); MAX_PLY];
         let mut best_scores = [0; MAX_PLY];
+        let mut best_moves = [PieceMove::new_null(); MAX_PLY];
 
         debug_assert!(depths.start > 0);
         for depth in depths {
@@ -185,6 +203,7 @@ impl Search for Game {
                             self.tt.set(hash, depth, score, m, Bound::Exact);
 
                             // Get the PV line from the TT.
+                            #[cfg(feature = "std")]
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
@@ -210,6 +229,7 @@ impl Search for Game {
             }
         }
 
+        #[cfg(feature = "std")]
         if self.is_debug {
             let n = self.nodes_count;
             let t = self.clock.elapsed_time();
@@ -220,6 +240,7 @@ impl Search for Game {
             println!("# {:15} {:>8}", "score:", best_score);
             println!("# {:15} {:>8} ms", "time:", t);
             println!("# {:15} {:>8} ({:.2e} nps)", "nodes:", n, nps);
+
             self.tt.print_stats();
         }
 
@@ -563,6 +584,7 @@ impl Search for Game {
 }
 
 impl SearchExt for Game {
+    #[cfg(feature = "std")]
     fn print_debug_init(&self, depth: Depth) {
         println!("# FEN {}", self.to_fen());
         println!("# allocating {} ms to move", self.clock.allocated_time());
@@ -570,12 +592,14 @@ impl SearchExt for Game {
         println!();
     }
 
+    #[cfg(feature = "std")]
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
             println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "ply", "score", "time", "nodes", "pv");
         }
     }
 
+    #[cfg(feature = "std")]
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove) {
         self.undo_move(m);
 
@@ -622,7 +646,10 @@ impl SearchExt for Game {
     }
 
     fn get_pv(&mut self, depth: Depth) -> String {
+        #[cfg(feature = "std")]
         let is_san_format = self.protocol != Protocol::UCI;
+        #[cfg(not(feature = "std"))]
+        let is_san_format = false;
 
         if depth == 0 {
             return String::new();
@@ -673,6 +700,8 @@ impl SearchExt for Game {
 
 #[cfg(test)]
 mod tests {
+    use std::prelude::v1::*;
+
     use color::*;
     use piece::*;
     use square::*;

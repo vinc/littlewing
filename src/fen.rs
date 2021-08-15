@@ -1,5 +1,4 @@
-use std;
-use std::error::Error;
+use std::prelude::v1::*;
 
 use color::*;
 use piece::*;
@@ -14,24 +13,26 @@ use positions::Position;
 /// Forsyth–Edwards Notation support
 pub trait FEN {
     /// Create `Game` from a given FEN string
-    fn from_fen(fen: &str) -> Result<Game, Box<dyn Error>>;
+    fn from_fen(fen: &str) -> Result<Game, String>;
 
     /// Load game state from a given FEN string
-    fn load_fen(&mut self, fen: &str) -> Result<(), Box<dyn Error>>;
+    fn load_fen(&mut self, fen: &str) -> Result<(), String>;
 
     /// Export game state to a FEN string
     fn to_fen(&self) -> String;
 }
 
 impl FEN for Game {
-    fn from_fen(fen: &str) -> Result<Game, Box<dyn Error>> {
+    fn from_fen(fen: &str) -> Result<Game, String> {
         let mut game = Game::new();
-        game.load_fen(fen)?;
-        Ok(game)
+        match game.load_fen(fen) {
+            Ok(()) => Ok(game),
+            Err(msg) => Err(msg),
+        }
     }
 
     // TODO: Return error if loading fail
-    fn load_fen(&mut self, fen: &str) -> Result<(), Box<dyn Error>> {
+    fn load_fen(&mut self, fen: &str) -> Result<(), String> {
         self.clear();
         self.starting_fen = String::from(fen);
         let mut position = Position::new();
@@ -142,7 +143,8 @@ impl FEN for Game {
                 n += 1;
             } else {
                 if n > 0 {
-                    let c = std::char::from_digit(n, 10).unwrap();
+                    debug_assert!(n < 10);
+                    let c = (b'0' + n) as char;
                     fen.push(c);
                     n = 0;
                 }
@@ -155,7 +157,8 @@ impl FEN for Game {
 
             if sq & H1 == H1 { // TODO: is_file_h!(sq)
                 if n > 0 { // TODO: DRY
-                    let c = std::char::from_digit(n, 10).unwrap();
+                    debug_assert!(n < 10);
+                    let c = (b'0' + n) as char;
                     fen.push(c);
                     n = 0;
                 }

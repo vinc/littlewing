@@ -1,3 +1,5 @@
+use std::prelude::v1::*;
+
 use common::*;
 use piece_move::PieceMove;
 

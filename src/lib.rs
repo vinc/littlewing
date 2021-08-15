@@ -28,17 +28,27 @@
 //! }
 //! ```
 
+#![no_std]
+
+#[allow(unused_imports)]
+#[macro_use]
+extern crate no_std_compat as std;
+
 #[macro_use]
 extern crate lazy_static;
-extern crate colored;
-extern crate dirs;
 extern crate rand;
 extern crate rand_xorshift;
+
+#[cfg(feature = "std")]
+extern crate dirs;
+#[cfg(feature = "std")]
 extern crate regex;
+#[cfg(feature = "std")]
 extern crate rustyline;
+#[cfg(feature = "std")]
 extern crate rustyline_derive;
 
-mod attack;
+pub mod attack;
 mod board;
 mod common;
 mod dumb7fill;
@@ -82,6 +92,7 @@ pub mod piece_move_notation;
 pub mod piece;
 
 /// Communication protocols
+#[cfg(feature = "std")]
 pub mod protocols;
 
 /// Search algorithms
@@ -102,9 +113,13 @@ pub mod chess {
     pub use search::Search;
 }
 
+use std::prelude::v1::*;
+
 /// Return Little Wing's version
 pub fn version() -> String {
     let ver = String::from("v") + env!("CARGO_PKG_VERSION");
     let ver = option_env!("LITTLEWING_VERSION").unwrap_or(&ver);
     format!("Little Wing {}", ver)
 }
+
+pub use common::{colorize, bold_white, bold_green, bold_red};

@@ -1,3 +1,5 @@
+use std::prelude::v1::*;
+
 pub fn draw(squares: Vec<String>) -> String {
     let line = "  +---+---+---+---+---+---+---+---+\n";
     let file = "";
@@ -125,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_draw() {
-        colored::control::set_override(false);
+        colorize(false);
         let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         assert_eq!(format!("{}", game), PIECES_WITHOUT_COORDS);
@@ -133,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_draw_with_coordinates() {
-        colored::control::set_override(false);
+        colorize(false);
         let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.show_coordinates = true;
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
@@ -142,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_draw_compact_with_coordinates() {
-        colored::control::set_override(false);
+        colorize(false);
         let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         let bb = game.bitboards[WHITE as usize] | game.bitboards[BLACK as usize];

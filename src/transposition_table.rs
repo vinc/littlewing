@@ -1,5 +1,6 @@
-use std::mem;
+use std::prelude::v1::*;
 use std::cell::UnsafeCell;
+use std::mem;
 use std::sync::Arc;
 
 use common::*;
@@ -103,6 +104,7 @@ impl TranspositionTable {
     }
 
     /// Print transposition table stats
+    #[cfg(feature = "std")]
     pub fn print_stats(&mut self) {
         // Memory size
         let v = self.memory() as u64;
@@ -182,7 +184,9 @@ impl SharedTable {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
     use std::sync::{Arc, Barrier};
+    #[cfg(feature = "std")]
     use std::thread;
 
     use super::*;
@@ -225,6 +229,7 @@ mod tests {
         assert_eq!(tt.get(h), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_transposition_table_in_threads() {
         // Transposition content

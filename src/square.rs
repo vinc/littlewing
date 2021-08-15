@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::prelude::v1::*;
+
 use color::*;
 
 pub type Square = u8;
