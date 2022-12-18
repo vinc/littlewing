@@ -79,7 +79,7 @@ impl Game {
         let old = self.current_depth.load(Ordering::Relaxed);
         let new = d as usize;
         if new > old {
-            self.current_depth.compare_and_swap(old, new, Ordering::Relaxed);
+            self.current_depth.compare_and_exchange(old, new, Ordering::Relaxed);
         }
     }
 
