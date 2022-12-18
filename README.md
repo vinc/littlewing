@@ -8,7 +8,7 @@ Little Wing is the successor of [Purple Haze](https://github.com/vinc/purplehaze
 
 The project started in December 2014 to learn the Rust language and play with
 bitboards. Both experiments were conclusive and Little Wing it is still
-maintained in 2019.
+maintained in 2022.
 
 Currently evaluated at 2000+ ELO on CCRL 40/4 Rating List.
 
@@ -210,7 +210,7 @@ and in addition it has its own text-based user interface:
       uci                       Start UCI mode
       xboard                    Start XBoard mode
 
-    Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>
+    Made with <3 in 2014-2022 by Vincent Ollivier <v@vinc.cc>
 
     Report bugs to https://github.com/vinc/littlewing/issues
 
@@ -283,4 +283,4 @@ Anyway, have fun with it and send me your feedback at <v@vinc.cc>!
 License
 -------
 
-Copyright (c) 2014-2019 Vincent Ollivier. Released under GNU GPL License v3.
+Little Wing is released under MIT.

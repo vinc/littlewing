@@ -185,7 +185,7 @@ impl CLI {
             "  uci                       Start UCI mode",
             "  xboard                    Start XBoard mode",
             "",
-            "Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>",
+            "Made with <3 in 2014-2022 by Vincent Ollivier <v@vinc.cc>",
             "",
             "Report bugs to https://github.com/vinc/littlewing/issues",
             "",
