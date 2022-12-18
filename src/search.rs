@@ -88,7 +88,7 @@ impl Search for Game {
 
         self.clock.start(self.positions.len());
 
-        let n = if cfg!(std) { self.threads_count } else { 0 };
+        let n = if cfg!(feature = "std") { self.threads_count } else { 0 };
 
         if self.is_debug {
             println!("# using {} threads", n);
