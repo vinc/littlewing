@@ -1,4 +1,4 @@
-use crate::std::prelude::v1::*;
+use std::prelude::v1::*;
 
 use crate::common::*;
 use crate::square::*;

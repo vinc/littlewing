@@ -1,5 +1,5 @@
-use crate::std::prelude::v1::*;
-use crate::std::io;
+use std::prelude::v1::*;
+use std::io;
 use regex::Regex;
 
 use crate::color::*;

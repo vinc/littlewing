@@ -1,10 +1,10 @@
-use crate::std::prelude::v1::*;
-use crate::std::sync::atomic::{AtomicBool, Ordering};
-use crate::std::sync::Arc;
+use std::prelude::v1::*;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 #[cfg(feature = "std")]
 fn default_system_time() -> u128 {
-    use crate::std::time::SystemTime;
+    use std::time::SystemTime;
     SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis()
 }
 

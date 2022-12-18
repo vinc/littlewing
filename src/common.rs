@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use crate::std::prelude::v1::*;
-use crate::std::sync::atomic::{AtomicBool, Ordering};
+use std::prelude::v1::*;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::piece::*;
 use crate::square::*;

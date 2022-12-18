@@ -1,4 +1,4 @@
-use crate::std::prelude::v1::*;
+use std::prelude::v1::*;
 
 pub fn draw(squares: Vec<String>) -> String {
     let line = "  +---+---+---+---+---+---+---+---+\n";

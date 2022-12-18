@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::std::prelude::v1::*;
+use std::prelude::v1::*;
 
 use crate::color::*;
 
