@@ -1,16 +1,16 @@
-use std::prelude::v1::*;
-use std::ops::{Index, IndexMut};
+use crate::std::prelude::v1::*;
+use crate::std::ops::{Index, IndexMut};
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use attack::*;
-use piece_move::*;
-use square::SquareExt;
-use bitboard::{Bitboard, BitboardExt, BitboardIterator};
-use hyperbola::bishop_attacks;
-use hyperbola::rook_attacks;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::attack::*;
+use crate::piece_move::*;
+use crate::square::SquareExt;
+use crate::bitboard::{Bitboard, BitboardExt, BitboardIterator};
+use crate::hyperbola::bishop_attacks;
+use crate::hyperbola::rook_attacks;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Scored<T, S> {
@@ -410,7 +410,7 @@ impl IndexMut<usize> for PieceMoveList {
 
 #[cfg(test)]
 mod tests {
-    use common::*;
+    use crate::common::*;
     use super::*;
 
     #[test]

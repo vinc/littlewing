@@ -1,8 +1,8 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
-use common::*;
-use square::*;
-use board;
+use crate::common::*;
+use crate::square::*;
+use crate::board;
 
 pub type Bitboard = u64;
 

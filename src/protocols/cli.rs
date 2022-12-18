@@ -3,28 +3,28 @@ use rustyline::completion::Completer;
 use rustyline::error::ReadlineError;
 use rustyline_derive::{Helper, Validator, Highlighter, Hinter};
 
-use std::prelude::v1::*;
-use std::io;
-use std::fs;
-use std::fs::File;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::error::Error;
+use crate::std::prelude::v1::*;
+use crate::std::io;
+use crate::std::fs;
+use crate::std::fs::File;
+use crate::std::io::Write;
+use crate::std::path::{Path, PathBuf};
+use crate::std::error::Error;
 
-use version;
-use color::*;
-use common::*;
-use attack::Attack;
-use clock::Clock;
-use eval::Eval;
-use fen::FEN;
-use game::Game;
-use piece_move_generator::PieceMoveGenerator;
-use piece_move_notation::PieceMoveNotation;
-use pgn::*;
-use protocols::xboard::XBoard;
-use protocols::uci::UCI;
-use search::Search;
+use crate::version;
+use crate::color::*;
+use crate::common::*;
+use crate::attack::Attack;
+use crate::clock::Clock;
+use crate::eval::Eval;
+use crate::fen::FEN;
+use crate::game::Game;
+use crate::piece_move_generator::PieceMoveGenerator;
+use crate::piece_move_notation::PieceMoveNotation;
+use crate::pgn::*;
+use crate::protocols::xboard::XBoard;
+use crate::protocols::uci::UCI;
+use crate::search::Search;
 
 #[derive(Clone)]
 pub struct CLI {

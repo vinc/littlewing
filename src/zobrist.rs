@@ -1,10 +1,10 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
 use rand::{RngCore, SeedableRng};
 use rand_xorshift::XorShiftRng;
 
-use color::Color;
-use piece::Piece;
+use crate::color::Color;
+use crate::piece::Piece;
 
 #[derive(Clone)]
 pub struct Zobrist {
@@ -52,7 +52,7 @@ impl Zobrist {
 
 #[cfg(test)]
 mod tests {
-    use zobrist::Zobrist;
+    use crate::zobrist::Zobrist;
 
     #[test]
     fn test_new() {

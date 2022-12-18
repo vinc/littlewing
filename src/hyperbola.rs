@@ -1,9 +1,9 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
-use common::*;
-use color::*;
-use square::*;
-use bitboard::{Bitboard, BitboardExt};
+use crate::common::*;
+use crate::color::*;
+use crate::square::*;
+use crate::bitboard::{Bitboard, BitboardExt};
 
 pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
     hyperbola(occupied, from, HyperbolaMask::Diag) |

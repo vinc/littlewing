@@ -1,20 +1,20 @@
-use std::prelude::v1::*;
-use std::fmt;
+use crate::std::prelude::v1::*;
+use crate::std::fmt;
 
-use board;
-use color::*;
-use piece::*;
-use common::*;
-use bitboard::Bitboard;
-use clock::Clock;
-use piece_move::PieceMove;
-use piece_move_list::PieceMoveList;
-use positions::Positions;
-use transposition_table::TranspositionTable;
-use zobrist::Zobrist;
-use piece::{PieceAttr, PieceChar};
+use crate::board;
+use crate::color::*;
+use crate::piece::*;
+use crate::common::*;
+use crate::bitboard::Bitboard;
+use crate::clock::Clock;
+use crate::piece_move::PieceMove;
+use crate::piece_move_list::PieceMoveList;
+use crate::positions::Positions;
+use crate::transposition_table::TranspositionTable;
+use crate::zobrist::Zobrist;
+use crate::piece::{PieceAttr, PieceChar};
 #[cfg(feature = "std")]
-use protocols::Protocol;
+use crate::protocols::Protocol;
 
 /// A `Game` type to store the state of a chess game
 #[derive(Clone)]

@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
-use color::*;
+use crate::color::*;
 
 pub type Square = u8;
 

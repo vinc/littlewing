@@ -1,18 +1,18 @@
-use std::prelude::v1::*;
-use std::collections::BTreeMap;
-use std::fmt;
+use crate::std::prelude::v1::*;
+use crate::std::collections::BTreeMap;
+use crate::std::fmt;
 
 #[cfg(feature = "std")]
 use regex::Regex;
 
-use attack::*;
-use color::*;
-use common::*;
-use fen::FEN;
-use game::Game;
-use piece_move_notation::PieceMoveNotation;
-use piece_move_generator::PieceMoveGenerator;
-use search::*;
+use crate::attack::*;
+use crate::color::*;
+use crate::common::*;
+use crate::fen::FEN;
+use crate::game::Game;
+use crate::piece_move_notation::PieceMoveNotation;
+use crate::piece_move_generator::PieceMoveGenerator;
+use crate::search::*;
 
 #[derive(Debug)]
 pub struct PGN {
@@ -232,13 +232,13 @@ impl LoadPGN for Game {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use crate::std::fs;
 
-    use square::*;
-    use common::*;
-    use game::Game;
-    use piece_move::PieceMove;
-    use piece_move_generator::PieceMoveGenerator;
+    use crate::square::*;
+    use crate::common::*;
+    use crate::game::Game;
+    use crate::piece_move::PieceMove;
+    use crate::piece_move_generator::PieceMoveGenerator;
 
     use super::*;
 

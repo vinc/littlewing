@@ -1,22 +1,22 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
 #[cfg(feature = "std")]
 use regex::Regex;
 
-use attack::piece_attacks;
-use bitboard::BitboardExt;
-use color::*;
-use common::*;
-use game::Game;
-use piece::*;
-use piece::{PieceAttr, PieceChar};
-use piece_move::*;
-use square::*;
-use square::SquareExt;
+use crate::attack::piece_attacks;
+use crate::bitboard::BitboardExt;
+use crate::color::*;
+use crate::common::*;
+use crate::game::Game;
+use crate::piece::*;
+use crate::piece::{PieceAttr, PieceChar};
+use crate::piece_move::*;
+use crate::square::*;
+use crate::square::SquareExt;
 #[cfg(feature = "std")]
-use search::Search;
-use attack::Attack;
-use piece_move_generator::PieceMoveGenerator;
+use crate::search::Search;
+use crate::attack::Attack;
+use crate::piece_move_generator::PieceMoveGenerator;
 
 #[cfg(feature = "std")]
 static RE_LAN: &str = r"^(?P<from>[a-h][1-8])(?P<to>[a-h][1-8])(?P<promotion>[nbrq])?$";
@@ -245,10 +245,10 @@ impl PieceMoveNotationExt for Game {
 
 #[cfg(test)]
 mod tests {
-    use common::*;
-    use piece_move::PieceMove;
-    use fen::FEN;
-    use game::Game;
+    use crate::common::*;
+    use crate::piece_move::PieceMove;
+    use crate::fen::FEN;
+    use crate::game::Game;
     use super::*;
 
     #[test]

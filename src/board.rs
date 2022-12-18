@@ -1,4 +1,4 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
 pub fn draw(squares: Vec<String>) -> String {
     let line = "  +---+---+---+---+---+---+---+---+\n";
@@ -115,14 +115,14 @@ static BITBOARD_WITH_COORDS: &str = " \
 
 #[cfg(test)]
 mod tests {
-    use bitboard::BitboardExt;
-    use color::*;
-    use common::*;
-    use fen::FEN;
-    use game::Game;
-    use piece_move::PieceMove;
-    use piece_move_generator::PieceMoveGenerator;
-    use square::*;
+    use crate::bitboard::BitboardExt;
+    use crate::color::*;
+    use crate::common::*;
+    use crate::fen::FEN;
+    use crate::game::Game;
+    use crate::piece_move::PieceMove;
+    use crate::piece_move_generator::PieceMoveGenerator;
+    use crate::square::*;
     use super::*;
 
     #[test]
