@@ -329,7 +329,7 @@ impl CLI {
                     return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
-                let mut buffer = File::create(&path)?;
+                let mut buffer = File::create(path)?;
                 let mut pgn = self.game.to_pgn();
                 if self.play_side == Some(WHITE) {
                     pgn.set_white(&version());
@@ -593,7 +593,7 @@ impl CLI {
             return Err("no <epd> given".into());
         }
         let path = Path::new(args[1]);
-        let file = fs::read_to_string(&path)?;
+        let file = fs::read_to_string(path)?;
         for line in file.lines() {
             let mut fields = line.split(';');
             let fen = fields.next().unwrap().trim();
@@ -631,7 +631,7 @@ impl CLI {
             10
         };
         let path = Path::new(args[1]);
-        let file = fs::read_to_string(&path)?;
+        let file = fs::read_to_string(path)?;
         let mut found_count = 0;
         let mut total_count = 0;
         for mut line in file.lines() {
@@ -746,14 +746,15 @@ impl Completer for CommandHelper {
             "perftsuite", "testsuite", "divide", "xboard", "uci"
         ];
 
-        let mut options = Vec::new();
-        options.push(("move", &move_params));
-        options.push(("play", &play_params));
-        options.push(("show", &conf_params));
-        options.push(("hide", &conf_params));
-        options.push(("load", &load_params));
-        options.push(("save", &save_params));
-        options.push(("", &commands));
+        let options = vec![
+            ("move", &move_params),
+            ("play", &play_params),
+            ("show", &conf_params),
+            ("hide", &conf_params),
+            ("load", &load_params),
+            ("save", &save_params),
+            ("", &commands)
+        ];
 
         let mut candidates = Vec::new();
         for (command, params) in options {

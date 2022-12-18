@@ -3,7 +3,7 @@ pub mod uci;
 pub mod xboard;
 
 #[repr(u8)]
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum Protocol {
     CLI,
     UCI,

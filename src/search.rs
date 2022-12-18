@@ -129,7 +129,7 @@ impl Search for Game {
                 res.push(child.join().unwrap());
             }
 
-            return res[0] // best move found by the first thread
+            res[0] // best move found by the first thread
         }
     }
 
@@ -622,7 +622,7 @@ impl SearchExt for Game {
                     let mut width = 34;
                     let mut lines = Vec::new();
                     let mut line = Vec::new();
-                    for chunk in pv.trim().split(" ").collect::<Vec<&str>>().chunks(3) {
+                    for chunk in pv.trim().split(' ').collect::<Vec<&str>>().chunks(3) {
                         let s = chunk.join(" ");
                         if width + s.len() >= 80 {
                             width = 34;

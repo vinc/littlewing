@@ -110,7 +110,7 @@ impl FEN for Game {
 
         if let Some(ep) = fields.next() {
             if ep != "-" {
-                position.en_passant = SquareExt::from_coord(ep.into()); // TODO: check square
+                position.en_passant = SquareExt::from_coord(ep); // TODO: check square
                 position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
             }
         };

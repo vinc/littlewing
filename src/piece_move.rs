@@ -13,7 +13,7 @@ pub const KILLER_MOVE_SCORE:  u8 = 254;
 pub const GOOD_CAPTURE_SCORE: u8 = 64;
 pub const QUIET_MOVE_SCORE:   u8 = 0;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct PieceMove(u16);
 
 impl PieceMove {
@@ -88,7 +88,7 @@ impl fmt::Display for PieceMove {
 
 impl fmt::Debug for PieceMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(f, "{}", self)
     }
 }
 
