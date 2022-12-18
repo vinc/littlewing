@@ -1,5 +1,5 @@
-use crate::std::prelude::v1::*;
-use crate::std::ops::{Index, IndexMut};
+use std::prelude::v1::*;
+use std::ops::{Index, IndexMut};
 
 use crate::color::*;
 use crate::piece::*;

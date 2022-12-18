@@ -1,9 +1,9 @@
-use crate::std::prelude::v1::*;
-use crate::std::cmp;
-use crate::std::ops::Range;
+use std::prelude::v1::*;
+use std::cmp;
+use std::ops::Range;
 
 #[cfg(feature = "std")]
-use crate::std::thread;
+use std::thread;
 
 use crate::color::*;
 use crate::piece::*;
@@ -700,7 +700,7 @@ impl SearchExt for Game {
 
 #[cfg(test)]
 mod tests {
-    use crate::std::prelude::v1::*;
+    use std::prelude::v1::*;
 
     use crate::color::*;
     use crate::piece::*;

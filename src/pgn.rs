@@ -1,6 +1,6 @@
-use crate::std::prelude::v1::*;
-use crate::std::collections::BTreeMap;
-use crate::std::fmt;
+use std::prelude::v1::*;
+use std::collections::BTreeMap;
+use std::fmt;
 
 #[cfg(feature = "std")]
 use regex::Regex;
@@ -232,7 +232,7 @@ impl LoadPGN for Game {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
-    use crate::std::fs;
+    use std::fs;
 
     use crate::square::*;
     use crate::common::*;

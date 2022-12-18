@@ -1,8 +1,8 @@
-use crate::std::prelude::v1::*;
-use crate::std::io;
-use crate::std::thread;
-use crate::std::sync::Arc;
-use crate::std::sync::atomic::{AtomicBool, Ordering};
+use std::prelude::v1::*;
+use std::io;
+use std::thread;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::color::*;
 use crate::common::*;

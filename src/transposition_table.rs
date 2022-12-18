@@ -1,7 +1,7 @@
-use crate::std::prelude::v1::*;
-use crate::std::cell::UnsafeCell;
-use crate::std::mem;
-use crate::std::sync::Arc;
+use std::prelude::v1::*;
+use std::cell::UnsafeCell;
+use std::mem;
+use std::sync::Arc;
 
 use crate::common::*;
 use crate::piece_move::PieceMove;
@@ -185,9 +185,9 @@ impl SharedTable {
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "std")]
-    use crate::std::sync::{Arc, Barrier};
+    use std::sync::{Arc, Barrier};
     #[cfg(feature = "std")]
-    use crate::std::thread;
+    use std::thread;
 
     use super::*;
     use crate::square::*;

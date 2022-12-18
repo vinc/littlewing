@@ -3,13 +3,13 @@ use rustyline::completion::Completer;
 use rustyline::error::ReadlineError;
 use rustyline_derive::{Helper, Validator, Highlighter, Hinter};
 
-use crate::std::prelude::v1::*;
-use crate::std::io;
-use crate::std::fs;
-use crate::std::fs::File;
-use crate::std::io::Write;
-use crate::std::path::{Path, PathBuf};
-use crate::std::error::Error;
+use std::prelude::v1::*;
+use std::io;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::error::Error;
 
 use crate::version;
 use crate::color::*;
