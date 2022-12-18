@@ -76,10 +76,11 @@ impl Game {
     }
 
     pub fn set_current_depth(&mut self, d: Depth) {
-        let old = self.current_depth.load(Ordering::Relaxed);
+        let ord = Ordering::Relaxed;
+        let old = self.current_depth.load(ord);
         let new = d as usize;
         if new > old {
-            self.current_depth.compare_and_exchange(old, new, Ordering::Relaxed);
+            self.current_depth.compare_exchange(old, new, ord, ord);
         }
     }
 
