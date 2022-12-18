@@ -80,7 +80,7 @@ impl Game {
         let old = self.current_depth.load(ord);
         let new = d as usize;
         if new > old {
-            self.current_depth.compare_exchange(old, new, ord, ord);
+            let _ = self.current_depth.compare_exchange(old, new, ord, ord);
         }
     }
 
