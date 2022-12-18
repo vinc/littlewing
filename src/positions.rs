@@ -1,5 +1,5 @@
-use crate::std::prelude::v1::*;
-use crate::std::ops::Index;
+use std::prelude::v1::*;
+use std::ops::Index;
 
 use crate::color::*;
 use crate::piece::*;
@@ -163,7 +163,7 @@ impl Index<usize> for Positions {
 
 #[cfg(test)]
 mod tests {
-    use crate::std::mem;
+    use std::mem;
     use super::*;
 
     #[test]

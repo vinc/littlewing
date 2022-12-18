@@ -1,5 +1,5 @@
-use crate::std::prelude::v1::*;
-use crate::std::cmp;
+use std::prelude::v1::*;
+use std::cmp;
 
 use crate::color::*;
 use crate::piece::*;

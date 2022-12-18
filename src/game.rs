@@ -1,5 +1,5 @@
-use crate::std::prelude::v1::*;
-use crate::std::fmt;
+use std::prelude::v1::*;
+use std::fmt;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};

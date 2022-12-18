@@ -113,7 +113,7 @@ pub mod chess {
     pub use crate::search::Search;
 }
 
-use crate::std::prelude::v1::*;
+use std::prelude::v1::*;
 
 /// Return Little Wing's version
 pub fn version() -> String {

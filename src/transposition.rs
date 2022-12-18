@@ -1,4 +1,4 @@
-use crate::std::prelude::v1::*;
+use std::prelude::v1::*;
 
 use crate::common::*;
 use crate::piece_move::PieceMove;
@@ -75,7 +75,7 @@ impl Transposition {
 
 #[cfg(test)]
 mod tests {
-    use crate::std::mem;
+    use std::mem;
 
     use super::*;
     use crate::piece_move::PieceMove;

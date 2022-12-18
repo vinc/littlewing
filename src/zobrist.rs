@@ -1,4 +1,4 @@
-use crate::std::prelude::v1::*;
+use std::prelude::v1::*;
 
 use rand::{RngCore, SeedableRng};
 use rand_xorshift::XorShiftRng;
