@@ -1,19 +1,18 @@
-use std::ops::{Index, IndexMut};
+use crate::std::prelude::v1::*;
+use crate::std::ops::{Index, IndexMut};
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use attack::*;
-use piece_move::*;
-use square::SquareExt;
-use bitboard::{Bitboard, BitboardExt, BitboardIterator};
-use hyperbola::bishop_attacks;
-use hyperbola::rook_attacks;
-//use dumb7fill::bishop_attacks;
-//use dumb7fill::rook_attacks;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::attack::*;
+use crate::piece_move::*;
+use crate::square::SquareExt;
+use crate::bitboard::{Bitboard, BitboardExt, BitboardIterator};
+use crate::hyperbola::bishop_attacks;
+use crate::hyperbola::rook_attacks;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Scored<T, S> {
     pub item: T,
     pub score: S
@@ -21,12 +20,12 @@ pub struct Scored<T, S> {
 
 impl<T, S> Scored<T, S> {
     pub fn new(item: T, score: S) -> Self {
-        Scored { item: item, score: score }
+        Scored { item, score }
     }
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Debug)]
 pub enum PieceMoveListStage { // If we don't care about `PartialOrd` we could do:
     BestPieceMove   = 0,      // = 16 (BEST_MOVE)
     Capture         = 1,      // =  4 (CAPTURE)
@@ -411,7 +410,7 @@ impl IndexMut<usize> for PieceMoveList {
 
 #[cfg(test)]
 mod tests {
-    use common::*;
+    use crate::common::*;
     use super::*;
 
     #[test]

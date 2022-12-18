@@ -1,8 +1,9 @@
-use std::ops::Index;
+use crate::std::prelude::v1::*;
+use crate::std::ops::Index;
 
-use color::*;
-use piece::*;
-use square::*;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
 
 #[derive(Copy, Clone)]
 pub struct Position {
@@ -162,7 +163,7 @@ impl Index<usize> for Positions {
 
 #[cfg(test)]
 mod tests {
-    use std::mem;
+    use crate::std::mem;
     use super::*;
 
     #[test]

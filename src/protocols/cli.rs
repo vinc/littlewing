@@ -1,32 +1,30 @@
-use colored::Colorize;
-use rustyline::{Context, Editor, Helper};
-use rustyline::hint::Hinter;
-use rustyline::highlight::Highlighter;
+use rustyline::{Context, Editor};
 use rustyline::completion::Completer;
 use rustyline::error::ReadlineError;
-use time::precise_time_s;
+use rustyline_derive::{Helper, Validator, Highlighter, Hinter};
 
-use std::io;
-use std::fs;
-use std::fs::File;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::error::Error;
+use crate::std::prelude::v1::*;
+use crate::std::io;
+use crate::std::fs;
+use crate::std::fs::File;
+use crate::std::io::Write;
+use crate::std::path::{Path, PathBuf};
+use crate::std::error::Error;
 
-use version;
-use color::*;
-use common::*;
-use attack::Attack;
-use clock::Clock;
-use eval::Eval;
-use fen::FEN;
-use game::Game;
-use piece_move_generator::PieceMoveGenerator;
-use piece_move_notation::PieceMoveNotation;
-use pgn::*;
-use protocols::xboard::XBoard;
-use protocols::uci::UCI;
-use search::Search;
+use crate::version;
+use crate::color::*;
+use crate::common::*;
+use crate::attack::Attack;
+use crate::clock::Clock;
+use crate::eval::Eval;
+use crate::fen::FEN;
+use crate::game::Game;
+use crate::piece_move_generator::PieceMoveGenerator;
+use crate::piece_move_notation::PieceMoveNotation;
+use crate::pgn::*;
+use crate::protocols::xboard::XBoard;
+use crate::protocols::uci::UCI;
+use crate::search::Search;
 
 #[derive(Clone)]
 pub struct CLI {
@@ -64,7 +62,7 @@ impl CLI {
 
     pub fn run(&mut self) {
         // Setup line editor
-        let mut rl = Editor::new();
+        let mut rl = Editor::new().unwrap();
         if let Some(path) = history_path() {
             let _ = rl.load_history(&path);
         }
@@ -187,14 +185,14 @@ impl CLI {
             "  uci                       Start UCI mode",
             "  xboard                    Start XBoard mode",
             "",
-            "Made with <3 in 2014-2019 by Vincent Ollivier <v@vinc.cc>",
+            "Made with <3 in 2014-2022 by Vincent Ollivier <v@vinc.cc>",
             "",
             "Report bugs to https://github.com/vinc/littlewing/issues",
             "",
         ];
         for line in lines {
             if line.starts_with(&format!("  {} ", cmd)) {
-                println!("{}", line.bold());
+                println!("{}", bold_white(line));
             } else {
                 println!("{}", line);
             }
@@ -331,7 +329,7 @@ impl CLI {
                     return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
-                let mut buffer = File::create(&path)?;
+                let mut buffer = File::create(path)?;
                 let mut pgn = self.game.to_pgn();
                 if self.play_side == Some(WHITE) {
                     pgn.set_white(&version());
@@ -366,7 +364,7 @@ impl CLI {
                 }
             }
             "color" | "colors" => {
-                colored::control::set_override(value);
+                colorize(value);
             }
             "debug" => {
                 self.game.is_debug = value;
@@ -499,7 +497,7 @@ impl CLI {
     fn cmd_time(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
         match args.len() {
             1 => { return Err("no <moves> and <time> given".into()) },
-            2 => { return Err("no <moves>".into()) },
+            2 => { return Err("no <time> given".into()) },
             _ => {}
         }
         let moves = args[1].parse::<u16>()?;
@@ -572,10 +570,9 @@ impl CLI {
         self.game.moves.skip_killers = true;
 
         loop {
-            let started_at = precise_time_s();
+            let started_at = (self.game.clock.system_time)();
             let n = self.game.perft(depth);
-            let ended_at = precise_time_s();
-            let s = ended_at - started_at;
+            let s = (((self.game.clock.system_time)() - started_at) as f64) / 1000.0;
             let nps = (n as f64) / s;
             println!("perft {} -> {} ({:.2} s, {:.2e} nps)", depth, n, s, nps);
 
@@ -596,7 +593,7 @@ impl CLI {
             return Err("no <epd> given".into());
         }
         let path = Path::new(args[1]);
-        let file = fs::read_to_string(&path)?;
+        let file = fs::read_to_string(path)?;
         for line in file.lines() {
             let mut fields = line.split(';');
             let fen = fields.next().unwrap().trim();
@@ -612,10 +609,10 @@ impl CLI {
                 let d = it.next().unwrap()[1..].parse::<Depth>()?;
                 let n = it.next().unwrap().parse::<u64>()?;
                 if self.game.perft(d) == n {
-                    print!("{}", ".".bold().green());
+                    print!("{}", bold_green("."));
                     io::stdout().flush().unwrap();
                 } else {
-                    print!("{}", "x".bold().red());
+                    print!("{}", bold_red("x"));
                     break;
                 }
             }
@@ -634,7 +631,7 @@ impl CLI {
             10
         };
         let path = Path::new(args[1]);
-        let file = fs::read_to_string(&path)?;
+        let file = fs::read_to_string(path)?;
         let mut found_count = 0;
         let mut total_count = 0;
         for mut line in file.lines() {
@@ -673,9 +670,9 @@ impl CLI {
             };
             if found {
                 found_count += 1;
-                println!("{}", best_move_str.bold().green());
+                println!("{}", bold_green(&best_move_str));
             } else {
-                println!("{}", best_move_str.bold().red());
+                println!("{}", bold_red(&best_move_str));
             }
             total_count += 1;
         }
@@ -718,7 +715,7 @@ impl CLI {
 }
 
 fn print_error(msg: &str) {
-    println!("# {} {}", "error:".bold().red(), msg);
+    println!("# {} {}", bold_red("error:"), msg);
 }
 
 fn history_path() -> Option<PathBuf> {
@@ -729,13 +726,11 @@ fn history_path() -> Option<PathBuf> {
     }
 }
 
+#[derive(Helper, Validator, Highlighter, Hinter)]
 struct CommandHelper {
     move_params: Vec<String>
 }
 
-impl Helper for CommandHelper {}
-impl Hinter for CommandHelper {}
-impl Highlighter for CommandHelper {}
 impl Completer for CommandHelper {
     type Candidate = String;
 
@@ -751,14 +746,15 @@ impl Completer for CommandHelper {
             "perftsuite", "testsuite", "divide", "xboard", "uci"
         ];
 
-        let mut options = Vec::new();
-        options.push(("move", &move_params));
-        options.push(("play", &play_params));
-        options.push(("show", &conf_params));
-        options.push(("hide", &conf_params));
-        options.push(("load", &load_params));
-        options.push(("save", &save_params));
-        options.push(("", &commands));
+        let options = vec![
+            ("move", &move_params),
+            ("play", &play_params),
+            ("show", &conf_params),
+            ("hide", &conf_params),
+            ("load", &load_params),
+            ("save", &save_params),
+            ("", &commands)
+        ];
 
         let mut candidates = Vec::new();
         for (command, params) in options {

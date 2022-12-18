@@ -1,3 +1,5 @@
+use crate::std::prelude::v1::*;
+
 pub fn draw(squares: Vec<String>) -> String {
     let line = "  +---+---+---+---+---+---+---+---+\n";
     let file = "";
@@ -113,19 +115,19 @@ static BITBOARD_WITH_COORDS: &str = " \
 
 #[cfg(test)]
 mod tests {
-    use bitboard::BitboardExt;
-    use color::*;
-    use common::*;
-    use fen::FEN;
-    use game::Game;
-    use piece_move::PieceMove;
-    use piece_move_generator::PieceMoveGenerator;
-    use square::*;
+    use crate::bitboard::BitboardExt;
+    use crate::color::*;
+    use crate::common::*;
+    use crate::fen::FEN;
+    use crate::game::Game;
+    use crate::piece_move::PieceMove;
+    use crate::piece_move_generator::PieceMoveGenerator;
+    use crate::square::*;
     use super::*;
 
     #[test]
     fn test_draw() {
-        colored::control::set_override(false);
+        colorize(false);
         let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         assert_eq!(format!("{}", game), PIECES_WITHOUT_COORDS);
@@ -133,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_draw_with_coordinates() {
-        colored::control::set_override(false);
+        colorize(false);
         let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.show_coordinates = true;
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
@@ -142,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_draw_compact_with_coordinates() {
-        colored::control::set_override(false);
+        colorize(false);
         let mut game = Game::from_fen(DEFAULT_FEN).unwrap();
         game.make_move(PieceMove::new(E2, E4, DOUBLE_PAWN_PUSH));
         let bb = game.bitboards[WHITE as usize] | game.bitboards[BLACK as usize];

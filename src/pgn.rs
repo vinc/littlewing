@@ -1,16 +1,18 @@
+use crate::std::prelude::v1::*;
+use crate::std::collections::BTreeMap;
+use crate::std::fmt;
+
+#[cfg(feature = "std")]
 use regex::Regex;
 
-use std::collections::BTreeMap;
-use std::fmt;
-
-use attack::*;
-use color::*;
-use common::*;
-use fen::FEN;
-use game::Game;
-use piece_move_notation::PieceMoveNotation;
-use piece_move_generator::PieceMoveGenerator;
-use search::*;
+use crate::attack::*;
+use crate::color::*;
+use crate::common::*;
+use crate::fen::FEN;
+use crate::game::Game;
+use crate::piece_move_notation::PieceMoveNotation;
+use crate::piece_move_generator::PieceMoveGenerator;
+use crate::search::*;
 
 #[derive(Debug)]
 pub struct PGN {
@@ -77,12 +79,13 @@ impl fmt::Display for PGN {
         for (key, val) in self.headers.iter() {
             writeln!(f, "[{} \"{}\"]", key.trim_start_matches(char::is_numeric), val)?;
         }
-        writeln!(f, "")?;
+        writeln!(f)?;
         write!(f, "{}", self.body)?;
         Ok(())
     }
 }
 
+#[cfg(feature = "std")]
 impl From<String> for PGN {
     fn from(s: String) -> PGN {
         lazy_static! {
@@ -190,11 +193,13 @@ impl ToPGN for Game {
 }
 
 /// Portable Game Notation import
+#[cfg(feature = "std")]
 pub trait LoadPGN {
     /// Load PGN
     fn load_pgn(&mut self, pgn: PGN);
 }
 
+#[cfg(feature = "std")]
 impl LoadPGN for Game {
     fn load_pgn(&mut self, pgn: PGN) {
         self.clear();
@@ -203,14 +208,14 @@ impl LoadPGN for Game {
         let mut comment_level = 0;
         let mut variation_level = 0;
         for line in pgn.body.lines() {
-            for word in line.split(" ") {
-                if word.starts_with(";") {
+            for word in line.split(' ') {
+                if word.starts_with(';') {
                     break;
                 }
-                comment_level += word.matches("{").count();
-                comment_level -= word.matches("}").count();
-                variation_level += word.matches("(").count();
-                variation_level -= word.matches(")").count();
+                comment_level += word.matches('{').count();
+                comment_level -= word.matches('}').count();
+                variation_level += word.matches('(').count();
+                variation_level -= word.matches(')').count();
                 if comment_level > 0 || variation_level > 0 {
                     continue;
                 }
@@ -224,15 +229,16 @@ impl LoadPGN for Game {
     }
 }
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use crate::std::fs;
 
-    use square::*;
-    use common::*;
-    use game::Game;
-    use piece_move::PieceMove;
-    use piece_move_generator::PieceMoveGenerator;
+    use crate::square::*;
+    use crate::common::*;
+    use crate::game::Game;
+    use crate::piece_move::PieceMove;
+    use crate::piece_move_generator::PieceMoveGenerator;
 
     use super::*;
 

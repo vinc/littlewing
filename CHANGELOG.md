@@ -1,6 +1,23 @@
 # Changelog
 
 ## Unreleased
+
+### 0.7.0 (2021-08-21)
+### Fixed
+- Fix getopts parsing (#75)
+### Added
+- Add `no_std` support to lib (#81)
+- Add chess prelude to lib (#82)
+### Changed
+- Increase search reductions (#47)
+- Speed up large transposition table creations (#48)
+- Used std::time instead of time (#49)
+- Upgrade dependencies (#58)
+- Migrate from TravisCI to GitHub Actions (#66)
+- Upgrade to GitHub-native Dependabot (#72)
+- Update colored requirement from 1.9.3 to 2.0.0 (#60)
+
+## 0.6.0 (2019-12-22)
 ### Fixed
 - Fix castling right update bug
 - Fix pawn move disambiguation in SAN

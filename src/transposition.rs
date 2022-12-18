@@ -1,8 +1,10 @@
-use common::*;
-use piece_move::PieceMove;
+use crate::std::prelude::v1::*;
+
+use crate::common::*;
+use crate::piece_move::PieceMove;
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum Bound {
     Exact,
     Lower,
@@ -21,14 +23,7 @@ pub struct Transposition {
 
 impl Transposition {
     pub fn new(hash: u64, depth: Depth, score: Score, best_move: PieceMove, bound: Bound, age: u8) -> Transposition {
-        Transposition {
-            hash: hash,
-            depth: depth,
-            score: score,
-            best_move: best_move,
-            bound: bound,
-            age: age
-        }
+        Transposition { hash, depth, score, best_move, bound, age }
     }
 
     pub fn new_null() -> Transposition {
@@ -80,10 +75,10 @@ impl Transposition {
 
 #[cfg(test)]
 mod tests {
-    use std::mem;
+    use crate::std::mem;
 
     use super::*;
-    use piece_move::PieceMove;
+    use crate::piece_move::PieceMove;
 
     #[test]
     fn test_size_of_transposition() {

@@ -4,12 +4,7 @@
 //! # Example
 //!
 //! ```rust
-//! use littlewing::game::Game;
-//! use littlewing::fen::FEN;
-//! use littlewing::clock::Clock;
-//! use littlewing::search::Search;
-//! use littlewing::piece_move_generator::PieceMoveGenerator;
-//! use littlewing::piece_move_notation::PieceMoveNotation;
+//! use littlewing::chess::*;
 //!
 //! // Byrne vs Fischer (1956)
 //! let fen = "r3r1k1/pp3pbp/1Bp1b1p1/8/2BP4/Q1n2N2/P4PPP/3R1K1R b - - 0 18";
@@ -33,17 +28,27 @@
 //! }
 //! ```
 
+#![no_std]
+
+#[allow(unused_imports)]
+#[macro_use]
+extern crate no_std_compat as std;
+
 #[macro_use]
 extern crate lazy_static;
-extern crate colored;
-extern crate dirs;
 extern crate rand;
 extern crate rand_xorshift;
-extern crate regex;
-extern crate rustyline;
-extern crate time;
 
-mod attack;
+#[cfg(feature = "std")]
+extern crate dirs;
+#[cfg(feature = "std")]
+extern crate regex;
+#[cfg(feature = "std")]
+extern crate rustyline;
+#[cfg(feature = "std")]
+extern crate rustyline_derive;
+
+pub mod attack;
 mod board;
 mod common;
 mod dumb7fill;
@@ -87,6 +92,7 @@ pub mod piece_move_notation;
 pub mod piece;
 
 /// Communication protocols
+#[cfg(feature = "std")]
 pub mod protocols;
 
 /// Search algorithms
@@ -95,9 +101,25 @@ pub mod search;
 /// Square type
 pub mod square;
 
+/// Chess prelude
+pub mod chess {
+    pub use crate::attack::Attack;
+    pub use crate::clock::Clock;
+    pub use crate::color;
+    pub use crate::fen::FEN;
+    pub use crate::game::Game;
+    pub use crate::piece_move_generator::PieceMoveGenerator;
+    pub use crate::piece_move_notation::PieceMoveNotation;
+    pub use crate::search::Search;
+}
+
+use crate::std::prelude::v1::*;
+
 /// Return Little Wing's version
 pub fn version() -> String {
     let ver = String::from("v") + env!("CARGO_PKG_VERSION");
     let ver = option_env!("LITTLEWING_VERSION").unwrap_or(&ver);
     format!("Little Wing {}", ver)
 }
+
+pub use crate::common::{colorize, bold_white, bold_green, bold_red};

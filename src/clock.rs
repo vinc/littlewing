@@ -1,12 +1,23 @@
-use time::precise_time_s;
+use crate::std::prelude::v1::*;
+use crate::std::sync::atomic::{AtomicBool, Ordering};
+use crate::std::sync::Arc;
 
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(feature = "std")]
+fn default_system_time() -> u128 {
+    use crate::std::time::SystemTime;
+    SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis()
+}
+
+#[cfg(not(feature = "std"))]
+fn default_system_time() -> u128 {
+    0 // NOTE: Must be overrided in Clock by external crates
+}
 
 #[derive(Clone)]
 pub struct Clock {
+    pub system_time: Arc<dyn Fn() -> u128 + Send + Sync + 'static>,
     pub polling_nodes_count: u64,
-    pub started_at: u64,
+    pub started_at: u128,
     moves_level: u16,
     moves_remaining: u16,
     time_remaining: u64,
@@ -17,7 +28,9 @@ pub struct Clock {
 
 impl Clock {
     pub fn new(moves: u16, time: u64) -> Clock {
+        let system_time = Arc::new(default_system_time);
         Clock {
+            system_time: system_time,
             polling_nodes_count: 100,
             started_at: 0,
             moves_level: moves,
@@ -32,7 +45,7 @@ impl Clock {
     pub fn start(&mut self, ply: usize) {
         self.is_finished.store(false, Ordering::Relaxed);
         self.last_nodes_count = 0;
-        self.started_at = (precise_time_s() * 1000.0) as u64;
+        self.started_at = (self.system_time)();
 
         // The UCI protocol gives the number of remaining moves before each
         // search but XBoard doesn't so we need to calculate it based on moves
@@ -61,9 +74,7 @@ impl Clock {
     }
 
     pub fn elapsed_time(&self) -> u64 {
-        let now = (precise_time_s() * 1000.0) as u64;
-
-        now - self.started_at
+        ((self.system_time)() - self.started_at) as u64
     }
 
     pub fn poll(&mut self, nodes_count: u64) -> bool {

@@ -1,8 +1,11 @@
 #![allow(dead_code)]
 
-use piece::*;
-use square::*;
-use bitboard::Bitboard;
+use crate::std::prelude::v1::*;
+use crate::std::sync::atomic::{AtomicBool, Ordering};
+
+use crate::piece::*;
+use crate::square::*;
+use crate::bitboard::Bitboard;
 
 pub type Shift = i8;
 pub type Direction = usize;
@@ -213,6 +216,36 @@ lazy_static! {
 
         piece_masks
     };
+
+    static ref COLORIZE: AtomicBool = AtomicBool::new(true);
+}
+
+pub fn colorize(b: bool) {
+    COLORIZE.store(b, Ordering::Relaxed);
+}
+
+pub fn bold_white(s: &str) -> String {
+    if COLORIZE.load(Ordering::Relaxed) {
+        format!("\x1b[1;97m{}\x1b[0m", s)
+    } else {
+        s.to_string()
+    }
+}
+
+pub fn bold_red(s: &str) -> String {
+    if COLORIZE.load(Ordering::Relaxed) {
+        format!("\x1b[1;91m{}\x1b[0m", s)
+    } else {
+        s.to_string()
+    }
+}
+
+pub fn bold_green(s: &str) -> String {
+    if COLORIZE.load(Ordering::Relaxed) {
+        format!("\x1b[1;92m{}\x1b[0m", s)
+    } else {
+        s.to_string()
+    }
 }
 
 #[cfg(test)]

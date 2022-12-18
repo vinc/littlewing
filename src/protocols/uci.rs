@@ -1,18 +1,19 @@
-use std::io;
-use std::thread;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use crate::std::prelude::v1::*;
+use crate::std::io;
+use crate::std::thread;
+use crate::std::sync::Arc;
+use crate::std::sync::atomic::{AtomicBool, Ordering};
 
-use color::*;
-use common::*;
-use clock::Clock;
-use fen::FEN;
-use game::Game;
-use piece_move_generator::PieceMoveGenerator;
-use piece_move_notation::PieceMoveNotation;
-use search::Search;
-use protocols::Protocol;
-use version;
+use crate::color::*;
+use crate::common::*;
+use crate::clock::Clock;
+use crate::fen::FEN;
+use crate::game::Game;
+use crate::piece_move_generator::PieceMoveGenerator;
+use crate::piece_move_notation::PieceMoveNotation;
+use crate::search::Search;
+use crate::protocols::Protocol;
+use crate::version;
 
 pub struct UCI {
     pub game: Game,

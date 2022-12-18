@@ -1,20 +1,25 @@
-use std::cmp;
-use std::thread;
-use std::ops::Range;
+use crate::std::prelude::v1::*;
+use crate::std::cmp;
+use crate::std::ops::Range;
 
-use color::*;
-use piece::*;
-use common::*;
-use attack::Attack;
-use bitboard::BitboardExt;
-use eval::Eval;
-use fen::FEN;
-use game::Game;
-use piece_move::PieceMove;
-use piece_move_generator::PieceMoveGenerator;
-use piece_move_notation::PieceMoveNotation;
-use protocols::Protocol;
-use transposition::Bound;
+#[cfg(feature = "std")]
+use crate::std::thread;
+
+use crate::color::*;
+use crate::piece::*;
+use crate::common::*;
+use crate::attack::Attack;
+use crate::bitboard::BitboardExt;
+use crate::eval::Eval;
+#[cfg(feature = "std")]
+use crate::fen::FEN;
+use crate::game::Game;
+use crate::piece_move::PieceMove;
+use crate::piece_move_generator::PieceMoveGenerator;
+use crate::piece_move_notation::PieceMoveNotation;
+use crate::transposition::Bound;
+#[cfg(feature = "std")]
+use crate::protocols::Protocol;
 
 /// Search the game
 pub trait Search {
@@ -38,10 +43,14 @@ pub trait Search {
 }
 
 trait SearchExt {
-    fn print_debug_init(&self, depth: Depth);
-    fn print_thinking_init(&self);
-    fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
     fn get_pv(&mut self, depth: Depth) -> String;
+
+    #[cfg(feature = "std")]
+    fn print_debug_init(&self, depth: Depth);
+    #[cfg(feature = "std")]
+    fn print_thinking_init(&self);
+    #[cfg(feature = "std")]
+    fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
 }
 
 impl Search for Game {
@@ -80,7 +89,7 @@ impl Search for Game {
 
         self.clock.start(self.positions.len());
 
-        let n = self.threads_count;
+        let n = if cfg!(std) { self.threads_count } else { 0 };
 
         if self.is_debug {
             println!("# using {} threads", n);
@@ -93,42 +102,45 @@ impl Search for Game {
             }
         }
 
-        //self.clock.polling_nodes_count *= n as u64;
+        #[cfg(not(feature = "std"))]
+        unreachable!();
 
-        let mut children = Vec::with_capacity(n);
+        #[cfg(feature = "std")]
+        {
+            let mut children = Vec::with_capacity(n);
 
-        for i in 0..n {
-            let mut clone = self.clone();
-            clone.threads_index = i;
-            if i > 0 {
-                clone.is_search_verbose = false;
-                clone.is_debug = false;
+            for i in 0..n {
+                let mut clone = self.clone();
+                if i > 0 {
+                    clone.is_search_verbose = false;
+                    clone.is_debug = false;
+                }
+
+                let min_depth = depths.start; // TODO: + i as usize;
+                let max_depth = depths.end;
+
+                let builder = thread::Builder::new().
+                    name(format!("search_{}", i)).
+                    stack_size(4 << 20);
+
+                children.push(builder.spawn(move || {
+                    clone.search_root(min_depth..max_depth)
+                }).unwrap());
             }
 
-            let min_depth = depths.start; // + i as Depth;
-            let max_depth = depths.end;
-
-            let builder = thread::Builder::new().
-                name(format!("search_{}", i)).
-                stack_size(4 << 20);
-
-            children.push(builder.spawn(move || {
-                clone.search_root(min_depth..max_depth)
-            }).unwrap());
-        }
-
-        let mut best_score = -INF;
-        let mut best_move = None;
-        for child in children {
-            if let Some((s, m)) = child.join().unwrap() {
-                if s >= best_score {
-                    best_score = s;
-                    best_move = Some(m);
+            let mut best_score = -INF;
+            let mut best_move = None;
+            for child in children {
+                if let Some((s, m)) = child.join().unwrap() {
+                    if s >= best_score {
+                        best_score = s;
+                        best_move = Some(m);
+                    }
                 }
             }
-        }
 
-        best_move
+            best_move
+        }
     }
 
     fn search_root(&mut self, depths: Range<Depth>) -> Option<(Score, PieceMove)> {
@@ -136,21 +148,24 @@ impl Search for Game {
         let side = self.side();
         let ply = 0;
 
+        #[cfg(feature = "std")]
         if self.is_debug {
             self.print_debug_init(depths.start);
         }
 
+        #[cfg(feature = "std")]
         if self.is_search_verbose {
             self.print_thinking_init();
         }
 
         // Current best move
+        #[allow(unused_assignments)]
+        let mut best_score = 0; // Overwritten before being read in no_std
         let mut best_move = PieceMove::new_null();
-        let mut best_score = 0;
 
         // Keep track of previous values at shallower depths
-        let mut best_moves = [PieceMove::new_null(); MAX_PLY];
         let mut best_scores = [0; MAX_PLY];
+        let mut best_moves = [PieceMove::new_null(); MAX_PLY];
 
         debug_assert!(depths.start > 0);
         for mut depth in depths {
@@ -228,6 +243,7 @@ impl Search for Game {
                             self.tt.set(hash, depth, score, m, Bound::Exact);
 
                             // Get the PV line from the TT.
+                            #[cfg(feature = "std")]
                             self.print_thinking(depth, score, m);
                         }
                         alpha = score;
@@ -261,6 +277,7 @@ impl Search for Game {
 
         self.clock.stop();
 
+        #[cfg(feature = "std")]
         if self.is_debug {
             let t = self.clock.elapsed_time();
             let n = self.nodes_count();
@@ -271,6 +288,7 @@ impl Search for Game {
             println!("# {:15} {:>8}", "score:", best_score);
             println!("# {:15} {:>8} ms", "time:", t);
             println!("# {:15} {:>8} ({:.2e} nps)", "nodes:", n, nps);
+
             self.tt.print_stats();
         }
 
@@ -344,7 +362,7 @@ impl Search for Game {
             !is_pawn_ending;
 
         if nmp_allowed {
-            let r = cmp::min(depth - 1, 3);
+            let r = cmp::min(depth - 1, 3 + depth / 4);
             let m = PieceMove::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
@@ -429,13 +447,21 @@ impl Search for Game {
 
                 if lmr_allowed && depth > 2 {
                     r += 1; // Do the search at a reduced depth
+                    if depth > 4 {
+                        r += depth / 4;
+                    }
                 }
 
                 // Search the other moves with the reduced window
                 score = -self.search_node(-alpha - 1, -alpha, depth - r - 1, ply + 1);
 
+                // LMR re-search
+                if r > 0 && score > alpha {
+                    score = -self.search_node(-alpha - 1, -alpha, depth - 1, ply + 1);
+                }
+
+                // Re-search with the full window
                 if alpha < score && score < beta {
-                    // Re-search with the full window
                     score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
                 }
             }
@@ -606,6 +632,7 @@ impl Search for Game {
 }
 
 impl SearchExt for Game {
+    #[cfg(feature = "std")]
     fn print_debug_init(&self, depth: Depth) {
         println!("# FEN {}", self.to_fen());
         println!("# allocating {} ms to move", self.clock.allocated_time());
@@ -613,12 +640,14 @@ impl SearchExt for Game {
         println!();
     }
 
+    #[cfg(feature = "std")]
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
             println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "ply", "score", "time", "nodes", "pv");
         }
     }
 
+    #[cfg(feature = "std")]
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove) {
         self.undo_move(m);
 
@@ -641,7 +670,7 @@ impl SearchExt for Game {
                     let mut width = 34;
                     let mut lines = Vec::new();
                     let mut line = Vec::new();
-                    for chunk in pv.trim().split(" ").collect::<Vec<&str>>().chunks(3) {
+                    for chunk in pv.trim().split(' ').collect::<Vec<&str>>().chunks(3) {
                         let s = chunk.join(" ");
                         if width + s.len() >= 80 {
                             width = 34;
@@ -665,7 +694,10 @@ impl SearchExt for Game {
     }
 
     fn get_pv(&mut self, depth: Depth) -> String {
+        #[cfg(feature = "std")]
         let is_san_format = self.protocol != Protocol::UCI;
+        #[cfg(not(feature = "std"))]
+        let is_san_format = false;
 
         if depth == 0 {
             return String::new();
@@ -716,19 +748,21 @@ impl SearchExt for Game {
 
 #[cfg(test)]
 mod tests {
-    use color::*;
-    use piece::*;
-    use square::*;
-    use common::*;
-    use bitboard::BitboardExt;
-    use clock::Clock;
-    use eval;
-    use fen::FEN;
-    use game::Game;
-    use piece_move::PieceMove;
-    use piece_move_generator::PieceMoveGenerator;
-    use piece_move_notation::PieceMoveNotation;
-    use search::Search;
+    use crate::std::prelude::v1::*;
+
+    use crate::color::*;
+    use crate::piece::*;
+    use crate::square::*;
+    use crate::common::*;
+    use crate::bitboard::BitboardExt;
+    use crate::clock::Clock;
+    use crate::eval;
+    use crate::fen::FEN;
+    use crate::game::Game;
+    use crate::piece_move::PieceMove;
+    use crate::piece_move_generator::PieceMoveGenerator;
+    use crate::piece_move_notation::PieceMoveNotation;
+    use crate::search::Search;
 
     #[test]
     fn test_perft() {

@@ -1,37 +1,38 @@
-use std;
-use std::error::Error;
+use crate::std::prelude::v1::*;
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use bitboard::BitboardExt;
-use game::Game;
-use piece::PieceChar;
-use square::SquareExt;
-use positions::Position;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::bitboard::BitboardExt;
+use crate::game::Game;
+use crate::piece::PieceChar;
+use crate::square::SquareExt;
+use crate::positions::Position;
 
 /// Forsyth–Edwards Notation support
 pub trait FEN {
     /// Create `Game` from a given FEN string
-    fn from_fen(fen: &str) -> Result<Game, Box<dyn Error>>;
+    fn from_fen(fen: &str) -> Result<Game, String>;
 
     /// Load game state from a given FEN string
-    fn load_fen(&mut self, fen: &str) -> Result<(), Box<dyn Error>>;
+    fn load_fen(&mut self, fen: &str) -> Result<(), String>;
 
     /// Export game state to a FEN string
     fn to_fen(&self) -> String;
 }
 
 impl FEN for Game {
-    fn from_fen(fen: &str) -> Result<Game, Box<dyn Error>> {
+    fn from_fen(fen: &str) -> Result<Game, String> {
         let mut game = Game::new();
-        game.load_fen(fen)?;
-        Ok(game)
+        match game.load_fen(fen) {
+            Ok(()) => Ok(game),
+            Err(msg) => Err(msg),
+        }
     }
 
     // TODO: Return error if loading fail
-    fn load_fen(&mut self, fen: &str) -> Result<(), Box<dyn Error>> {
+    fn load_fen(&mut self, fen: &str) -> Result<(), String> {
         self.clear();
         self.starting_fen = String::from(fen);
         let mut position = Position::new();
@@ -109,7 +110,7 @@ impl FEN for Game {
 
         if let Some(ep) = fields.next() {
             if ep != "-" {
-                position.en_passant = SquareExt::from_coord(ep.into()); // TODO: check square
+                position.en_passant = SquareExt::from_coord(ep); // TODO: check square
                 position.hash ^= self.zobrist.en_passant[position.en_passant as usize];
             }
         };
@@ -142,7 +143,8 @@ impl FEN for Game {
                 n += 1;
             } else {
                 if n > 0 {
-                    let c = std::char::from_digit(n, 10).unwrap();
+                    debug_assert!(n < 10);
+                    let c = (b'0' + n) as char;
                     fen.push(c);
                     n = 0;
                 }
@@ -155,7 +157,8 @@ impl FEN for Game {
 
             if sq & H1 == H1 { // TODO: is_file_h!(sq)
                 if n > 0 { // TODO: DRY
-                    let c = std::char::from_digit(n, 10).unwrap();
+                    debug_assert!(n < 10);
+                    let c = (b'0' + n) as char;
                     fen.push(c);
                     n = 0;
                 }
@@ -215,11 +218,11 @@ impl FEN for Game {
 
 #[cfg(test)]
 mod tests {
-    use piece::*;
-    use square::*;
-    use common::*;
-    use fen::FEN;
-    use game::Game;
+    use crate::piece::*;
+    use crate::square::*;
+    use crate::common::*;
+    use crate::fen::FEN;
+    use crate::game::Game;
 
     #[test]
     fn test_from_fen() {

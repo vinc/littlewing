@@ -1,8 +1,8 @@
-use colored::Colorize;
+use crate::std::prelude::v1::*;
 
-use common::*;
-use square::*;
-use board;
+use crate::common::*;
+use crate::square::*;
+use crate::board;
 
 pub type Bitboard = u64;
 
@@ -91,7 +91,7 @@ impl BitboardExt for Bitboard {
         out.push_str(&format!(" Bitboard  (0x{:016X})\n", *self));
         let squares = (0..64).map(|i| {
             if self.get(i) {
-                "1".bold().green().to_string()
+                bold_green("1")
             } else {
                 "0".to_string()
             }

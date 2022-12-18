@@ -1,10 +1,11 @@
-use std::mem;
-use std::cell::UnsafeCell;
-use std::sync::Arc;
+use crate::std::prelude::v1::*;
+use crate::std::cell::UnsafeCell;
+use crate::std::mem;
+use crate::std::sync::Arc;
 
-use common::*;
-use piece_move::PieceMove;
-use transposition::{Transposition, Bound};
+use crate::common::*;
+use crate::piece_move::PieceMove;
+use crate::transposition::{Transposition, Bound};
 
 #[derive(Clone)]
 pub struct TranspositionTable {
@@ -82,13 +83,8 @@ impl TranspositionTable {
     }
 
     pub fn clear(&mut self) {
-        {
-            let h = self.entries.get();
-            let n = self.len();
-            for i in 0..n {
-                h[i] = Transposition::new_null();
-            }
-        }
+        let n = self.len();
+        self.entries = Arc::new(SharedTable::with_capacity(n));
         self.clear_stats();
     }
 
@@ -108,6 +104,7 @@ impl TranspositionTable {
     }
 
     /// Print transposition table stats
+    #[cfg(feature = "std")]
     pub fn print_stats(&mut self) {
         // Memory size
         let v = self.memory() as u64;
@@ -167,7 +164,15 @@ unsafe impl Sync for SharedTable {}
 impl SharedTable {
     pub fn with_capacity(capacity: usize) -> SharedTable {
         SharedTable {
-            inner: UnsafeCell::new(vec![Transposition::new_null(); capacity].into_boxed_slice())
+            // NOTE: Transmuting a boxed slice of zeroed 128 bit integers into
+            // empty transpositions is much faster than creating a boxed slice
+            // of transitions directly.
+            // inner: UnsafeCell::new(vec![Transposition::new_null(); capacity].into_boxed_slice())
+            inner: UnsafeCell::new(unsafe {
+                mem::transmute::<Box<[u128]>, Box<[Transposition]>>(
+                    vec![0u128; capacity].into_boxed_slice()
+                )
+            })
         }
     }
 
@@ -179,12 +184,14 @@ impl SharedTable {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Barrier};
-    use std::thread;
+    #[cfg(feature = "std")]
+    use crate::std::sync::{Arc, Barrier};
+    #[cfg(feature = "std")]
+    use crate::std::thread;
 
     use super::*;
-    use square::*;
-    use piece_move::PieceMove;
+    use crate::square::*;
+    use crate::piece_move::PieceMove;
 
     #[test]
     fn test_transposition_table_size() {
@@ -222,6 +229,7 @@ mod tests {
         assert_eq!(tt.get(h), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn test_transposition_table_in_threads() {
         // Transposition content

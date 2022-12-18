@@ -1,6 +1,6 @@
-use common::*;
-use square::*;
-use bitboard::{Bitboard, BitboardExt};
+use crate::common::*;
+use crate::square::*;
+use crate::bitboard::{Bitboard, BitboardExt};
 
 // Flood fill algorithm
 #[allow(dead_code)]
@@ -51,7 +51,7 @@ pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
 
 #[cfg(test)]
 mod tests {
-    use common::*;
+    use crate::common::*;
     use super::*;
 
     #[test]

@@ -113,3 +113,37 @@ fn bench_move_from_san(b: &mut Bencher) {
         game.move_from_san("e4");
     });
 }
+
+#[bench]
+fn bench_tt_16mb_get(b: &mut Bencher) {
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
+    let m = game.move_from_lan("e2e4");
+    game.tt_resize(16 << 20); // 16 MB
+    game.search(1..5);
+    game.make_move(m);
+    let hash = game.positions.top().hash;
+    b.iter(|| {
+        if let Some(t) = game.tt.get(hash) {
+            t.score()
+        } else {
+            0
+        }
+    })
+}
+
+#[bench]
+fn bench_tt_256mb_get(b: &mut Bencher) {
+    let mut game = Game::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
+    let m = game.move_from_lan("e2e4");
+    game.tt_resize(256 << 20); // 256 MB
+    game.search(1..5);
+    game.make_move(m);
+    let hash = game.positions.top().hash;
+    b.iter(|| {
+        if let Some(t) = game.tt.get(hash) {
+            t.score()
+        } else {
+            0
+        }
+    })
+}

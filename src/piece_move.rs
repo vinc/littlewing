@@ -1,18 +1,19 @@
-use std::fmt;
+use crate::std::prelude::v1::*;
+use crate::std::fmt;
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use piece::PieceChar;
-use square::SquareExt;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::piece::PieceChar;
+use crate::square::SquareExt;
 
 pub const BEST_MOVE_SCORE:    u8 = 255;
 pub const KILLER_MOVE_SCORE:  u8 = 254;
 pub const GOOD_CAPTURE_SCORE: u8 = 64;
 pub const QUIET_MOVE_SCORE:   u8 = 0;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct PieceMove(u16);
 
 impl PieceMove {
@@ -91,15 +92,15 @@ impl fmt::Display for PieceMove {
 
 impl fmt::Debug for PieceMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(f, "{}", self)
     }
 }
 
 
 #[cfg(test)]
 mod tests {
-    use piece::*;
-    use common::*;
+    use crate::piece::*;
+    use crate::common::*;
     use super::*;
 
     #[test]

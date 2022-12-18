@@ -1,16 +1,17 @@
-use std::cmp;
+use crate::std::prelude::v1::*;
+use crate::std::cmp;
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use attack::Attack;
-use attack::piece_attacks;
-use bitboard::{Bitboard, BitboardExt, BitboardIterator};
-use bitboard::filefill;
-use game::Game;
-use piece_move::PieceMove;
-use piece_square_table::PST;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::attack::Attack;
+use crate::attack::piece_attacks;
+use crate::bitboard::{Bitboard, BitboardExt, BitboardIterator};
+use crate::bitboard::filefill;
+use crate::game::Game;
+use crate::piece_move::PieceMove;
+use crate::piece_square_table::PST;
 
 pub const PAWN_VALUE:       Score =   100;
 pub const KNIGHT_VALUE:     Score =   350;
@@ -272,13 +273,13 @@ fn half_open_files(pawns: Bitboard, opponent_pawns: Bitboard) -> Bitboard {
 
 #[cfg(test)]
 mod tests {
-    use color::*;
-    use piece::*;
-    use common::*;
+    use crate::color::*;
+    use crate::piece::*;
+    use crate::common::*;
     use super::*;
-    use fen::FEN;
-    use game::Game;
-    use piece_move::PieceMove;
+    use crate::fen::FEN;
+    use crate::game::Game;
+    use crate::piece_move::PieceMove;
 
     #[test]
     fn test_draw() {
