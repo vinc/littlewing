@@ -12,7 +12,7 @@ use crate::bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use crate::hyperbola::bishop_attacks;
 use crate::hyperbola::rook_attacks;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Scored<T, S> {
     pub item: T,
     pub score: S
@@ -20,12 +20,12 @@ pub struct Scored<T, S> {
 
 impl<T, S> Scored<T, S> {
     pub fn new(item: T, score: S) -> Self {
-        Scored { item: item, score: score }
+        Scored { item, score }
     }
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Debug)]
 pub enum PieceMoveListStage { // If we don't care about `PartialOrd` we could do:
     BestPieceMove   = 0,      // = 16 (BEST_MOVE)
     Capture         = 1,      // =  4 (CAPTURE)

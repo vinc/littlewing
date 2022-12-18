@@ -79,7 +79,7 @@ impl fmt::Display for PGN {
         for (key, val) in self.headers.iter() {
             writeln!(f, "[{} \"{}\"]", key.trim_start_matches(char::is_numeric), val)?;
         }
-        writeln!(f, "")?;
+        writeln!(f)?;
         write!(f, "{}", self.body)?;
         Ok(())
     }
@@ -208,14 +208,14 @@ impl LoadPGN for Game {
         let mut comment_level = 0;
         let mut variation_level = 0;
         for line in pgn.body.lines() {
-            for word in line.split(" ") {
-                if word.starts_with(";") {
+            for word in line.split(' ') {
+                if word.starts_with(';') {
                     break;
                 }
-                comment_level += word.matches("{").count();
-                comment_level -= word.matches("}").count();
-                variation_level += word.matches("(").count();
-                variation_level -= word.matches(")").count();
+                comment_level += word.matches('{').count();
+                comment_level -= word.matches('}').count();
+                variation_level += word.matches('(').count();
+                variation_level -= word.matches(')').count();
                 if comment_level > 0 || variation_level > 0 {
                     continue;
                 }
