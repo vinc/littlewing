@@ -1,11 +1,11 @@
-use std::prelude::v1::*;
-use std::cell::UnsafeCell;
-use std::mem;
-use std::sync::Arc;
+use crate::std::prelude::v1::*;
+use crate::std::cell::UnsafeCell;
+use crate::std::mem;
+use crate::std::sync::Arc;
 
-use common::*;
-use piece_move::PieceMove;
-use transposition::{Transposition, Bound};
+use crate::common::*;
+use crate::piece_move::PieceMove;
+use crate::transposition::{Transposition, Bound};
 
 #[derive(Clone)]
 pub struct TranspositionTable {
@@ -185,13 +185,13 @@ impl SharedTable {
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "std")]
-    use std::sync::{Arc, Barrier};
+    use crate::std::sync::{Arc, Barrier};
     #[cfg(feature = "std")]
-    use std::thread;
+    use crate::std::thread;
 
     use super::*;
-    use square::*;
-    use piece_move::PieceMove;
+    use crate::square::*;
+    use crate::piece_move::PieceMove;
 
     #[test]
     fn test_transposition_table_size() {

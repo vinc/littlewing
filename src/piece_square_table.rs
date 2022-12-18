@@ -1,7 +1,7 @@
-use common::*;
-use color::*;
-use piece::*;
-use square::*;
+use crate::common::*;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
 
 const WHITE_PAWN_OPENING: [Score; 64] = [
     0,   0,   0,   0,   0,   0,   0,   0,

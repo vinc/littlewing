@@ -1,25 +1,25 @@
-use std::prelude::v1::*;
-use std::cmp;
-use std::ops::Range;
+use crate::std::prelude::v1::*;
+use crate::std::cmp;
+use crate::std::ops::Range;
 
 #[cfg(feature = "std")]
-use std::thread;
+use crate::std::thread;
 
-use color::*;
-use piece::*;
-use common::*;
-use attack::Attack;
-use bitboard::BitboardExt;
-use eval::Eval;
+use crate::color::*;
+use crate::piece::*;
+use crate::common::*;
+use crate::attack::Attack;
+use crate::bitboard::BitboardExt;
+use crate::eval::Eval;
 #[cfg(feature = "std")]
-use fen::FEN;
-use game::Game;
-use piece_move::PieceMove;
-use piece_move_generator::PieceMoveGenerator;
-use piece_move_notation::PieceMoveNotation;
-use transposition::Bound;
+use crate::fen::FEN;
+use crate::game::Game;
+use crate::piece_move::PieceMove;
+use crate::piece_move_generator::PieceMoveGenerator;
+use crate::piece_move_notation::PieceMoveNotation;
+use crate::transposition::Bound;
 #[cfg(feature = "std")]
-use protocols::Protocol;
+use crate::protocols::Protocol;
 
 /// Search the game
 pub trait Search {
@@ -700,21 +700,21 @@ impl SearchExt for Game {
 
 #[cfg(test)]
 mod tests {
-    use std::prelude::v1::*;
+    use crate::std::prelude::v1::*;
 
-    use color::*;
-    use piece::*;
-    use square::*;
-    use common::*;
-    use bitboard::BitboardExt;
-    use clock::Clock;
-    use eval;
-    use fen::FEN;
-    use game::Game;
-    use piece_move::PieceMove;
-    use piece_move_generator::PieceMoveGenerator;
-    use piece_move_notation::PieceMoveNotation;
-    use search::Search;
+    use crate::color::*;
+    use crate::piece::*;
+    use crate::square::*;
+    use crate::common::*;
+    use crate::bitboard::BitboardExt;
+    use crate::clock::Clock;
+    use crate::eval;
+    use crate::fen::FEN;
+    use crate::game::Game;
+    use crate::piece_move::PieceMove;
+    use crate::piece_move_generator::PieceMoveGenerator;
+    use crate::piece_move_notation::PieceMoveNotation;
+    use crate::search::Search;
 
     #[test]
     fn test_perft() {

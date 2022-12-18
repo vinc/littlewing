@@ -1,14 +1,14 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use bitboard::BitboardExt;
-use game::Game;
-use piece::PieceChar;
-use square::SquareExt;
-use positions::Position;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::bitboard::BitboardExt;
+use crate::game::Game;
+use crate::piece::PieceChar;
+use crate::square::SquareExt;
+use crate::positions::Position;
 
 /// Forsyth–Edwards Notation support
 pub trait FEN {
@@ -218,11 +218,11 @@ impl FEN for Game {
 
 #[cfg(test)]
 mod tests {
-    use piece::*;
-    use square::*;
-    use common::*;
-    use fen::FEN;
-    use game::Game;
+    use crate::piece::*;
+    use crate::square::*;
+    use crate::common::*;
+    use crate::fen::FEN;
+    use crate::game::Game;
 
     #[test]
     fn test_from_fen() {

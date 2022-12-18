@@ -103,17 +103,17 @@ pub mod square;
 
 /// Chess prelude
 pub mod chess {
-    pub use attack::Attack;
-    pub use clock::Clock;
-    pub use color;
-    pub use fen::FEN;
-    pub use game::Game;
-    pub use piece_move_generator::PieceMoveGenerator;
-    pub use piece_move_notation::PieceMoveNotation;
-    pub use search::Search;
+    pub use crate::attack::Attack;
+    pub use crate::clock::Clock;
+    pub use crate::color;
+    pub use crate::fen::FEN;
+    pub use crate::game::Game;
+    pub use crate::piece_move_generator::PieceMoveGenerator;
+    pub use crate::piece_move_notation::PieceMoveNotation;
+    pub use crate::search::Search;
 }
 
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
 /// Return Little Wing's version
 pub fn version() -> String {
@@ -122,4 +122,4 @@ pub fn version() -> String {
     format!("Little Wing {}", ver)
 }
 
-pub use common::{colorize, bold_white, bold_green, bold_red};
+pub use crate::common::{colorize, bold_white, bold_green, bold_red};

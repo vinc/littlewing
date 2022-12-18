@@ -1,18 +1,18 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use attack::Attack;
-use attack::piece_attacks;
-use bitboard::BitboardExt;
-use game::Game;
-use piece_move::*;
-use piece_move_list::PieceMoveListStage;
-use piece::PieceAttr;
-use square::SquareExt;
-use eval::Eval;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::attack::Attack;
+use crate::attack::piece_attacks;
+use crate::bitboard::BitboardExt;
+use crate::game::Game;
+use crate::piece_move::*;
+use crate::piece_move_list::PieceMoveListStage;
+use crate::piece::PieceAttr;
+use crate::square::SquareExt;
+use crate::eval::Eval;
 
 lazy_static! {
     // PxP =  7, PxN = 15, PxB = 23, PxR = 31, PxQ = 39, PxK = 47
@@ -449,13 +449,13 @@ impl PieceMoveGeneratorExt for Game {
 
 #[cfg(test)]
 mod tests {
-    use color::*;
-    use piece::*;
-    use common::*;
-    use piece_move::PieceMove;
-    use fen::FEN;
-    use game::Game;
-    use piece_move_notation::PieceMoveNotation;
+    use crate::color::*;
+    use crate::piece::*;
+    use crate::common::*;
+    use crate::piece_move::PieceMove;
+    use crate::fen::FEN;
+    use crate::game::Game;
+    use crate::piece_move_notation::PieceMoveNotation;
     use super::*;
 
     fn perft(fen: &str) -> usize {

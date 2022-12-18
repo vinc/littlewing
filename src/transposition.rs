@@ -1,7 +1,7 @@
-use std::prelude::v1::*;
+use crate::std::prelude::v1::*;
 
-use common::*;
-use piece_move::PieceMove;
+use crate::common::*;
+use crate::piece_move::PieceMove;
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -72,10 +72,10 @@ impl Transposition {
 
 #[cfg(test)]
 mod tests {
-    use std::mem;
+    use crate::std::mem;
 
     use super::*;
-    use piece_move::PieceMove;
+    use crate::piece_move::PieceMove;
 
     #[test]
     fn test_size_of_transposition() {

@@ -1,12 +1,12 @@
-use std::prelude::v1::*;
-use std::fmt;
+use crate::std::prelude::v1::*;
+use crate::std::fmt;
 
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use piece::PieceChar;
-use square::SquareExt;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::piece::PieceChar;
+use crate::square::SquareExt;
 
 pub const BEST_MOVE_SCORE:    u8 = 255;
 pub const KILLER_MOVE_SCORE:  u8 = 254;
@@ -95,8 +95,8 @@ impl fmt::Debug for PieceMove {
 
 #[cfg(test)]
 mod tests {
-    use piece::*;
-    use common::*;
+    use crate::piece::*;
+    use crate::common::*;
     use super::*;
 
     #[test]

@@ -1,4 +1,4 @@
-use color::*;
+use crate::color::*;
 
 pub type Piece = u8;
 

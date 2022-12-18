@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 
-use std::prelude::v1::*;
-use std::sync::atomic::{AtomicBool, Ordering};
+use crate::std::prelude::v1::*;
+use crate::std::sync::atomic::{AtomicBool, Ordering};
 
-use piece::*;
-use square::*;
-use bitboard::Bitboard;
+use crate::piece::*;
+use crate::square::*;
+use crate::bitboard::Bitboard;
 
 pub type Shift = i8;
 pub type Direction = usize;

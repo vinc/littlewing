@@ -1,11 +1,11 @@
-use color::*;
-use piece::*;
-use square::*;
-use common::*;
-use bitboard::{Bitboard, BitboardExt};
-use game::Game;
-use hyperbola::bishop_attacks;
-use hyperbola::rook_attacks;
+use crate::color::*;
+use crate::piece::*;
+use crate::square::*;
+use crate::common::*;
+use crate::bitboard::{Bitboard, BitboardExt};
+use crate::game::Game;
+use crate::hyperbola::bishop_attacks;
+use crate::hyperbola::rook_attacks;
 
 pub trait Attack {
     fn is_check(&self, side: Color) -> bool;
@@ -114,7 +114,7 @@ lazy_static! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fen::FEN;
+    use crate::fen::FEN;
 
     #[test]
     fn test_piece_attacks() {
