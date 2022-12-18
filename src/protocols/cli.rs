@@ -62,7 +62,7 @@ impl CLI {
 
     pub fn run(&mut self) {
         // Setup line editor
-        let mut rl = Editor::new();
+        let mut rl = Editor::new().unwrap();
         if let Some(path) = history_path() {
             let _ = rl.load_history(&path);
         }
