@@ -115,6 +115,7 @@ impl Search for Game {
                     clone.is_search_verbose = false;
                     clone.is_debug = false;
                 }
+                clone.threads_index = i;
 
                 let min_depth = depths.start; // TODO: + i as usize;
                 let max_depth = depths.end;
