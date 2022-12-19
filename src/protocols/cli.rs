@@ -82,6 +82,9 @@ impl CLI {
 
             state = match rl.readline(&self.prompt) {
                 Ok(line) => {
+                    if line.starts_with('#') {
+                        continue;
+                    }
                     rl.add_history_entry(&line);
                     self.exec(&line)
                 },
