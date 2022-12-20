@@ -82,6 +82,9 @@ impl CLI {
 
             state = match rl.readline(&self.prompt) {
                 Ok(line) => {
+                    if line.starts_with('#') {
+                        continue;
+                    }
                     rl.add_history_entry(&line);
                     self.exec(&line)
                 },
@@ -123,6 +126,7 @@ impl CLI {
                 "hide"                 => self.cmd_config(false, &args),
                 "core" | "threads"     => self.cmd_threads(&args),
                 "hash" | "memory"      => self.cmd_memory(&args),
+                "depth"                => self.cmd_depth(&args),
                 "perft"                => self.cmd_perft(&args),
                 "perftsuite"           => self.cmd_perftsuite(&args),
                 "testsuite"            => self.cmd_testsuite(&args),
@@ -176,6 +180,7 @@ impl CLI {
             "  time <moves> <time>       Set clock to <moves> in <time> (in seconds)",
             "  hash <size>               Set the <size> of the memory (in MB)",
             "  core <number>             Set the <number> of threads",
+            "  depth <number>            Set the search depth <number>",
             "",
             "  perft [<depth>]           Count the nodes at each depth",
             "  perftsuite <epd>          Compare perft results to each position of <epd>",
@@ -551,6 +556,15 @@ impl CLI {
         }
         let memory = args[1].parse::<usize>()?; // In MB
         self.game.tt_resize(memory << 20);
+        Ok(State::Running)
+    }
+
+    fn cmd_depth(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
+        if args.len() < 2 {
+            return Err("no <depth> given".into());
+        }
+        let depth = args[1].parse::<usize>()?;
+        self.max_depth = depth as Depth;
         Ok(State::Running)
     }
 
