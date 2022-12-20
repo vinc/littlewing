@@ -29,8 +29,8 @@ pub trait Search {
     /// Searh the best move at the given depth range
     fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove>;
 
-    /// Searh the best move from the root position at the given depth range
-    fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove>;
+    /// Searh the best score and move from the root position at the given depth range
+    fn search_root(&mut self, depths: Range<Depth>) -> Option<(Score, PieceMove)>;
 
     /// Searh the best score between alpha and beta from a node position at the given depth
     fn search_node(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
@@ -73,7 +73,8 @@ impl Search for Game {
     }
 
     fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
-        self.nodes_count = 0;
+        self.reset_nodes_count();
+        self.reset_current_depth();
         self.tt.reset();
 
         // NOTE: `clear_all()` will zero everything internally, including
@@ -95,7 +96,10 @@ impl Search for Game {
         }
 
         if n == 0 {
-            return self.search_root(depths);
+            return match self.search_root(depths) {
+                Some((_, m)) => Some(m),
+                None => None
+            }
         }
 
         #[cfg(not(feature = "std"))]
@@ -111,6 +115,7 @@ impl Search for Game {
                     clone.is_search_verbose = false;
                     clone.is_debug = false;
                 }
+                clone.threads_index = i;
 
                 let min_depth = depths.start; // TODO: + i as usize;
                 let max_depth = depths.end;
@@ -124,16 +129,22 @@ impl Search for Game {
                 }).unwrap());
             }
 
-            let mut res = Vec::with_capacity(n);
+            let mut best_score = -INF;
+            let mut best_move = None;
             for child in children {
-                res.push(child.join().unwrap());
+                if let Some((s, m)) = child.join().unwrap() {
+                    if s >= best_score {
+                        best_score = s;
+                        best_move = Some(m);
+                    }
+                }
             }
 
-            res[0] // best move found by the first thread
+            best_move
         }
     }
 
-    fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
+    fn search_root(&mut self, depths: Range<Depth>) -> Option<(Score, PieceMove)> {
         let hash = self.positions.top().hash;
         let side = self.side();
         let ply = 0;
@@ -158,24 +169,40 @@ impl Search for Game {
         let mut best_moves = [PieceMove::new_null(); MAX_PLY];
 
         debug_assert!(depths.start > 0);
-        for depth in depths {
-            let mut alpha = -INF;
-            let beta = INF;
+        for mut depth in depths {
+            if depth > 1 {
+                if depth > self.current_depth() {
+                    self.set_current_depth(depth);
+                } else if depth < self.current_depth() {
+                    continue;
+                }
 
-            self.moves.clear();
-            if !best_move.is_null() {
-                self.moves.add_move(best_move);
+                // Half of the threads should search at depth + 1
+                if self.threads_count > 0 && self.threads_index >= self.threads_count / 2 {
+                    depth += 1;
+                }
             }
 
             // Mate pruning
             if depth > 6 {
-                // Stop the search if the position was mate at the 3 previous
-                // shallower depths.
+                // Stop the search if the position was already mate at the last
+                // 3 previous shallower depths.
                 let mut is_mate = true;
+                let mut i = 0;
                 let inf = INF - (MAX_PLY as Score);
-                for d in 1..4 {
-                    let score = best_scores[(depth - d) as usize];
-                    if -inf < score && score < inf {
+                for d in (0..depth).rev() {
+                    let s = best_scores[d as usize];
+                    let m = best_moves[d as usize];
+
+                    // Count only the depths that have not been skipped
+                    if s != 0 || !m.is_null() {
+                        i += 1;
+                    }
+                    if i > 3 {
+                        break;
+                    }
+
+                    if -inf < s && s < inf {
                         is_mate = false;
                         break;
                     }
@@ -185,19 +212,33 @@ impl Search for Game {
                 }
             }
 
+            let mut alpha = -INF;
+            let beta = INF;
+
+            self.moves.clear();
+            if !best_move.is_null() {
+                self.moves.add_move(best_move);
+            }
+
             let mut has_legal_moves = false;
             while let Some(m) = self.next_move() {
-                if self.clock.poll(self.nodes_count) {
-                    break; // Discard search at this depth if time is out
+                // Discard search at this depth if time is out
+                if self.clock.poll(self.nodes_count()) {
+                    break;
+                }
+
+                // Discard search at this depth if another thread finished it
+                if 1 < depth && depth < self.current_depth() {
+                    break;
                 }
 
                 self.make_move(m);
                 let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
                 if !self.is_check(side) {
                     has_legal_moves = true;
-                    self.nodes_count += 1;
+                    self.inc_nodes_count();
                     if score > alpha {
-                        if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
+                        if self.is_search_verbose && !self.clock.poll(self.nodes_count()) {
                             // TODO: skip the first thousand nodes to gain time?
 
                             self.tt.set(hash, depth, score, m, Bound::Exact);
@@ -214,25 +255,33 @@ impl Search for Game {
                 self.undo_move(m);
             }
 
+            if 1 < depth && depth < self.current_depth() {
+                continue;
+            }
+
+            // Break from iterative deepening
+            if !has_legal_moves || self.clock.poll(self.nodes_count()) {
+                //println!("# thread #{} is leaving iterative deepening at depth {}", self.threads_index, depth);
+                break;
+            }
+
             // Save the best move only if we found one and if we still have
             // some time left after the search at this depth.
-            if !best_moves[depth as usize].is_null() && !self.clock.poll(self.nodes_count) {
+            if !best_moves[depth as usize].is_null() {
                 best_move = best_moves[depth as usize];
                 best_score = best_scores[depth as usize];
 
                 self.tt.set(hash, depth, best_score, best_move, Bound::Exact);
             }
 
-            // No need to iterate if there's no legal moves to play
-            if !has_legal_moves {
-                break;
-            }
         }
+
+        self.clock.stop();
 
         #[cfg(feature = "std")]
         if self.is_debug {
-            let n = self.nodes_count;
             let t = self.clock.elapsed_time();
+            let n = self.nodes_count();
             let nps = (n as f64) / ((t as f64) / 1000.0);
             if self.is_search_verbose {
                 println!();
@@ -247,12 +296,12 @@ impl Search for Game {
         if best_move.is_null() {
             None
         } else {
-            Some(best_move)
+            Some((best_score, best_move))
         }
     }
 
     fn search_node(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
-        if self.clock.poll(self.nodes_count) {
+        if self.clock.poll(self.nodes_count()) {
             return 0;
         }
 
@@ -358,7 +407,7 @@ impl Search for Game {
                 continue;
             }
 
-            self.nodes_count += 1;
+            self.inc_nodes_count();
             has_legal_moves = true;
 
             let mut score;
@@ -458,7 +507,7 @@ impl Search for Game {
 
     fn quiescence(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
         // Time limit abort
-        if self.clock.poll(self.nodes_count) {
+        if self.clock.poll(self.nodes_count()) {
             return 0;
         }
 
@@ -526,7 +575,7 @@ impl Search for Game {
                 self.undo_move(m);
                 continue;
             }
-            self.nodes_count += 1;
+            self.inc_nodes_count();
 
             let score = -self.quiescence(-beta, -alpha, depth - 1, ply + 1);
 
@@ -604,7 +653,7 @@ impl SearchExt for Game {
         self.undo_move(m);
 
         let time = self.clock.elapsed_time();
-        let nodes = self.nodes_count;
+        let nodes = self.nodes_count();
         let mut pv = self.get_pv(depth);
 
         match self.protocol {
@@ -772,7 +821,7 @@ mod tests {
         let fen = "4k3/8/4q3/8/8/4Q3/8/4K3 w - - 0 1";
         let mut game = Game::from_fen(fen).unwrap();
 
-        game.nodes_count = 0;
+        game.reset_nodes_count();
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         game.clock.start(game.positions.len());
 
@@ -791,7 +840,7 @@ mod tests {
     fn test_stalemate() {
         let mut game = Game::from_fen("4k3/4P3/4K3/8/8/8/8/ b - - 0 1").unwrap();
 
-        game.nodes_count = 0;
+        game.reset_nodes_count();
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         game.clock.start(game.positions.len());
 
@@ -816,7 +865,7 @@ mod tests {
             game.history.push(m);
         }
 
-        game.nodes_count = 0;
+        game.reset_nodes_count();
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         game.clock.start(game.positions.len());
 
@@ -835,7 +884,7 @@ mod tests {
         // Timman vs Lutz (1995)
         let mut game = Game::from_fen("8/7k/8/1r3KR1/5B2/8/8/8 w - - 105 122").unwrap();
 
-        game.nodes_count = 0;
+        game.reset_nodes_count();
         game.clock = Clock::new(1, 5 * 1000); // 5 seconds
         game.clock.start(game.positions.len());
 
