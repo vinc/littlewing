@@ -97,7 +97,6 @@ impl Search for Game {
 
             for i in 1..n {
                 let mut thread = self.clone();
-                thread.threads_index = i;
                 thread.is_search_verbose = false;
                 thread.is_debug = false;
 
