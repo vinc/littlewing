@@ -88,49 +88,33 @@ impl Search for Game {
 
         self.clock.start(self.positions.len());
 
-        let n = if cfg!(feature = "std") { self.threads_count } else { 0 };
+        if cfg!(feature = "std") {
+            let n = self.threads_count;
 
-        if self.is_debug {
-            println!("# using {} threads", n);
-        }
+            if self.is_debug {
+                println!("# using {} thread{}", n, if n == 1 { "" } else { "s" });
+            }
 
-        if n == 0 {
-            return self.search_root(depths);
-        }
+            for i in 1..n {
+                let mut thread = self.clone();
+                thread.threads_index = i;
+                thread.is_search_verbose = false;
+                thread.is_debug = false;
 
-        #[cfg(not(feature = "std"))]
-        unreachable!();
-
-        #[cfg(feature = "std")]
-        {
-            let mut children = Vec::with_capacity(n);
-
-            for i in 0..n {
-                let mut clone = self.clone();
-                if i > 0 {
-                    clone.is_search_verbose = false;
-                    clone.is_debug = false;
-                }
-
-                let min_depth = depths.start; // TODO: + i as usize;
+                let min_depth = depths.start; // TODO: + i as i8;
                 let max_depth = depths.end;
 
                 let builder = thread::Builder::new().
                     name(format!("search_{}", i)).
                     stack_size(4 << 20);
 
-                children.push(builder.spawn(move || {
-                    clone.search_root(min_depth..max_depth)
-                }).unwrap());
+                builder.spawn(move || {
+                    thread.search_root(min_depth..max_depth)
+                }).unwrap();
             }
-
-            let mut res = Vec::with_capacity(n);
-            for child in children {
-                res.push(child.join().unwrap());
-            }
-
-            res[0] // best move found by the first thread
         }
+
+        self.search_root(depths)
     }
 
     fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
