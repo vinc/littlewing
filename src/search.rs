@@ -214,9 +214,8 @@ impl Search for Game {
                 self.undo_move(m);
             }
 
-            // Save the best move only if we found one and if we still have
-            // some time left after the search at this depth.
-            if !best_moves[depth as usize].is_null() && !self.clock.poll(self.nodes_count) {
+            // Save the best move
+            if !best_moves[depth as usize].is_null() && (depth == 1 || !self.clock.poll(self.nodes_count)) {
                 best_move = best_moves[depth as usize];
                 best_score = best_scores[depth as usize];
 
