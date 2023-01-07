@@ -119,13 +119,6 @@ impl XBoard {
     fn cmd_level(&mut self, args: &[&str]) {
         let mut moves = args[1].parse::<u16>().unwrap();
 
-        if moves == 0 {
-            // FIXME: 0 means "play the whole game in this time control period"
-            // which is unsupported by our time management so we set it to
-            // another value instead.
-            moves = 60;
-        }
-
         // `time` is given in `mm:ss` or `ss`.
         let time = match args[2].find(':') {
             Some(i) => args[2][0..i].parse::<u64>().unwrap() * 60 +

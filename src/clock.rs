@@ -34,7 +34,7 @@ impl Clock {
             polling_nodes_count: 100,
             started_at: 0,
             moves_level: moves,
-            moves_remaining: moves,
+            moves_remaining: if moves > 0 { moves } else { 20 },
             time_remaining: time,
             last_nodes_count: 0,
             is_finished: Arc::new(AtomicBool::new(false)),
@@ -50,7 +50,7 @@ impl Clock {
         // The UCI protocol gives the number of remaining moves before each
         // search but XBoard doesn't so we need to calculate it based on moves
         // history and the level command.
-        if self.is_level {
+        if self.is_level && self.moves_level > 0 {
             assert!(ply > 0);
             let moves_done = (((ply - 1) / 2) as u16) % self.moves_level;
             self.moves_remaining = self.moves_level - moves_done;
