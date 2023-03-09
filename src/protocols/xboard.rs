@@ -117,7 +117,7 @@ impl XBoard {
     }
 
     fn cmd_level(&mut self, args: &[&str]) {
-        let mut moves = args[1].parse::<u16>().unwrap();
+        let moves = args[1].parse::<u16>().unwrap();
 
         // `time` is given in `mm:ss` or `ss`.
         let time = match args[2].find(':') {
