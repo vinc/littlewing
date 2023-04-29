@@ -88,49 +88,33 @@ impl Search for Game {
 
         self.clock.start(self.positions.len());
 
-        let n = if cfg!(feature = "std") { self.threads_count } else { 0 };
-
-        if self.is_debug {
-            println!("# using {} threads", n);
-        }
-
-        if n == 0 {
-            return self.search_root(depths);
-        }
-
-        #[cfg(not(feature = "std"))]
-        unreachable!();
-
         #[cfg(feature = "std")]
         {
-            let mut children = Vec::with_capacity(n);
+            let n = self.threads_count;
 
-            for i in 0..n {
-                let mut clone = self.clone();
-                if i > 0 {
-                    clone.is_search_verbose = false;
-                    clone.is_debug = false;
-                }
+            if self.is_debug {
+                println!("# using {} thread{}", n, if n == 1 { "" } else { "s" });
+            }
 
-                let min_depth = depths.start; // TODO: + i as usize;
+            for i in 1..n {
+                let mut thread = self.clone();
+                thread.is_search_verbose = false;
+                thread.is_debug = false;
+
+                let min_depth = depths.start; // TODO: + i as i8;
                 let max_depth = depths.end;
 
                 let builder = thread::Builder::new().
                     name(format!("search_{}", i)).
                     stack_size(4 << 20);
 
-                children.push(builder.spawn(move || {
-                    clone.search_root(min_depth..max_depth)
-                }).unwrap());
+                builder.spawn(move || {
+                    thread.search_root(min_depth..max_depth)
+                }).unwrap();
             }
-
-            let mut res = Vec::with_capacity(n);
-            for child in children {
-                res.push(child.join().unwrap());
-            }
-
-            res[0] // best move found by the first thread
         }
+
+        self.search_root(depths)
     }
 
     fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
