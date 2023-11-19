@@ -10,7 +10,7 @@ The project started in December 2014 to learn the Rust language and play with
 bitboards. Both experiments were conclusive and Little Wing it is still
 maintained in 2023.
 
-Currently evaluated at 2000+ ELO on CCRL 40/4 Rating List.
+Currently evaluated at around 2200 ELO on CCRL 40/4 Rating List.
 
 [![asciicast](https://asciinema.org/a/146112.png)](https://asciinema.org/a/146112)
 
