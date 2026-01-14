@@ -22,7 +22,7 @@ lazy_static! {
     // QxP =  3, QxN = 11, QxB = 19, QxR = 27, QxQ = 35, QxK = 43
     // KxP =  2, KxN = 10, KxB = 18, KxR = 26, KxQ = 34, KxK = 42
     pub static ref MVV_LVA_SCORES: [[u8; 13]; 13] = {
-        let pieces = vec![EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING];
+        let pieces = [EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING];
         let mut mvv_lva_scores = [[0; 13]; 13];
         for i in 1..7 {
             for j in 1..7 {

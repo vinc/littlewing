@@ -103,11 +103,11 @@ impl SquareExt for Square {
     }
 
     fn file(&self) -> u8 {
-        *self as u8 % 8
+        *self % 8
     }
 
     fn rank(&self) -> u8 {
-        *self as u8 / 8
+        *self / 8
     }
 
     fn flip(&self, c: Color) -> Self {

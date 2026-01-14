@@ -78,7 +78,7 @@ impl TranspositionTable {
     }
 
     pub fn reset(&mut self) {
-        self.age = (self.age + 1) % u8::max_value();
+        self.age = (self.age + 1) % u8::MAX;
         self.clear_stats();
     }
 
