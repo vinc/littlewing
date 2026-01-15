@@ -116,7 +116,7 @@ impl Search for Game {
                 }
                 clone.threads_index = i;
 
-                let min_depth = depths.start; // TODO: + i as usize;
+                let min_depth = depths.start + i as i8;
                 let max_depth = depths.end;
 
                 let builder = thread::Builder::new().
@@ -169,11 +169,6 @@ impl Search for Game {
 
         debug_assert!(depths.start > 0);
         for mut depth in depths {
-            let skip_amount = self.threads_index % 4;
-            if depth <= skip_amount as i8 {
-                continue;
-            }
-
             // Mate pruning
             if depth > 6 {
                 // Stop the search if the position was already mate at the last
