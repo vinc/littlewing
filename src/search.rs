@@ -168,7 +168,7 @@ impl Search for Game {
         let mut best_moves = [PieceMove::new_null(); MAX_PLY];
 
         debug_assert!(depths.start > 0);
-        for mut depth in depths {
+        for depth in depths {
             // Mate pruning
             if depth > 6 {
                 // Stop the search if the position was already mate at the last
