@@ -74,7 +74,6 @@ impl Search for Game {
 
     fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         self.reset_nodes_count();
-        self.reset_current_depth();
         self.tt.reset();
 
         // NOTE: `clear_all()` will zero everything internally, including
@@ -170,18 +169,6 @@ impl Search for Game {
 
         debug_assert!(depths.start > 0);
         for mut depth in depths {
-            if depth > 1 {
-                if depth > self.current_depth() {
-                    self.set_current_depth(depth);
-                } else if depth < self.current_depth() {
-                    continue;
-                }
-
-                // Half of the threads should search at depth + 1
-                if self.threads_count > 0 && self.threads_index >= self.threads_count / 2 {
-                    depth += 1;
-                }
-            }
 
             // Mate pruning
             if depth > 6 {
@@ -227,11 +214,6 @@ impl Search for Game {
                     break;
                 }
 
-                // Discard search at this depth if another thread finished it
-                if 1 < depth && depth < self.current_depth() {
-                    break;
-                }
-
                 self.make_move(m);
                 let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
                 if !self.is_check(side) {
@@ -253,10 +235,6 @@ impl Search for Game {
                     }
                 }
                 self.undo_move(m);
-            }
-
-            if 1 < depth && depth < self.current_depth() {
-                continue;
             }
 
             // Break from iterative deepening

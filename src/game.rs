@@ -32,7 +32,6 @@ pub struct Game {
     pub show_coordinates: bool,
     pub threads_index: usize,
     pub threads_count: usize,
-    pub current_depth: Arc<AtomicUsize>,
     pub nodes_count: Arc<AtomicU64>,
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
@@ -58,7 +57,6 @@ impl Game {
             show_coordinates: false,
             threads_index: 0,
             threads_count: 0,
-            current_depth: Arc::new(AtomicUsize::new(0)),
             nodes_count: Arc::new(AtomicU64::new(0)),
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
@@ -69,23 +67,6 @@ impl Game {
             history: Vec::new(),
             tt: TranspositionTable::with_memory(TT_SIZE)
         }
-    }
-
-    pub fn current_depth(&self) -> Depth {
-        self.current_depth.load(Ordering::Relaxed) as Depth
-    }
-
-    pub fn set_current_depth(&mut self, d: Depth) {
-        let ord = Ordering::Relaxed;
-        let old = self.current_depth.load(ord);
-        let new = d as usize;
-        if new > old {
-            let _ = self.current_depth.compare_exchange(old, new, ord, ord);
-        }
-    }
-
-    pub fn reset_current_depth(&mut self) {
-        self.current_depth.store(0, Ordering::Relaxed)
     }
 
     /// Get the transposition table size in byte
@@ -101,7 +82,6 @@ impl Game {
 
     /// Clear the current game state
     pub fn clear(&mut self) {
-        self.set_current_depth(0);
         self.bitboards = [0; 14];
         self.board = [EMPTY; 64];
         self.moves.clear_all();
