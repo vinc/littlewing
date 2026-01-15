@@ -169,6 +169,10 @@ impl Search for Game {
 
         debug_assert!(depths.start > 0);
         for mut depth in depths {
+            let skip_amount = self.threads_index % 4;
+            if depth <= skip_amount as i8 {
+                continue;
+            }
 
             // Mate pruning
             if depth > 6 {
