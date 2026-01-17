@@ -84,6 +84,7 @@ impl UCI {
 
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
+        self.game.tt.clear();
     }
 
     fn cmd_go(&mut self, args: &[&str]) {

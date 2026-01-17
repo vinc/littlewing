@@ -64,6 +64,7 @@ impl XBoard {
     fn cmd_new(&mut self) {
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
+        self.game.tt.clear();
         self.game.load_fen(DEFAULT_FEN).unwrap();
     }
 
@@ -96,8 +97,7 @@ impl XBoard {
     }
 
     fn cmd_time(&mut self, args: &[&str]) {
-        // `time` is given in centiseconds
-        let time = args[1].parse::<u64>().unwrap();
+        let time = args[1].parse::<u64>().unwrap(); // centiseconds
         self.game.clock.set_time(time * 10);
     }
 
@@ -113,6 +113,7 @@ impl XBoard {
         let fen = args[1..].join(" ");
 
         self.game.clear();
+        self.game.tt.clear();
         self.game.load_fen(&fen).unwrap();
     }
 
