@@ -34,15 +34,14 @@ impl UCI {
     pub fn run(&mut self) {
         self.game.protocol = Protocol::UCI;
         self.game.is_search_verbose = true;
-        println!("id name {}", version());
-        println!("id author Vincent Ollivier");
-        println!("uciok");
+        self.cmd_uci();
         loop {
             let mut cmd = String::new();
             io::stdin().read_line(&mut cmd).unwrap();
             let args: Vec<&str> = cmd.trim().split(' ').collect();
             match args[0] {
                 "quit"       => break,
+                "uci"        => self.cmd_uci(),
                 "stop"       => self.cmd_stop(),
                 "isready"    => self.cmd_isready(),
                 "ucinewgame" => self.cmd_ucinewgame(),
@@ -56,6 +55,12 @@ impl UCI {
 
     fn cmd_stop(&mut self) {
         self.stop_search();
+    }
+
+    fn cmd_uci(&mut self) {
+        println!("id name {}", version());
+        println!("id author Vincent Ollivier");
+        println!("uciok");
     }
 
     fn cmd_isready(&mut self) {
