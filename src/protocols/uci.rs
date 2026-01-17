@@ -43,6 +43,7 @@ impl UCI {
                 "quit"       => break,
                 "uci"        => self.cmd_uci(),
                 "stop"       => self.cmd_stop(),
+                "debug"      => self.cmd_debug(&args),
                 "isready"    => self.cmd_isready(),
                 "ucinewgame" => self.cmd_ucinewgame(),
                 "position"   => self.cmd_position(&args),
@@ -53,14 +54,22 @@ impl UCI {
         self.abort_search();
     }
 
-    fn cmd_stop(&mut self) {
-        self.stop_search();
-    }
-
     fn cmd_uci(&mut self) {
         println!("id name {}", version());
         println!("id author Vincent Ollivier");
         println!("uciok");
+    }
+
+    fn cmd_stop(&mut self) {
+        self.stop_search();
+    }
+
+    fn cmd_debug(&mut self, args: &[&str]) {
+        match args.get(1) {
+            Some(&"on") => self.game.is_debug = true,
+            Some(&"off") => self.game.is_debug = false,
+            _ => {},
+        }
     }
 
     fn cmd_isready(&mut self) {
