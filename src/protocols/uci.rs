@@ -102,22 +102,22 @@ impl UCI {
                 "wtime" if i + 1 < n => {
                     i += 1;
                     if side == WHITE {
-                        time = args[i].parse::<u64>().unwrap();
+                        time = args[i].parse().unwrap();
                     }
                 },
                 "btime" if i + 1 < n => {
                     i += 1;
                     if side == BLACK {
-                        time = args[i].parse::<u64>().unwrap();
+                        time = args[i].parse().unwrap();
                     }
                 },
                 "movetime" if i + 1 < n => {
                     i += 1;
-                    time = args[i].parse::<u64>().unwrap();
+                    time = args[i].parse().unwrap();
                 },
                 "movestogo" if i + 1 < n => {
                     i += 1;
-                    moves = args[i].parse::<u16>().unwrap();
+                    moves = args[i].parse().unwrap();
                 },
                 _ => {}
             }
@@ -125,7 +125,6 @@ impl UCI {
         }
         // FIXME: time increment is ignored
         self.game.clock = Clock::new(moves, time);
-        self.game.clock.disable_level();
         self.print_bestmove.store(true, Ordering::Relaxed);
         self.start_search();
     }

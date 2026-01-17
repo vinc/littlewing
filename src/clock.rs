@@ -23,7 +23,6 @@ pub struct Clock {
     time_remaining: u64,
     last_nodes_count: u64,
     is_finished: Arc<AtomicBool>,
-    is_level: bool // TODO: find a better name
 }
 
 impl Clock {
@@ -34,11 +33,10 @@ impl Clock {
             polling_nodes_count: 100,
             started_at: 0,
             moves_level: moves,
-            moves_remaining: if moves > 0 { moves } else { 20 },
+            moves_remaining: moves,
             time_remaining: time,
             last_nodes_count: 0,
             is_finished: Arc::new(AtomicBool::new(false)),
-            is_level: true
         }
     }
 
@@ -47,22 +45,17 @@ impl Clock {
         self.last_nodes_count = 0;
         self.started_at = (self.system_time)();
 
-        // The UCI protocol gives the number of remaining moves before each
-        // search but XBoard doesn't so we need to calculate it based on moves
-        // history and the level command.
-        if self.is_level && self.moves_level > 0 {
-            assert!(ply > 0);
-            let moves_done = (((ply - 1) / 2) as u16) % self.moves_level;
-            self.moves_remaining = self.moves_level - moves_done;
-        }
+        let moves_played = ((ply - 1) / 2) as u16;
+        let level = self.moves_level;
+        self.moves_remaining = if level > 0 {
+            level - (moves_played % level)
+        } else { // Sudden death
+            20 // TODO
+        };
     }
 
     pub fn stop(&mut self) {
         self.is_finished.store(true, Ordering::Relaxed);
-    }
-
-    pub fn disable_level(&mut self) {
-        self.is_level = false;
     }
 
     pub fn set_time(&mut self, time: u64) {
