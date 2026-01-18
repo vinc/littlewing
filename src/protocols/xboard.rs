@@ -117,19 +117,24 @@ impl XBoard {
         self.game.load_fen(&fen).unwrap();
     }
 
+    // level <moves> <time> <time_increment>
+    // level <moves> <minutes>[:<seconds>] [<seconds>]
     fn cmd_level(&mut self, args: &[&str]) {
+        debug_assert_eq!(args.len(), 4);
         let moves = args[1].parse().unwrap_or(0);
-
-        // `time` is given in `mm:ss` or `ss`.
         let time = match args[2].find(':') {
-            Some(i) => args[2][0..i].parse::<u64>().unwrap() * 60 +
-                       args[2][(i + 1)..].parse::<u64>().unwrap(),
-            None    => args[2].parse::<u64>().unwrap()
+            Some(i) => {
+                let m = args[2][0..i].parse::<u64>().unwrap();
+                let s = args[2][(i + 1)..].parse::<u64>().unwrap();
+                m * 60 + s
+            }
+            None => {
+                args[2].parse().unwrap()
+            }
         };
-
-        // FIXME: time increment is ignored
-
+        let time_increment = args[3].parse().unwrap_or(0);
         self.game.clock = Clock::new(moves, time * 1000);
+        self.game.clock.set_time_increment(time_increment * 1000);
     }
 
     fn cmd_depth(&mut self, args: &[&str]) {
