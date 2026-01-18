@@ -90,8 +90,9 @@ impl UCI {
     fn cmd_go(&mut self, args: &[&str]) {
         self.abort_search();
         let side = self.game.side();
-        let mut time = 0;
         let mut moves = 0;
+        let mut time = 0;
+        let mut time_increment = 0;
         let mut i = 0;
         let n = args.len();
         while i < n {
@@ -111,6 +112,18 @@ impl UCI {
                         time = args[i].parse().unwrap();
                     }
                 },
+                "winc" if i + 1 < n => {
+                    i += 1;
+                    if side == WHITE {
+                        time_increment = args[i].parse().unwrap();
+                    }
+                },
+                "binc" if i + 1 < n => {
+                    i += 1;
+                    if side == BLACK {
+                        time_increment = args[i].parse().unwrap();
+                    }
+                },
                 "movetime" if i + 1 < n => {
                     i += 1;
                     time = args[i].parse().unwrap();
@@ -123,8 +136,8 @@ impl UCI {
             }
             i += 1;
         }
-        // FIXME: time increment is ignored
         self.game.clock = Clock::new(moves, time);
+        self.game.clock.set_time_increment(time_increment);
         self.print_bestmove.store(true, Ordering::Relaxed);
         self.start_search();
     }

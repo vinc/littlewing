@@ -21,6 +21,7 @@ pub struct Clock {
     moves_level: u16,
     moves_remaining: u16,
     time_remaining: u64,
+    time_increment: u16,
     last_nodes_count: u64,
     is_finished: Arc<AtomicBool>,
 }
@@ -35,6 +36,7 @@ impl Clock {
             moves_level: moves,
             moves_remaining: moves,
             time_remaining: time,
+            time_increment: 0,
             last_nodes_count: 0,
             is_finished: Arc::new(AtomicBool::new(false)),
         }
@@ -50,7 +52,7 @@ impl Clock {
         self.moves_remaining = if level > 0 {
             level - (moves_played % level)
         } else { // Sudden death
-            20 // TODO
+            20 // TODO: find the right formula
         };
     }
 
@@ -62,8 +64,14 @@ impl Clock {
         self.time_remaining = time;
     }
 
+    pub fn set_time_increment(&mut self, time: u16) {
+        self.time_increment = time;
+    }
+
     pub fn allocated_time(&self) -> u64 {
-        self.time_remaining / self.moves_remaining as u64
+        let moves = self.moves_remaining as u64;
+        let time = self.time_remaining + moves * self.time_increment as u64;
+        time / moves
     }
 
     pub fn elapsed_time(&self) -> u64 {
