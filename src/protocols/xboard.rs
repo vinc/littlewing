@@ -132,9 +132,10 @@ impl XBoard {
                 args[2].parse().unwrap()
             }
         };
-        let time_increment = args[3].parse().unwrap_or(0);
         self.game.clock = Clock::new(moves, time * 1000);
-        self.game.clock.set_time_increment(time_increment * 1000);
+
+        let time_increment = (args[3].parse().unwrap_or(0.0) * 1000.0) as u16;
+        self.game.clock.set_time_increment(time_increment);
     }
 
     fn cmd_depth(&mut self, args: &[&str]) {
