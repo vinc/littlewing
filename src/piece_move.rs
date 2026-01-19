@@ -72,6 +72,14 @@ impl PieceMove {
     pub fn to_lan(self) -> String {
         self.to_string()
     }
+
+    pub fn to_u16(self) -> u16 {
+        self.0
+    }
+
+    pub fn from_u16(value: u16) -> Self {
+        Self(value)
+    }
 }
 
 impl fmt::Display for PieceMove {

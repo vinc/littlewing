@@ -1,5 +1,4 @@
 use std::prelude::v1::*;
-use std::cell::UnsafeCell;
 use std::mem;
 use std::sync::Arc;
 
@@ -52,13 +51,15 @@ impl TranspositionTable {
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
             None
-        } else if t.hash() != hash {
-            self.stats_collisions += 1;
-            None
         } else {
-            debug_assert_eq!(t.hash(), hash);
-            self.stats_hits += 1;
-            Some(t)
+            let (hash_word, data_word) = t.hash_and_data();
+            if hash_word ^ data_word != hash {
+                self.stats_collisions += 1;
+                None
+            } else {
+                self.stats_hits += 1;
+                Some(t)
+            }
         }
     }
 
@@ -71,14 +72,13 @@ impl TranspositionTable {
         // Always replace entries from previous searches (entry.age < age)
         // but use depth preferred replacement strategy for the current search.
         if age > h[k].age() || (age == 0 && h[k].age() > 0) || depth >= h[k].depth() {
-            let t = Transposition::new(hash, depth, score, best_move, bound, age);
-            h[k] = t;
+            h[k].store(hash, depth, score, best_move, bound, age);
             self.stats_inserts += 1;
         }
     }
 
     pub fn reset(&mut self) {
-        self.age = (self.age + 1) % u8::max_value();
+        self.age = (self.age + 1) % u8::MAX;
         self.clear_stats();
     }
 
@@ -154,31 +154,18 @@ impl TranspositionTable {
 }
 
 pub struct SharedTable {
-    inner: UnsafeCell<Box<[Transposition]>>
+    inner: Box<[Transposition]>,
 }
-
-// Tell the compiler than the transposition table can be shared between
-// threads inside an `Arc`, even if it's not really safe at all in reality :)
-unsafe impl Sync for SharedTable {}
 
 impl SharedTable {
     pub fn with_capacity(capacity: usize) -> SharedTable {
         SharedTable {
-            // NOTE: Transmuting a boxed slice of zeroed 128 bit integers into
-            // empty transpositions is much faster than creating a boxed slice
-            // of transitions directly.
-            // inner: UnsafeCell::new(vec![Transposition::new_null(); capacity].into_boxed_slice())
-            inner: UnsafeCell::new(unsafe {
-                mem::transmute::<Box<[u128]>, Box<[Transposition]>>(
-                    vec![0u128; capacity].into_boxed_slice()
-                )
-            })
+            inner: vec![Transposition::new_null(); capacity].into_boxed_slice()
         }
     }
 
-    // FIXME: mutable borrow from immutable input
-    pub fn get(&self) -> &mut [Transposition] {
-        unsafe { &mut *self.inner.get() }
+    pub fn get(&self) -> &[Transposition] {
+        &self.inner
     }
 }
 

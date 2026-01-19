@@ -678,13 +678,17 @@ impl SearchExt for Game {
             };
             self.make_move(m);
 
-            let pv = &self.get_pv(depth - 1);
-            let sep = if is_san_format && self.is_check(side ^ 1) {
-                if pv == "#" { "" } else { "+ " }
+            if self.positions.is_draw() {
+                res.push(format!("{}", cur));
             } else {
-                " "
-            };
-            res.push(format!("{}{}{}", cur, sep, pv));
+                let pv = &self.get_pv(depth - 1);
+                let sep = if is_san_format && self.is_check(side ^ 1) {
+                    if pv == "#" { "" } else { "+ " }
+                } else {
+                    " "
+                };
+                res.push(format!("{}{}{}", cur, sep, pv));
+            }
 
             self.undo_move(m);
         } else if self.is_check(side) {
