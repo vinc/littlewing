@@ -85,7 +85,7 @@ impl CLI {
                     if line.starts_with('#') {
                         continue;
                     }
-                    rl.add_history_entry(&line);
+                    rl.add_history_entry(&line).ok();
                     self.exec(&line)
                 },
                 Err(_) => {
