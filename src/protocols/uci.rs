@@ -47,6 +47,7 @@ impl UCI {
                 "uci"        => self.cmd_uci(),
                 "stop"       => self.cmd_stop(),
                 "debug"      => self.cmd_debug(&args),
+                "setoption"  => self.cmd_setoption(&args),
                 "isready"    => self.cmd_isready(),
                 "ucinewgame" => self.cmd_ucinewgame(),
                 "position"   => self.cmd_position(&args),
@@ -60,7 +61,38 @@ impl UCI {
     fn cmd_uci(&mut self) {
         println!("id name {}", version());
         println!("id author Vincent Ollivier");
+        println!("option name Threads type spin default 1 min 1 max 64");
+        println!("option name Hash type spin default 8 min 1 max 16384");
         println!("uciok");
+    }
+
+    fn cmd_setoption(&mut self, args: &[&str]) {
+        let mut name = "";
+        let mut i = 0;
+        let n = args.len();
+        while i < n {
+            match args[i] {
+                "name" if i + 1 < n => {
+                    i += 1;
+                    name = args[i];
+                },
+                "value" if i + 1 < n => {
+                    i += 1;
+                    match name {
+                        "Threads" => {
+                            self.game.threads_count = args[i].parse().unwrap();
+                        },
+                        "Hash" => {
+                            let size = args[i].parse::<usize>().unwrap(); // MB
+                            self.game.tt_resize(size << 20);
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            }
+            i += 1;
+        }
     }
 
     fn cmd_stop(&mut self) {
