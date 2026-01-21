@@ -92,6 +92,7 @@ impl Tuner {
                     continue;
                 }
 
+                game.tt.clear();
                 let e = game.eval();
                 let q = game.quiescence(e - 1, e + 1, 0, 0);
 
