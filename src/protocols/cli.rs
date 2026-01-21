@@ -25,6 +25,7 @@ use crate::pgn::*;
 use crate::protocols::xboard::XBoard;
 use crate::protocols::uci::UCI;
 use crate::search::Search;
+use crate::tune::Tuner;
 
 #[derive(Clone)]
 pub struct CLI {
@@ -133,6 +134,7 @@ impl CLI {
                 "divide"               => self.cmd_divide(&args),
                 "uci"                  => self.cmd_uci(),
                 "xboard"               => self.cmd_xboard(),
+                "tune"                 => self.cmd_tune(&args),
                 "help" | "h"           => self.cmd_usage("help"),
                 "quit" | "q" | "exit"  => Ok(State::Stopped),
                 ""                     => Ok(State::Running),
@@ -691,6 +693,18 @@ impl CLI {
             total_count += 1;
         }
         println!("Result {}/{}", found_count, total_count);
+        Ok(State::Running)
+    }
+
+    fn cmd_tune(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
+        if args.len() == 1 {
+            return Err("no <epd> given".into());
+        }
+        let path = Path::new(args[1]);
+        let mut tuner = Tuner::new();
+        tuner.load_epd(&path, &mut self.game).unwrap();
+        tuner.tune_k(); // Find optimal K value first
+        tuner.tune(2000, 0.001);
         Ok(State::Running)
     }
 

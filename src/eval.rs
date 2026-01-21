@@ -13,14 +13,14 @@ use crate::game::Game;
 use crate::piece_move::PieceMove;
 use crate::piece_square_table::PST;
 
-pub const PAWN_VALUE:       Score =   100;
-pub const KNIGHT_VALUE:     Score =   350;
-pub const BISHOP_VALUE:     Score =   350;
-pub const ROOK_VALUE:       Score =   500;
-pub const QUEEN_VALUE:      Score =  1000; // R + B + P + bonus bishop pair
-pub const KING_VALUE:       Score = 10000;
+pub const PAWN_VALUE:           Score =   100;
+pub const KNIGHT_VALUE:         Score =   350;
+pub const BISHOP_VALUE:         Score =   350;
+pub const ROOK_VALUE:           Score =   500;
+pub const QUEEN_VALUE:          Score =  1000; // R + B + P + bonus bishop pair
+pub const KING_VALUE:           Score = 10000;
 
-const BONUS_BISHOP_PAIR:    Score =    50;
+pub const BONUS_BISHOP_PAIR:    Score =    50;
 //const BONUS_HALF_OPEN_FILE: Score =     5;
 //const BONUS_KNIGHT_PAWNS:   Score =     5;
 //const BONUS_ROOK_OPEN_FILE: Score =    20;
@@ -28,7 +28,7 @@ const BONUS_BISHOP_PAIR:    Score =    50;
 //const MALUS_DOUBLED_PAWN:   Score =   -10;
 
 lazy_static! {
-    static ref PIECE_VALUES: [Score; 14] = {
+    pub static ref PIECE_VALUES: [Score; 14] = {
         let mut piece_values = [0; 14];
 
         piece_values[PAWN   as usize] = PAWN_VALUE;
