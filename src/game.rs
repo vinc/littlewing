@@ -1,6 +1,9 @@
 use std::prelude::v1::*;
 use std::fmt;
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
+
 use crate::board;
 use crate::color::*;
 use crate::piece::*;
@@ -27,8 +30,9 @@ pub struct Game {
     pub is_eval_verbose: bool, // Print thinking in eval
     pub is_search_verbose: bool, // Print thinking in search
     pub show_coordinates: bool,
+    pub threads_index: usize,
     pub threads_count: usize,
-    pub nodes_count: u64,
+    pub nodes_count: Arc<AtomicU64>,
     pub clock: Clock,
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
@@ -51,8 +55,9 @@ impl Game {
             is_eval_verbose: false,
             is_search_verbose: false,
             show_coordinates: false,
+            threads_index: 0,
             threads_count: 0,
-            nodes_count: 0,
+            nodes_count: Arc::new(AtomicU64::new(0)),
             clock: Clock::new(40, 5 * 60),
             bitboards: [0; 14],
             board: [EMPTY; 64],
@@ -83,6 +88,21 @@ impl Game {
         self.positions.clear();
         self.history.clear();
         self.tt.clear();
+    }
+
+    /// Get the shared nodes count
+    pub fn nodes_count(&self) -> u64 {
+        self.nodes_count.load(Ordering::Relaxed)
+    }
+
+    /// Increment the shared nodes count
+    pub fn inc_nodes_count(&mut self) {
+        self.nodes_count.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Reset the shared nodes count
+    pub fn reset_nodes_count(&mut self) {
+        self.nodes_count = Arc::new(AtomicU64::new(0));
     }
 
     /// Get a bitboard representation of the given piece in the game
