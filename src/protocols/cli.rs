@@ -704,7 +704,7 @@ impl CLI {
         let mut tuner = Tuner::new();
         tuner.load_epd(&path, &mut self.game).unwrap();
         tuner.tune_k(); // Find optimal K value first
-        tuner.tune(2000, 0.001);
+        tuner.tune(2000, 0.01);
         Ok(State::Running)
     }
 
