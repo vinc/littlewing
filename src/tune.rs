@@ -5,11 +5,12 @@ use std::path::Path;
 use crate::color::*;
 use crate::piece::*;
 use crate::eval::*;
-use crate::bitboard::BitboardExt;
+use crate::bitboard::{BitboardExt, BitboardIterator};
 use crate::game::Game;
 use crate::eval::Eval;
 use crate::search::Search;
 use crate::fen::FEN;
+use crate::piece_square_table::PST;
 
 const P: usize = 0;
 const N: usize = 1;
@@ -17,7 +18,8 @@ const B: usize = 2;
 const R: usize = 3;
 const Q: usize = 4;
 const BP: usize = 5;
-const MAX_PARAMS: usize = 6;
+const PST_INDEX: usize = 6;
+const MAX_PARAMS: usize = 6 + (6 * 64 * 2);
 
 #[derive(Clone)]
 pub struct EvaluatedPosition {
@@ -25,7 +27,7 @@ pub struct EvaluatedPosition {
     pub wdl: f64, // 1.0 = win, 0.5 = draw, 0.0 = loss
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Trace {
     // Material counts [white, black]
     pub pawns: [i32; 2],
@@ -34,10 +36,15 @@ pub struct Trace {
     pub rooks: [i32; 2],
     pub queens: [i32; 2],
     pub bishop_pair: [i32; 2],
+
+    // PST: [kind][square][color]
+    pub pst: [[[i32; 2]; 64]; 6],
+
+    pub piece_count: i32,
 }
 
 impl Trace {
-    pub fn eval(&self, params: &[f64; 6]) -> f64 {
+    pub fn eval(&self, params: &[f64; MAX_PARAMS]) -> f64 {
         let mut score = 0.0;
         score += (self.pawns[0] - self.pawns[1]) as f64 * params[P];
         score += (self.knights[0] - self.knights[1]) as f64 * params[N];
@@ -45,7 +52,54 @@ impl Trace {
         score += (self.rooks[0] - self.rooks[1]) as f64 * params[R];
         score += (self.queens[0] - self.queens[1]) as f64 * params[Q];
         score += (self.bishop_pair[0] - self.bishop_pair[1]) as f64 * params[BP];
+
+        // PST with phase interpolation
+        let x = self.piece_count as f64;
+        let x0 = 32.0; // Opening (max pieces)
+        let x1 = 2.0;  // Endgame (min pieces)
+
+        for kind in 0..6 {
+            for sq in 0..64 {
+                for c in 0..2 {
+                    if self.pst[kind][sq][c] > 0 {
+                        // Get PST parameters for opening and endgame
+                        let pst_idx_opening = PST_INDEX + kind * 64 * 2 + sq;
+                        let pst_idx_endgame = pst_idx_opening + 64;
+
+                        let opening_val = params[pst_idx_opening];
+                        let endgame_val = params[pst_idx_endgame];
+
+                        // Linear interpolation
+                        let interpolated = (opening_val * (x1 - x) + endgame_val * (x - x0)) / (x1 - x0);
+
+                        let count = self.pst[kind][sq][c] as f64;
+
+                        if c == 0 {
+                            score += count * interpolated;
+                        } else {
+                            score -= count * interpolated;
+                        }
+                    }
+                }
+            }
+        }
+
         score
+    }
+}
+
+impl Default for Trace {
+    fn default() -> Self {
+        Self {
+            pawns: [0; 2],
+            knights: [0; 2],
+            bishops: [0; 2],
+            rooks: [0; 2],
+            queens: [0; 2],
+            bishop_pair: [0; 2],
+            pst: [[[0; 2]; 64]; 6],
+            piece_count: 0,
+        }
     }
 }
 
@@ -64,6 +118,16 @@ impl Tuner {
         params[R] = ROOK_VALUE as f64;
         params[Q] = QUEEN_VALUE as f64;
         params[BP] = BONUS_BISHOP_PAIR as f64;
+
+        for kind in 0..6 {
+            let piece = (kind + 1) * 2;
+            for phase in 0..2 {
+                let offset = PST_INDEX + kind * 64 * 2 + phase * 64;
+                for sq in 0..64 {
+                    params[offset + sq] = PST[piece][sq][phase] as f64;
+                }
+            }
+        }
 
         Self {
             positions: Vec::new(),
@@ -131,8 +195,8 @@ impl Tuner {
     }
 
     /// Compute gradient of error with respect to parameters
-    pub fn compute_gradient(&self) -> [f64; 6] {
-        let mut gradient = [0.0; 6];
+    pub fn compute_gradient(&self) -> [f64; MAX_PARAMS] {
+        let mut gradient = [0.0; MAX_PARAMS];
         let n = self.positions.len() as f64;
 
         for pos in &self.positions {
@@ -150,6 +214,34 @@ impl Tuner {
             gradient[3] += coefficient * (pos.trace.rooks[0] - pos.trace.rooks[1]) as f64;
             gradient[4] += coefficient * (pos.trace.queens[0] - pos.trace.queens[1]) as f64;
             gradient[5] += coefficient * (pos.trace.bishop_pair[0] - pos.trace.bishop_pair[1]) as f64;
+
+
+            // PST gradients
+            let x = pos.trace.piece_count as f64;
+            let x0 = 32.0;
+            let x1 = 2.0;
+
+            for kind in 0..6 {
+                for sq in 0..64 {
+                    for c in 0..2 {
+                        let count = pos.trace.pst[kind][sq][c] as f64;
+                        if count == 0.0 {
+                            continue;
+                        }
+
+                        let pst_idx_opening = PST_INDEX + kind * 64 * 2 + sq;
+                        let pst_idx_endgame = pst_idx_opening + 64;
+
+                        let sign = if c == 0 { 1.0 } else { -1.0 };
+
+                        // d(interpolated)/d(opening) = (x1 - x) / (x1 - x0)
+                        gradient[pst_idx_opening] += coefficient * sign * count * (x1 - x) / (x1 - x0);
+
+                        // d(interpolated)/d(endgame) = (x - x0) / (x1 - x0)
+                        gradient[pst_idx_endgame] += coefficient * sign * count * (x - x0) / (x1 - x0);
+                    }
+                }
+            }
         }
 
         gradient
@@ -158,12 +250,14 @@ impl Tuner {
     /// Tune using gradient descent with Adam optimizer
     pub fn tune(&mut self, iterations: usize, learning_rate: f64) {
         let initial_error = self.compute_error();
-        println!("Initial error: {:.6}", initial_error);
+        println!("Tuning {} parameters... (iterations={}, learning_rate={})", MAX_PARAMS, iterations, learning_rate);
         println!();
+        println!("Iteration,Error");
+        println!("{},{:.6}", 0, initial_error);
 
         // Adam optimizer state
-        let mut m = [0.0; 6]; // First moment estimate
-        let mut v = [0.0; 6]; // Second moment estimate
+        let mut m = [0.0; MAX_PARAMS]; // First moment estimate
+        let mut v = [0.0; MAX_PARAMS]; // Second moment estimate
         let beta1 = 0.9;
         let beta2 = 0.999;
         let epsilon = 1e-8;
@@ -172,7 +266,7 @@ impl Tuner {
             let gradient = self.compute_gradient();
 
             // Update parameters using Adam
-            for i in 0..6 {
+            for i in 1..MAX_PARAMS {
                 m[i] = beta1 * m[i] + (1.0 - beta1) * gradient[i];
                 v[i] = beta2 * v[i] + (1.0 - beta2) * gradient[i] * gradient[i];
 
@@ -184,19 +278,17 @@ impl Tuner {
 
             if (iter + 1) % 50 == 0 {
                 let error = self.compute_error();
-                println!("Iteration {:3}: error = {:.6}", iter + 1, error);
-                self.print_params();
-                println!();
+                println!("{},{:.6}", iter + 1, error);
             }
         }
-
-        println!("Final tuned parameters:");
-        self.print_params();
+        println!();
     }
 
     /// Find optimal K value for sigmoid function
     pub fn tune_k(&mut self) {
         println!("Tuning K parameter...");
+        println!();
+        println!("K,Error");
 
         let mut best_k = self.k;
         let mut best_error = self.compute_error();
@@ -205,7 +297,7 @@ impl Tuner {
         for i in 5..25 {
             self.k = i as f64 / 10.0;
             let error = self.compute_error();
-            println!("K = {:.1}: error = {:.6}", self.k, error);
+            println!("{:.1},{:.6}", self.k, error);
 
             if error < best_error {
                 best_error = error;
@@ -215,7 +307,7 @@ impl Tuner {
 
         self.k = best_k;
         println!();
-        println!("Optimal K = {:.1}: error = {:.6}", best_k, best_error);
+        println!("Optimal K={:.1} (error={:.6})", best_k, best_error);
         println!();
     }
 
@@ -235,17 +327,45 @@ impl Tuner {
             if trace.bishops[ci] >= 2 {
                 trace.bishop_pair[ci] = 1;
             }
+
+            // Trace PST for each piece
+            for &p in &PIECES {
+                let mut pieces = game.bitboards[(c | p) as usize];
+                let kind = (p as usize / 2) - 1;
+
+                while let Some(sq) = pieces.next() {
+                    trace.pst[kind][sq as usize][ci] = 1;
+                    trace.piece_count += 1;
+                }
+            }
         }
 
         trace
     }
 
     pub fn print_params(&self) {
-        println!("  PAWN_VALUE:   {:>6.1}", self.params[0]);
-        println!("  KNIGHT_VALUE: {:>6.1}", self.params[1]);
-        println!("  BISHOP_VALUE: {:>6.1}", self.params[2]);
-        println!("  ROOK_VALUE:   {:>6.1}", self.params[3]);
-        println!("  QUEEN_VALUE:  {:>6.1}", self.params[4]);
-        println!("  BISHOP_PAIR:  {:>6.1}", self.params[5]);
+        println!("Result:");
+        println!();
+        println!("pub const PAWN_VALUE:   Score = {:>6.0}", self.params[0]);
+        println!("pub const KNIGHT_VALUE: Score = {:>6.0}", self.params[1]);
+        println!("pub const BISHOP_VALUE: Score = {:>6.0}", self.params[2]);
+        println!("pub const ROOK_VALUE:   Score = {:>6.0}", self.params[3]);
+        println!("pub const QUEEN_VALUE:  Score = {:>6.0}", self.params[4]);
+        println!("pub const BISHOP_PAIR:  Score = {:>6.0}", self.params[5]);
+
+        for kind in 0..6 {
+            for phase in 0..2 {
+                println!();
+                println!("const PST[{}][{}]: [Score; 64] = [", kind, phase);
+                let offset = PST_INDEX + kind * 64 * 2 + phase * 64;
+                for i in 0..64 {
+                    print!("{:>4.0}, ", self.params[offset + i]);
+                    if i % 8 == 7 {
+                        println!();
+                    }
+                }
+                println!("];");
+            }
+        }
     }
 }
