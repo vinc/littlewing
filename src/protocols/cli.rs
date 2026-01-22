@@ -703,8 +703,11 @@ impl CLI {
         let path = Path::new(args[1]);
         let mut tuner = Tuner::new();
         tuner.load_epd(&path, &mut self.game).unwrap();
-        tuner.tune_k(); // Find optimal K value first
-        tuner.tune(2000, 0.01);
+        tuner.k = 0.7;
+        tuner.tune(5000, 0.001);
+        tuner.tune_k();
+        tuner.tune(25000, 0.001);
+        tuner.print_params();
         Ok(State::Running)
     }
 
