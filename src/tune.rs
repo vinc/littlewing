@@ -353,10 +353,16 @@ impl Tuner {
         println!("pub const QUEEN_VALUE:  Score = {:>6.0}", self.params[4]);
         println!("pub const BISHOP_PAIR:  Score = {:>6.0}", self.params[5]);
 
+        let piece_names = ["PAWN", "KNIGHT", "BISHOP", "ROOK", "QUEEN", "KING"];
+        let phase_names = ["OPENING", "ENDGAME"];
         for kind in 0..6 {
             for phase in 0..2 {
                 println!();
-                println!("const PST[{}][{}]: [Score; 64] = [", kind, phase);
+                println!(
+                    "const {}_{}: [Score; 64] = [",
+                    piece_names[kind],
+                    phase_names[phase],
+                );
                 let offset = PST_INDEX + kind * 64 * 2 + phase * 64;
                 for i in 0..64 {
                     print!("{:>4.0}, ", self.params[offset + i]);
