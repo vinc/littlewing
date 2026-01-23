@@ -293,8 +293,8 @@ impl Tuner {
         let mut best_k = self.k;
         let mut best_error = self.compute_error();
 
-        // Try K values from 0.5 to 2.5 in steps of 0.1
-        for i in 5..25 {
+        // Try K values from 0.0 to 2.5 in steps of 0.1
+        for i in 0..25 {
             self.k = i as f64 / 10.0;
             let error = self.compute_error();
             println!("{:.1},{:.6}", self.k, error);
