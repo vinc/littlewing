@@ -706,7 +706,7 @@ impl CLI {
         tuner.k = 0.7;
         tuner.tune(5000, 0.001);
         tuner.tune_k();
-        tuner.tune(25000, 0.001);
+        tuner.tune(50000, 0.001);
         tuner.print_params();
         Ok(State::Running)
     }
