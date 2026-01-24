@@ -698,32 +698,32 @@ impl CLI {
     }
 
     fn cmd_extract(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
-        let mut from = "";
-        let mut to = "";
-        let mut skip = 0;
+        let mut src = "";
+        let mut dst = "";
+        let mut min = 0;
         let mut quiet = false;
 
         for arg in &args[1..] {
             match arg.split_once('=') {
-                Some(("from", val)) => from = val,
-                Some(("to", val)) => to = val,
-                Some(("skip", val)) => skip = val.parse().unwrap_or(0),
+                Some(("src", val)) => src = val,
+                Some(("dst", val)) => dst = val,
+                Some(("min", val)) => min = val.parse().unwrap_or(0),
                 Some(("quiet", val)) => quiet = val.parse().unwrap_or(false),
                 Some(_) => return Err("unknown arg key given".into()),
                 None => return Err("unknown arg given".into()),
             }
         }
 
-        if to.is_empty() {
-            return Err("no to=<epd> given".into());
+        if dst.is_empty() {
+            return Err("no dst=<epd> given".into());
         }
-        if from.is_empty() {
-            return Err("no from=<pgn> given".into());
+        if src.is_empty() {
+            return Err("no src=<pgn> given".into());
         }
 
         println!("Reading file...");
-        let mut epd = File::create(to)?;
-        let buf = fs::read_to_string(from)?;
+        let mut epd = File::create(dst)?;
+        let buf = fs::read_to_string(src)?;
         let n = buf.matches("[Result").count();
         let mut i = 0;
         let mut s = String::new();
@@ -735,9 +735,9 @@ impl CLI {
                 print!("Parsing games... {}/{}\r", i / 2, n);
                 io::stdout().flush().ok();
                 let pgn = PGN::from(s.as_str());
-                let mut ply = 0;
+                let mut ply = 1;
                 self.game.walk_pgn(&pgn, |game| {
-                    if ply > skip { // Skip opening moves
+                    if ply > min * 2 { // Skip <min> opening moves
                         let e = game.eval();
                         let q = game.quiescence(e - 1, e + 1, 0, 0);
                         if !quiet || (e - q).abs() < 50 { // Skip non-quiet moves
