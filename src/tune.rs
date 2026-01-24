@@ -10,7 +10,6 @@ use crate::piece::*;
 use crate::eval::*;
 use crate::bitboard::{BitboardExt, BitboardIterator};
 use crate::game::Game;
-use crate::search::Search;
 use crate::fen::FEN;
 use crate::piece_square_table::PST;
 
@@ -164,8 +163,6 @@ impl Tuner {
 
     pub fn load_epd(&mut self, path: &Path, game: &mut Game) -> std::io::Result<()> {
         println!("Loading EPD file...");
-        let mut loaded = 0;
-        let mut skipped = 0;
         let file = fs::read_to_string(path)?;
         for line in file.lines() {
             let args: Vec<_> = line.split(';').collect();
@@ -182,21 +179,11 @@ impl Tuner {
                     continue;
                 }
 
-                game.tt.clear();
-                let e = game.eval();
-                let q = game.quiescence(e - 1, e + 1, 0, 0);
-
-                if (e - q).abs() < 50 {
-                    let trace = self.compute_trace(&game);
-                    self.positions.push(EvaluatedPosition { trace, wdl });
-                    loaded += 1;
-                } else {
-                    skipped += 1;
-                }
+                let trace = self.compute_trace(&game);
+                self.positions.push(EvaluatedPosition { trace, wdl });
             }
         }
-        println!("Loaded {} quiet positions", loaded);
-        println!("Skipped {} noisy positions", skipped);
+        println!("Loaded {} positions", self.positions.len());
         println!();
         self.threads_count = game.threads_count;
         Ok(())
