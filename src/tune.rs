@@ -1,6 +1,8 @@
 use std::prelude::v1::*;
 use std::fs;
 use std::path::Path;
+use std::thread;
+use std::sync::Arc;
 
 use crate::attack::piece_attacks;
 use crate::color::*;
@@ -27,6 +29,11 @@ const MAX_PARAMS: usize = PST_INDEX + PST_SIZE;
 pub struct EvaluatedPosition {
     pub trace: Trace,
     pub wdl: f64, // 1.0 = win, 0.5 = draw, 0.0 = loss
+}
+
+/// Convert evaluation to win probability using sigmoid
+fn sigmoid(k: f64, eval: f64) -> f64 {
+    1.0 / (1.0 + 10_f64.powf(-k * eval / 400.0))
 }
 
 #[derive(Clone)]
@@ -116,6 +123,7 @@ impl Default for Trace {
 }
 
 pub struct Tuner {
+    pub threads_count: usize,
     pub positions: Vec<EvaluatedPosition>,
     pub params: [f64; MAX_PARAMS],
     pub k: f64, // Scaling constant
@@ -147,6 +155,7 @@ impl Tuner {
         }
 
         Self {
+            threads_count: 1,
             positions: Vec::new(),
             params,
             k: 1.0,
@@ -189,12 +198,8 @@ impl Tuner {
         println!("Loaded {} quiet positions", loaded);
         println!("Skipped {} noisy positions", skipped);
         println!();
+        self.threads_count = game.threads_count;
         Ok(())
-    }
-
-    /// Convert evaluation to win probability using sigmoid
-    fn sigmoid(&self, eval: f64) -> f64 {
-        1.0 / (1.0 + 10_f64.powf(-self.k * eval / 400.0))
     }
 
     /// Compute mean squared error (MSE)
@@ -203,7 +208,7 @@ impl Tuner {
 
         for pos in &self.positions {
             let eval = pos.trace.eval(&self.params);
-            let predicted = self.sigmoid(eval);
+            let predicted = sigmoid(self.k, eval);
             let error = pos.wdl - predicted;
             total_error += error * error;
         }
@@ -213,59 +218,76 @@ impl Tuner {
 
     /// Compute gradient of error with respect to parameters
     pub fn compute_gradient(&self) -> [f64; MAX_PARAMS] {
-        let mut gradient = [0.0; MAX_PARAMS];
+        let chunk_size = self.positions.len() / self.threads_count.max(1);
+        let params = Arc::new(self.params);
+        let k = self.k;
         let n = self.positions.len() as f64;
 
-        for pos in &self.positions {
-            let eval = pos.trace.eval(&self.params);
-            let sigmoid = self.sigmoid(eval);
+        let handles: Vec<_> = self.positions.chunks(chunk_size).map(|chunk| {
+            let chunk = chunk.to_vec();
+            let params = Arc::clone(&params);
+            thread::spawn(move || {
+                let mut gradient = [0.0; MAX_PARAMS];
+                for pos in &chunk {
+                    let eval = pos.trace.eval(&params);
+                    let s = sigmoid(k, eval);
 
-            let error = pos.wdl - sigmoid;
-            let dsigmoid_deval = sigmoid * (1.0 - sigmoid) * self.k * 10_f64.ln() / 400.0;
-            let coefficient = -2.0 * error * dsigmoid_deval / n;
+                    let error = pos.wdl - s;
+                    let dsigmoid_deval = s * (1.0 - s) * k * 10_f64.ln() / 400.0;
+                    let coefficient = -2.0 * error * dsigmoid_deval / n;
 
-            // Material gradients
-            gradient[0] += coefficient * (pos.trace.pawns[0] - pos.trace.pawns[1]) as f64;
-            gradient[1] += coefficient * (pos.trace.knights[0] - pos.trace.knights[1]) as f64;
-            gradient[2] += coefficient * (pos.trace.bishops[0] - pos.trace.bishops[1]) as f64;
-            gradient[3] += coefficient * (pos.trace.rooks[0] - pos.trace.rooks[1]) as f64;
-            gradient[4] += coefficient * (pos.trace.queens[0] - pos.trace.queens[1]) as f64;
-            gradient[5] += coefficient * (pos.trace.bishop_pair[0] - pos.trace.bishop_pair[1]) as f64;
+                    // Material gradients
+                    gradient[0] += coefficient * (pos.trace.pawns[0] - pos.trace.pawns[1]) as f64;
+                    gradient[1] += coefficient * (pos.trace.knights[0] - pos.trace.knights[1]) as f64;
+                    gradient[2] += coefficient * (pos.trace.bishops[0] - pos.trace.bishops[1]) as f64;
+                    gradient[3] += coefficient * (pos.trace.rooks[0] - pos.trace.rooks[1]) as f64;
+                    gradient[4] += coefficient * (pos.trace.queens[0] - pos.trace.queens[1]) as f64;
+                    gradient[5] += coefficient * (pos.trace.bishop_pair[0] - pos.trace.bishop_pair[1]) as f64;
 
-            // Mobility gradients
-            for i in 0..4 { // Only for N, B, R, and Q
-                let mob = pos.trace.mobility[i + 1];
-                gradient[MOB + i] += coefficient * (mob[0] - mob[1]) as f64 / 10.0;
-            }
+                    // Mobility gradients
+                    for i in 0..4 { // Only for N, B, R, and Q
+                        let mob = pos.trace.mobility[i + 1];
+                        gradient[MOB + i] += coefficient * (mob[0] - mob[1]) as f64 / 10.0;
+                    }
 
-            // PST gradients
-            let x = pos.trace.piece_count as f64;
-            let x0 = 32.0;
-            let x1 = 2.0;
+                    // PST gradients
+                    let x = pos.trace.piece_count as f64;
+                    let x0 = 32.0;
+                    let x1 = 2.0;
 
-            for kind in 0..6 {
-                for sq in 0..64 {
-                    for c in 0..2 {
-                        let count = pos.trace.pst[kind][sq][c] as f64;
-                        if count == 0.0 {
-                            continue;
+                    for kind in 0..6 {
+                        for sq in 0..64 {
+                            for c in 0..2 {
+                                let count = pos.trace.pst[kind][sq][c] as f64;
+                                if count == 0.0 {
+                                    continue;
+                                }
+
+                                let pst_idx_opening = PST_INDEX + kind * 64 * 2 + sq;
+                                let pst_idx_endgame = pst_idx_opening + 64;
+
+                                let sign = if c == 0 { 1.0 } else { -1.0 };
+
+                                // d(interpolated)/d(opening) = (x1 - x) / (x1 - x0)
+                                gradient[pst_idx_opening] += coefficient * sign * count * (x1 - x) / (x1 - x0);
+
+                                // d(interpolated)/d(endgame) = (x - x0) / (x1 - x0)
+                                gradient[pst_idx_endgame] += coefficient * sign * count * (x - x0) / (x1 - x0);
+                            }
                         }
-
-                        let pst_idx_opening = PST_INDEX + kind * 64 * 2 + sq;
-                        let pst_idx_endgame = pst_idx_opening + 64;
-
-                        let sign = if c == 0 { 1.0 } else { -1.0 };
-
-                        // d(interpolated)/d(opening) = (x1 - x) / (x1 - x0)
-                        gradient[pst_idx_opening] += coefficient * sign * count * (x1 - x) / (x1 - x0);
-
-                        // d(interpolated)/d(endgame) = (x - x0) / (x1 - x0)
-                        gradient[pst_idx_endgame] += coefficient * sign * count * (x - x0) / (x1 - x0);
                     }
                 }
+                gradient
+            })
+        }).collect();
+
+        let mut gradient = [0.0; MAX_PARAMS];
+        for handle in handles {
+            let res = handle.join().unwrap();
+            for i in 0..MAX_PARAMS {
+                gradient[i] += res[i];
             }
         }
-
         gradient
     }
 
