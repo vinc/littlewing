@@ -274,7 +274,7 @@ mod tests {
     #[test]
     fn test_string_to_pgn() {
         let content = fs::read_to_string("tests/fool.pgn").unwrap();
-        let pgn = PGN::from(content.clone());
+        let pgn = PGN::from(content.as_str());
         assert_eq!(pgn.to_string(), content);
         assert_eq!(pgn.result(), "0-1".to_string());
     }
@@ -284,16 +284,16 @@ mod tests {
         let mut game = Game::new();
 
         let s1 = fs::read_to_string("tests/fool.pgn").unwrap();
-        let pgn = PGN::from(s1.clone());
+        let pgn = PGN::from(s1.as_str());
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 4);
 
         let s2 = fs::read_to_string("tests/zukertort_vs_steinitz_1886.pgn").unwrap();
-        let pgn = PGN::from(s2.clone());
+        let pgn = PGN::from(s2.as_str());
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 58);
 
-        let pgn = PGN::from(format!("{}\n{}", s1, s2));
+        let pgn = PGN::from(format!("{}\n{}", s1, s2).as_str());
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 58);
     }
