@@ -7,7 +7,7 @@ use std::prelude::v1::*;
 use std::io;
 use std::fs;
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufReader, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::error::Error;
 
@@ -134,6 +134,7 @@ impl CLI {
                 "divide"               => self.cmd_divide(&args),
                 "uci"                  => self.cmd_uci(),
                 "xboard"               => self.cmd_xboard(),
+                "extract"              => self.cmd_extract(&args),
                 "tune"                 => self.cmd_tune(&args),
                 "help" | "h"           => self.cmd_usage("help"),
                 "quit" | "q" | "exit"  => Ok(State::Stopped),
@@ -693,6 +694,78 @@ impl CLI {
             total_count += 1;
         }
         println!("Result {}/{}", found_count, total_count);
+        Ok(State::Running)
+    }
+
+    fn cmd_extract(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
+        let mut from = "";
+        let mut to = "";
+        let mut skip = 0;
+        let mut quiet = false;
+
+        for arg in &args[1..] {
+            match arg.split_once('=') {
+                Some(("from", val)) => from = val,
+                Some(("to", val)) => to = val,
+                Some(("skip", val)) => skip = val.parse().unwrap_or(0),
+                Some(("quiet", val)) => quiet = val.parse().unwrap_or(false),
+                Some(_) => return Err("unknown arg key given".into()),
+                None => return Err("unknown arg given".into()),
+            }
+        }
+
+        if to.is_empty() {
+            return Err("no to=<epd> given".into());
+        }
+        let mut epd = File::create(to)?;
+
+        if from.is_empty() {
+            return Err("no from=<pgn> given".into());
+        }
+        let file = File::open(from)?;
+        let reader = BufReader::new(file);
+        let mut list = Vec::new();
+        let mut item = String::new();
+        let mut body = false;
+        println!("Reading PGN file...");
+        for line in reader.lines() {
+            let line = line?.clone();
+            if line.is_empty() {
+                if body {
+                    list.push(item.clone());
+                    item.clear();
+                    body = false;
+                }
+                continue;
+            }
+            if !line.starts_with("[") {
+                body = true;
+            }
+            item.push_str(&line);
+            item.push('\n');
+        }
+        if !item.is_empty() {
+            list.push(item.clone());
+        }
+
+        let n = list.len();
+        for (i, item) in list.into_iter().enumerate() {
+            print!("Parsing games... {}/{}\r", i + 1, n);
+            let _ = io::stdout().flush();
+            let pgn = PGN::from(item);
+            let mut ply = 0;
+            self.game.walk_pgn(&pgn, |game| {
+                if ply > skip { // Skip opening moves
+                    let e = game.eval();
+                    let q = game.quiescence(e - 1, e + 1, 0, 0);
+                    if !quiet || (e - q).abs() < 50 { // Skip non-quiet moves
+                        let _ = writeln!(epd, "{}; {}", game.to_fen(), pgn.result());
+                    }
+                }
+                ply += 1;
+            });
+        }
+        println!("");
         Ok(State::Running)
     }
 
