@@ -195,13 +195,15 @@ impl ToPGN for Game {
 /// Portable Game Notation import
 #[cfg(feature = "std")]
 pub trait LoadPGN {
+    fn walk_pgn<F>(&mut self, pgn: &PGN, callback: F) where F: FnMut(&mut Game);
+
     /// Load PGN
     fn load_pgn(&mut self, pgn: PGN);
 }
 
 #[cfg(feature = "std")]
 impl LoadPGN for Game {
-    fn load_pgn(&mut self, pgn: PGN) {
+    fn walk_pgn<F>(&mut self, pgn: &PGN, mut callback: F) where F: FnMut(&mut Game) {
         self.clear();
         let starting_fen = pgn.headers.get("FEN").map_or(DEFAULT_FEN, String::as_str);
         self.load_fen(starting_fen).unwrap();
@@ -220,12 +222,20 @@ impl LoadPGN for Game {
                     continue;
                 }
 
+                self.tt.clear();
+                self.moves.clear_all();
                 if let Some(m) = self.parse_move(word) {
                     self.make_move(m);
                     self.history.push(m);
+
+                    callback(self);
                 }
             }
         }
+    }
+
+    fn load_pgn(&mut self, pgn: PGN) {
+        self.walk_pgn(&pgn, |_| {});
     }
 }
 
