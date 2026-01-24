@@ -86,8 +86,8 @@ impl fmt::Display for PGN {
 }
 
 #[cfg(feature = "std")]
-impl From<String> for PGN {
-    fn from(s: String) -> PGN {
+impl From<&str> for PGN {
+    fn from(s: &str) -> PGN {
         lazy_static! {
             static ref RE: Regex = Regex::new("\\[(?P<key>\\w+) \"(?P<val>.*)\"\\]").unwrap();
         }

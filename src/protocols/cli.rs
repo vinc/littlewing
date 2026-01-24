@@ -7,7 +7,7 @@ use std::prelude::v1::*;
 use std::io;
 use std::fs;
 use std::fs::File;
-use std::io::{BufReader, BufRead, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::error::Error;
 
@@ -300,11 +300,11 @@ impl CLI {
                     return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
-                let pgn_str = fs::read_to_string(path)?;
+                let buf = fs::read_to_string(path)?;
                 // TODO: Add cmd arg to select which game to load in PGN file
                 // that have more than one game. Right now the last one will
                 // be loaded.
-                let pgn = PGN::from(pgn_str);
+                let pgn = PGN::from(buf.as_str());
                 self.game.load_pgn(pgn);
             }
             "help" => {
@@ -717,53 +717,38 @@ impl CLI {
         if to.is_empty() {
             return Err("no to=<epd> given".into());
         }
-        let mut epd = File::create(to)?;
-
         if from.is_empty() {
             return Err("no from=<pgn> given".into());
         }
-        let file = File::open(from)?;
-        let reader = BufReader::new(file);
-        let mut list = Vec::new();
-        let mut item = String::new();
-        let mut body = false;
-        println!("Reading PGN file...");
-        for line in reader.lines() {
-            let line = line?.clone();
-            if line.is_empty() {
-                if body {
-                    list.push(item.clone());
-                    item.clear();
-                    body = false;
-                }
-                continue;
-            }
-            if !line.starts_with("[") {
-                body = true;
-            }
-            item.push_str(&line);
-            item.push('\n');
-        }
-        if !item.is_empty() {
-            list.push(item.clone());
-        }
 
-        let n = list.len();
-        for (i, item) in list.into_iter().enumerate() {
-            print!("Parsing games... {}/{}\r", i + 1, n);
-            let _ = io::stdout().flush();
-            let pgn = PGN::from(item);
-            let mut ply = 0;
-            self.game.walk_pgn(&pgn, |game| {
-                if ply > skip { // Skip opening moves
-                    let e = game.eval();
-                    let q = game.quiescence(e - 1, e + 1, 0, 0);
-                    if !quiet || (e - q).abs() < 50 { // Skip non-quiet moves
-                        let _ = writeln!(epd, "{}; {}", game.to_fen(), pgn.result());
+        println!("Reading file...");
+        let mut epd = File::create(to)?;
+        let buf = fs::read_to_string(from)?;
+        let n = buf.matches("[Result").count();
+        let mut i = 0;
+        let mut s = String::new();
+        let sep = "\n\n";
+        for chunk in buf.split(sep) {
+            s.push_str(chunk);
+            s.push_str(sep);
+            if i % 2 == 1 {
+                print!("Parsing games... {}/{}\r", i / 2, n);
+                io::stdout().flush().ok();
+                let pgn = PGN::from(s.as_str());
+                let mut ply = 0;
+                self.game.walk_pgn(&pgn, |game| {
+                    if ply > skip { // Skip opening moves
+                        let e = game.eval();
+                        let q = game.quiescence(e - 1, e + 1, 0, 0);
+                        if !quiet || (e - q).abs() < 50 { // Skip non-quiet moves
+                            writeln!(epd, "{}; {}", game.to_fen(), pgn.result()).ok();
+                        }
                     }
-                }
-                ply += 1;
-            });
+                    ply += 1;
+                });
+                s.clear();
+            }
+            i += 1;
         }
         println!("");
         Ok(State::Running)
