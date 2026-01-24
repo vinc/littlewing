@@ -2,12 +2,12 @@ use std::prelude::v1::*;
 use std::fs;
 use std::path::Path;
 
+use crate::attack::piece_attacks;
 use crate::color::*;
 use crate::piece::*;
 use crate::eval::*;
 use crate::bitboard::{BitboardExt, BitboardIterator};
 use crate::game::Game;
-use crate::eval::Eval;
 use crate::search::Search;
 use crate::fen::FEN;
 use crate::piece_square_table::PST;
@@ -18,8 +18,10 @@ const B: usize = 2;
 const R: usize = 3;
 const Q: usize = 4;
 const BP: usize = 5;
-const PST_INDEX: usize = 6;
-const MAX_PARAMS: usize = 6 + (6 * 64 * 2);
+const MOB: usize = 6; // N + B + R + Q
+const PST_INDEX: usize = 6 + 4;
+const PST_SIZE: usize = 64 * 6 * 2;
+const MAX_PARAMS: usize = PST_INDEX + PST_SIZE;
 
 #[derive(Clone)]
 pub struct EvaluatedPosition {
@@ -37,6 +39,9 @@ pub struct Trace {
     pub queens: [i32; 2],
     pub bishop_pair: [i32; 2],
 
+    // Mobility: [kind][color]
+    pub mobility: [[i32; 2]; 6],
+
     // PST: [kind][square][color]
     pub pst: [[[i32; 2]; 64]; 6],
 
@@ -52,6 +57,12 @@ impl Trace {
         score += (self.rooks[0] - self.rooks[1]) as f64 * params[R];
         score += (self.queens[0] - self.queens[1]) as f64 * params[Q];
         score += (self.bishop_pair[0] - self.bishop_pair[1]) as f64 * params[BP];
+
+        // Mobility
+        for i in 0..4 { // Only for N, B, R, and Q
+            score += self.mobility[i + 1][0] as f64 * params[MOB + i] / 10.0;
+            score -= self.mobility[i + 1][1] as f64 * params[MOB + i] / 10.0;
+        }
 
         // PST with phase interpolation
         let x = self.piece_count as f64;
@@ -97,6 +108,7 @@ impl Default for Trace {
             rooks: [0; 2],
             queens: [0; 2],
             bishop_pair: [0; 2],
+            mobility: [[0; 2]; 6],
             pst: [[[0; 2]; 64]; 6],
             piece_count: 0,
         }
@@ -118,6 +130,11 @@ impl Tuner {
         params[R] = ROOK_VALUE as f64;
         params[Q] = QUEEN_VALUE as f64;
         params[BP] = BONUS_BISHOP_PAIR as f64;
+
+        params[MOB + 0] = KNIGHT_MOBILITY as f64;
+        params[MOB + 1] = BISHOP_MOBILITY as f64;
+        params[MOB + 2] = ROOK_MOBILITY as f64;
+        params[MOB + 3] = QUEEN_MOBILITY as f64;
 
         for kind in 0..6 {
             let piece = (kind + 1) * 2;
@@ -215,6 +232,11 @@ impl Tuner {
             gradient[4] += coefficient * (pos.trace.queens[0] - pos.trace.queens[1]) as f64;
             gradient[5] += coefficient * (pos.trace.bishop_pair[0] - pos.trace.bishop_pair[1]) as f64;
 
+            // Mobility gradients
+            for i in 0..4 { // Only for N, B, R, and Q
+                let mob = pos.trace.mobility[i + 1];
+                gradient[MOB + i] += coefficient * (mob[0] - mob[1]) as f64 / 10.0;
+            }
 
             // PST gradients
             let x = pos.trace.piece_count as f64;
@@ -293,8 +315,8 @@ impl Tuner {
         let mut best_k = self.k;
         let mut best_error = self.compute_error();
 
-        // Try K values from 0.0 to 2.5 in steps of 0.1
-        for i in 0..25 {
+        // Try K values from 0.1 to 2.5 in steps of 0.1
+        for i in 1..26 {
             self.k = i as f64 / 10.0;
             let error = self.compute_error();
             println!("{:.1},{:.6}", self.k, error);
@@ -313,6 +335,7 @@ impl Tuner {
 
     fn compute_trace(&self, game: &Game) -> Trace {
         let mut trace = Trace::default();
+        let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
 
         for &c in &COLORS {
             let ci = c as usize;
@@ -328,12 +351,14 @@ impl Tuner {
                 trace.bishop_pair[ci] = 1;
             }
 
-            // Trace PST for each piece
+            // Trace mobility and PST for each piece
             for &p in &PIECES {
                 let mut pieces = game.bitboards[(c | p) as usize];
                 let kind = (p as usize / 2) - 1;
 
                 while let Some(sq) = pieces.next() {
+                    let targets = piece_attacks(c | p, sq, occupied);
+                    trace.mobility[kind][ci] += targets.count() as i32;
                     trace.pst[kind][sq as usize][ci] = 1;
                     trace.piece_count += 1;
                 }
@@ -346,12 +371,16 @@ impl Tuner {
     pub fn print_params(&self) {
         println!("Result:");
         println!();
-        println!("pub const PAWN_VALUE:   Score = {:>6.0}", self.params[0]);
-        println!("pub const KNIGHT_VALUE: Score = {:>6.0}", self.params[1]);
-        println!("pub const BISHOP_VALUE: Score = {:>6.0}", self.params[2]);
-        println!("pub const ROOK_VALUE:   Score = {:>6.0}", self.params[3]);
-        println!("pub const QUEEN_VALUE:  Score = {:>6.0}", self.params[4]);
-        println!("pub const BISHOP_PAIR:  Score = {:>6.0}", self.params[5]);
+        println!("pub const PAWN_VALUE:      Score = {:>6.0}", self.params[0]);
+        println!("pub const KNIGHT_VALUE:    Score = {:>6.0}", self.params[1]);
+        println!("pub const BISHOP_VALUE:    Score = {:>6.0}", self.params[2]);
+        println!("pub const ROOK_VALUE:      Score = {:>6.0}", self.params[3]);
+        println!("pub const QUEEN_VALUE:     Score = {:>6.0}", self.params[4]);
+        println!("pub const BISHOP_PAIR:     Score = {:>6.0}", self.params[5]);
+        println!("pub const KNIGHT_MOBILITY: Score = {:>6.0}", self.params[6]);
+        println!("pub const BISHOP_MOBILITY: Score = {:>6.0}", self.params[7]);
+        println!("pub const ROOK_MOBILITY:   Score = {:>6.0}", self.params[8]);
+        println!("pub const QUEEN_MOBILITY:  Score = {:>6.0}", self.params[9]);
 
         let piece_names = ["PAWN", "KNIGHT", "BISHOP", "ROOK", "QUEEN", "KING"];
         let phase_names = ["OPENING", "ENDGAME"];

@@ -704,7 +704,7 @@ impl CLI {
         let mut tuner = Tuner::new();
         tuner.load_epd(&path, &mut self.game).unwrap();
         tuner.k = 0.7;
-        tuner.tune(5000, 0.001);
+        tuner.tune(10000, 0.001);
         tuner.tune_k();
         tuner.tune(50000, 0.001);
         tuner.print_params();

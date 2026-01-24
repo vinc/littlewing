@@ -21,11 +21,16 @@ pub const QUEEN_VALUE:          Score =  1000; // R + B + P + bonus bishop pair
 pub const KING_VALUE:           Score = 10000;
 
 pub const BONUS_BISHOP_PAIR:    Score =    50;
-//const BONUS_HALF_OPEN_FILE: Score =     5;
-//const BONUS_KNIGHT_PAWNS:   Score =     5;
-//const BONUS_ROOK_OPEN_FILE: Score =    20;
-//const BONUS_ROOK_PAWNS:     Score =     5;
-//const MALUS_DOUBLED_PAWN:   Score =   -10;
+//pub const BONUS_HALF_OPEN_FILE: Score =     5;
+//pub const BONUS_KNIGHT_PAWNS:   Score =     5;
+//pub const BONUS_ROOK_OPEN_FILE: Score =    20;
+//pub const BONUS_ROOK_PAWNS:     Score =     5;
+//pub const MALUS_DOUBLED_PAWN:   Score =   -10;
+
+pub const KNIGHT_MOBILITY:      Score = 12;
+pub const BISHOP_MOBILITY:      Score = 12;
+pub const ROOK_MOBILITY:        Score = 8;
+pub const QUEEN_MOBILITY:       Score = 10;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
@@ -44,6 +49,17 @@ lazy_static! {
         }
 
         piece_values
+    };
+
+    pub static ref MOBILITY: [Score; 14] = {
+        let mut mobility = [0; 14];
+
+        mobility[KNIGHT as usize] = KNIGHT_MOBILITY;
+        mobility[BISHOP as usize] = BISHOP_MOBILITY;
+        mobility[ROOK   as usize] = ROOK_MOBILITY;
+        mobility[QUEEN  as usize] = QUEEN_MOBILITY;
+
+        mobility
     };
 }
 
@@ -89,7 +105,7 @@ impl Eval for Game {
                 }
                 while let Some(square) = pieces.next() {
                     let targets = piece_attacks(piece, square, occupied);
-                    mobility[c as usize] += targets.count() as Score;
+                    mobility[c as usize] += MOBILITY[p as usize] * targets.count() as Score;
                     position[c as usize][0] += PST[piece as usize][square as usize][0];
                     position[c as usize][1] += PST[piece as usize][square as usize][1];
                 }
@@ -111,13 +127,13 @@ impl Eval for Game {
         let y1 = position[c][1];
         position_score += (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
         material_score += material[c];
-        mobility_score += mobility[c];
+        mobility_score += mobility[c] / 10;
 
         let y0 = position[c ^ 1][0];
         let y1 = position[c ^ 1][1];
         position_score -= (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
         material_score -= material[c ^ 1];
-        mobility_score -= mobility[c ^ 1];
+        mobility_score -= mobility[c ^ 1] / 10;
 
         let score = position_score + material_score + mobility_score;
 
