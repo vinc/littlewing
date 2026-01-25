@@ -414,7 +414,7 @@ impl CLI {
         }
 
         if self.game.is_debug || self.game.is_search_verbose {
-            println!("");
+            println!();
         }
 
         self.think(true);
@@ -486,7 +486,7 @@ impl CLI {
                 println!();
                 println!("{}", self.game);
             } else if self.game.is_debug || self.game.is_search_verbose {
-                println!("");
+                println!();
             }
 
             if self.play_side == Some(self.game.side()) {
@@ -619,7 +619,7 @@ impl CLI {
             for field in fields {
                 let field = field.trim();
                 if !field.starts_with("D") {
-                    println!("");
+                    println!();
                     return Err("invalid perftsuite epd format".into());
                 }
                 let mut it = field.split(' ');
@@ -725,10 +725,9 @@ impl CLI {
         let mut epd = File::create(dst)?;
         let buf = fs::read_to_string(src)?;
         let n = buf.matches("[Result").count();
-        let mut i = 0;
         let mut s = String::new();
         let sep = "\n\n";
-        for chunk in buf.split(sep) {
+        for (i, chunk) in buf.split(sep).enumerate() {
             s.push_str(chunk);
             s.push_str(sep);
             if i % 2 == 1 {
@@ -748,9 +747,8 @@ impl CLI {
                 });
                 s.clear();
             }
-            i += 1;
         }
-        println!("");
+        println!();
         Ok(State::Running)
     }
 
@@ -760,7 +758,7 @@ impl CLI {
         }
         let path = Path::new(args[1]);
         let mut tuner = Tuner::new();
-        tuner.load_epd(&path, &mut self.game).unwrap();
+        tuner.load_epd(path, &self.game).unwrap();
         tuner.k = 0.7;
         tuner.tune(10000, 0.001);
         tuner.tune_k();

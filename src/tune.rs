@@ -35,6 +35,41 @@ fn sigmoid(k: f64, eval: f64) -> f64 {
     1.0 / (1.0 + 10_f64.powf(-k * eval / 400.0))
 }
 
+fn compute_trace(game: &Game) -> Trace {
+    let mut trace = Trace::default();
+    let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
+
+    for &c in &COLORS {
+        let ci = c as usize;
+
+        trace.pawns[ci] = game.bitboards[(c | PAWN) as usize].count() as i32;
+        trace.knights[ci] = game.bitboards[(c | KNIGHT) as usize].count() as i32;
+        trace.bishops[ci] = game.bitboards[(c | BISHOP) as usize].count() as i32;
+        trace.rooks[ci] = game.bitboards[(c | ROOK) as usize].count() as i32;
+        trace.queens[ci] = game.bitboards[(c | QUEEN) as usize].count() as i32;
+
+        // Bishop pair bonus
+        if trace.bishops[ci] >= 2 {
+            trace.bishop_pair[ci] = 1;
+        }
+
+        // Trace mobility and PST for each piece
+        for &p in &PIECES {
+            let mut pieces = game.bitboards[(c | p) as usize];
+            let kind = (p as usize / 2) - 1;
+
+            while let Some(sq) = pieces.next() {
+                let targets = piece_attacks(c | p, sq, occupied);
+                trace.mobility[kind][ci] += targets.count() as i32;
+                trace.pst[kind][sq as usize][ci] = 1;
+                trace.piece_count += 1;
+            }
+        }
+    }
+
+    trace
+}
+
 #[derive(Clone)]
 pub struct Trace {
     // Material counts [white, black]
@@ -161,31 +196,43 @@ impl Tuner {
         }
     }
 
-    pub fn load_epd(&mut self, path: &Path, game: &mut Game) -> std::io::Result<()> {
-        println!("Loading EPD file...");
-        let file = fs::read_to_string(path)?;
-        for line in file.lines() {
-            let args: Vec<_> = line.split(';').collect();
-            if args.len() > 1 {
-                let fen = args[0].trim();
-                let wdl = match args[1].trim() {
-                    "1-0"     => 1.0,
-                    "1/2-1/2" => 0.5,
-                    "0-1"     => 0.0,
-                    _         => continue,
-                };
+    pub fn load_epd(&mut self, path: &Path, game: &Game) -> std::io::Result<()> {
+        self.threads_count = game.threads_count;
 
-                if game.load_fen(fen).is_err() {
-                    continue;
+        let dataset = fs::read_to_string(path)?;
+        println!("Loading dataset...");
+        let lines: Vec<String> = dataset.lines().map(|s| s.to_string()).collect();
+        let chunk_size = lines.len() / self.threads_count.max(1);
+        let handles: Vec<_> = lines.chunks(chunk_size).map(|chunk| {
+            let chunk = chunk.to_vec();
+            let mut game = game.clone();
+            thread::spawn(move || {
+                let mut res = Vec::new();
+                for line in chunk {
+                    let args: Vec<_> = line.split(';').collect();
+                    if args.len() > 1 {
+                        let fen = args[0].trim();
+                        if game.load_fen(fen).is_ok() {
+                            let trace = compute_trace(&game);
+                            let wdl = match args[1].trim() {
+                                "1-0"     => 1.0,
+                                "1/2-1/2" => 0.5,
+                                "0-1"     => 0.0,
+                                _         => continue,
+                            };
+                            res.push(EvaluatedPosition { trace, wdl });
+                        }
+                    }
                 }
-
-                let trace = self.compute_trace(&game);
-                self.positions.push(EvaluatedPosition { trace, wdl });
-            }
+                res
+            })
+        }).collect();
+        for handle in handles {
+            let res = handle.join().unwrap();
+            self.positions.extend_from_slice(&res);
         }
         println!("Loaded {} positions", self.positions.len());
         println!();
-        self.threads_count = game.threads_count;
         Ok(())
     }
 
@@ -340,41 +387,6 @@ impl Tuner {
         println!();
         println!("Optimal K={:.1} (error={:.6})", best_k, best_error);
         println!();
-    }
-
-    fn compute_trace(&self, game: &Game) -> Trace {
-        let mut trace = Trace::default();
-        let occupied = game.bitboard(WHITE) | game.bitboard(BLACK);
-
-        for &c in &COLORS {
-            let ci = c as usize;
-
-            trace.pawns[ci] = game.bitboards[(c | PAWN) as usize].count() as i32;
-            trace.knights[ci] = game.bitboards[(c | KNIGHT) as usize].count() as i32;
-            trace.bishops[ci] = game.bitboards[(c | BISHOP) as usize].count() as i32;
-            trace.rooks[ci] = game.bitboards[(c | ROOK) as usize].count() as i32;
-            trace.queens[ci] = game.bitboards[(c | QUEEN) as usize].count() as i32;
-
-            // Bishop pair bonus
-            if trace.bishops[ci] >= 2 {
-                trace.bishop_pair[ci] = 1;
-            }
-
-            // Trace mobility and PST for each piece
-            for &p in &PIECES {
-                let mut pieces = game.bitboards[(c | p) as usize];
-                let kind = (p as usize / 2) - 1;
-
-                while let Some(sq) = pieces.next() {
-                    let targets = piece_attacks(c | p, sq, occupied);
-                    trace.mobility[kind][ci] += targets.count() as i32;
-                    trace.pst[kind][sq as usize][ci] = 1;
-                    trace.piece_count += 1;
-                }
-            }
-        }
-
-        trace
     }
 
     pub fn print_params(&self) {
