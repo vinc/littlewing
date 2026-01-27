@@ -179,7 +179,7 @@ impl Tuner {
         params[MOB + 3] = QUEEN_MOBILITY as f64;
 
         for kind in 0..6 {
-            let piece = PIECE[kind];
+            let piece = PIECES[kind] as usize;
             for phase in 0..2 {
                 let offset = PST_INDEX + kind * 64 * 2 + phase * 64;
                 for sq in 0..64 {
