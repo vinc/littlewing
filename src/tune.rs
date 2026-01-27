@@ -12,6 +12,7 @@ use crate::bitboard::{BitboardExt, BitboardIterator};
 use crate::game::Game;
 use crate::fen::FEN;
 use crate::piece_square_table::PST;
+use crate::square::SquareExt;
 
 const P: usize = 0;
 const N: usize = 1;
@@ -61,7 +62,7 @@ fn compute_trace(game: &Game) -> Trace {
             while let Some(sq) = pieces.next() {
                 let targets = piece_attacks(c | p, sq, occupied);
                 trace.mobility[kind][ci] += targets.count() as i32;
-                trace.pst[kind][sq as usize][ci] = 1;
+                trace.pst[kind][sq.flip(c ^ 1) as usize][ci] = 1;
                 trace.piece_count += 1;
             }
         }
