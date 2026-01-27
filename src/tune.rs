@@ -55,9 +55,8 @@ fn compute_trace(game: &Game) -> Trace {
         }
 
         // Trace mobility and PST for each piece
-        for &p in &PIECES {
+        for (kind, &p) in PIECES.iter().enumerate() {
             let mut pieces = game.bitboards[(c | p) as usize];
-            let kind = (p as usize / 2) - 1;
 
             while let Some(sq) = pieces.next() {
                 let targets = piece_attacks(c | p, sq, occupied);
@@ -180,7 +179,7 @@ impl Tuner {
         params[MOB + 3] = QUEEN_MOBILITY as f64;
 
         for kind in 0..6 {
-            let piece = (kind + 1) * 2;
+            let piece = PIECE[kind];
             for phase in 0..2 {
                 let offset = PST_INDEX + kind * 64 * 2 + phase * 64;
                 for sq in 0..64 {
