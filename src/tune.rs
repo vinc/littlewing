@@ -393,16 +393,16 @@ impl Tuner {
     pub fn print_params(&self) {
         println!("Result:");
         println!();
-        println!("pub const PAWN_VALUE:      Score = {:>6.0}", self.params[0]);
-        println!("pub const KNIGHT_VALUE:    Score = {:>6.0}", self.params[1]);
-        println!("pub const BISHOP_VALUE:    Score = {:>6.0}", self.params[2]);
-        println!("pub const ROOK_VALUE:      Score = {:>6.0}", self.params[3]);
-        println!("pub const QUEEN_VALUE:     Score = {:>6.0}", self.params[4]);
-        println!("pub const BISHOP_PAIR:     Score = {:>6.0}", self.params[5]);
-        println!("pub const KNIGHT_MOBILITY: Score = {:>6.0}", self.params[6]);
-        println!("pub const BISHOP_MOBILITY: Score = {:>6.0}", self.params[7]);
-        println!("pub const ROOK_MOBILITY:   Score = {:>6.0}", self.params[8]);
-        println!("pub const QUEEN_MOBILITY:  Score = {:>6.0}", self.params[9]);
+        println!("pub const PAWN_VALUE:      Score = {:>5.0};", self.params[0]);
+        println!("pub const KNIGHT_VALUE:    Score = {:>5.0};", self.params[1]);
+        println!("pub const BISHOP_VALUE:    Score = {:>5.0};", self.params[2]);
+        println!("pub const ROOK_VALUE:      Score = {:>5.0};", self.params[3]);
+        println!("pub const QUEEN_VALUE:     Score = {:>5.0};", self.params[4]);
+        println!("pub const BISHOP_PAIR:     Score = {:>5.0};", self.params[5]);
+        println!("pub const KNIGHT_MOBILITY: Score = {:>5.0};", self.params[6]);
+        println!("pub const BISHOP_MOBILITY: Score = {:>5.0};", self.params[7]);
+        println!("pub const ROOK_MOBILITY:   Score = {:>5.0};", self.params[8]);
+        println!("pub const QUEEN_MOBILITY:  Score = {:>5.0};", self.params[9]);
 
         let piece_names = ["PAWN", "KNIGHT", "BISHOP", "ROOK", "QUEEN", "KING"];
         let phase_names = ["OPENING", "ENDGAME"];
