@@ -753,16 +753,27 @@ impl CLI {
     }
 
     fn cmd_tune(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
-        if args.len() == 1 {
+        if args.len() < 2 {
             return Err("no <epd> given".into());
         }
         let path = Path::new(args[1]);
+
+        let mut iterations = 50000;
+        if args.len() > 2 {
+            iterations = args[2].parse()?;
+        }
+
+        let mut learning_rate = 0.001;
+        if args.len() > 3 {
+            learning_rate = args[3].parse()?;
+        }
+
         let mut tuner = Tuner::new();
         tuner.load_epd(path, &self.game).unwrap();
         tuner.k = 0.7;
-        tuner.tune(10000, 0.001);
+        tuner.tune(iterations / 10, learning_rate);
         tuner.tune_k();
-        tuner.tune(50000, 0.001);
+        tuner.tune(iterations, learning_rate);
         tuner.print_params();
         Ok(State::Running)
     }
