@@ -61,7 +61,7 @@ fn compute_trace(game: &Game) -> Trace {
             while let Some(sq) = pieces.next() {
                 let targets = piece_attacks(c | p, sq, occupied);
                 trace.mobility[kind][ci] += targets.count() as i32;
-                trace.pst[kind][sq.flip(c ^ 1) as usize][ci] = 1;
+                trace.pst[kind][sq.flip(c) as usize][ci] = 1;
                 trace.piece_count += 1;
             }
         }
