@@ -414,11 +414,11 @@ impl Tuner {
                     phase_names[phase],
                 );
                 let offset = PST_INDEX + kind * 64 * 2 + phase * 64;
-                for i in 0..64 {
-                    print!("{:>4.0}, ", self.params[offset + i]);
-                    if i % 8 == 7 {
-                        println!();
+                for y in (0..8).rev() {
+                    for x in 0..8 {
+                        print!("{:>4.0}, ", self.params[offset + y * 8 + x]);
                     }
+                    println!();
                 }
                 println!("];");
             }
