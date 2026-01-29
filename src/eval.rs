@@ -205,22 +205,33 @@ impl Eval for Game {
         let mut gains = [0; 32];
         let mut d = 0;
 
-        let piece = self.board[capture.to() as usize];
-        let value = PIECE_VALUES[piece as usize];
-        gains[d] = value;
+        let mut piece = self.board[capture.to() as usize];
+        let mut value = PIECE_VALUES[self.board[sq as usize] as usize];
+        gains[d] = PIECE_VALUES[piece as usize];
 
+        if capture.is_promotion() {
+            value = PIECE_VALUES[capture.promotion_kind() as usize];
+            gains[d] += value - PIECE_VALUES[PAWN as usize];
+        }
         while sq != OUT {
             d += 1;
             side ^= 1;
             occupied.reset(sq); // Remove piece
 
-            let piece = self.board[sq as usize];
-            let value = PIECE_VALUES[piece as usize];
             gains[d] = value - gains[d - 1];
 
             // Get square of least valuable piece remaining
             let attacks = self.attacks_to(capture.to(), occupied);
             sq = self.lvp(side, attacks, occupied);
+
+            if sq != OUT {
+                piece = self.board[sq as usize];
+                value = PIECE_VALUES[piece as usize];
+
+                if piece.is_pawn() && capture.to().flip(side).rank() == RANK_8 as u8 {
+                    value = PIECE_VALUES[QUEEN as usize];
+                }
+            }
         }
 
         while { d -= 1; d > 0 } {
@@ -342,7 +353,7 @@ mod tests {
             ("7r/5qpk/p1Qp1b1p/3r3n/BB3p2/5p2/P1P2P2/4RK1R w - -", "Re8", 0),
             ("6rr/6pk/p1Qp1b1p/2n5/1B3p2/5p2/P1P2P2/4RK1R w - -", "Re8", -r),
             ("7r/5qpk/2Qp1b1p/1N1r3n/BB3p2/5p2/P1P2P2/4RK1R w - -", "Re8", -r),
-            //("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=Q", b - p),
+            ("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=Q", b - p),
             //("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=N", n - p),
             //("7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -", "f8=Q", q - p),
             //("7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -", "f8=B", b - p),
@@ -371,11 +382,11 @@ mod tests {
             ("7r/5qpk/p1Qp1b1p/3r3n/BB3p2/5p2/P1P2P2/4RK1R w - -", "Re8", 0),
             ("6rr/6pk/p1Qp1b1p/2n5/1B3p2/5p2/P1P2P2/4RK1R w - -", "Re8",  -r),
             ("7r/5qpk/2Qp1b1p/1N1r3n/BB3p2/5p2/P1P2P2/4RK1R w - -", "Re8", -r),
-            //("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=Q", b - p),
+            ("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=Q", b - p),
             //("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=N", n - p),
-            //("7R/5P2/8/8/6r1/3K4/5p2/4k3 w - -", "f8=Q", q - p),
-            //("7R/5P2/8/8/6r1/3K4/5p2/4k3 w - -", "f8=B", b - p),
-            //("7R/4bP2/8/8/1q6/3K4/5p2/4k3 w - -", "f8=R", -p),
+            ("7R/5P2/8/8/6r1/3K4/5p2/4k3 w - -", "f8=Q", q - p),
+            ("7R/5P2/8/8/6r1/3K4/5p2/4k3 w - -", "f8=B", b - p),
+            ("7R/4bP2/8/8/1q6/3K4/5p2/4k3 w - -", "f8=R", -p),
             ("8/4kp2/2npp3/1Nn5/1p2PQP1/7q/1PP1B3/4KR1r b - -", "Rxf1+", 0),
             ("8/4kp2/2npp3/1Nn5/1p2P1P1/7q/1PP1B3/4KR1r b - -", "Rxf1+", 0),
             ("2r2r1k/6bp/p7/2q2p1Q/3PpP2/1B6/P5PP/2RR3K b - -", "Qxc1", r - q + r),
@@ -416,21 +427,21 @@ mod tests {
             ("2r1k2r/pb4pp/5p1b/2KB3n/4N3/2NP1PB1/PPP1P1PP/R2Q3R w k -", "Bc6", -b),
             ("2r1k2r/pb4pp/5p1b/2KB3n/1N2N3/3P1PB1/PPP1P1PP/R2Q3R w k -", "Bc6", -b + b),
             //("2r1k3/pbr3pp/5p1b/2KB3n/1N2N3/3P1PB1/PPP1P1PP/R2Q3R w - -", "Bc6", -b + b - n),
-            //("5k2/p2P2pp/8/1pb5/1Nn1P1n1/6Q1/PPP4P/R3K1NR w KQ -", "d8=Q", q - p),
-            //("r4k2/p2P2pp/8/1pb5/1Nn1P1n1/6Q1/PPP4P/R3K1NR w KQ -", "d8=Q", (q - p) - q),
-            //("5k2/p2P2pp/1b6/1p6/1Nn1P1n1/8/PPP4P/R2QK1NR w KQ -", "d8=Q",(q - p) - q + b),
-            //("4kbnr/p1P1pppp/b7/4q3/7n/8/PP1PPPPP/RNBQKBNR w KQk -", "c8=Q", (q - p) - q),
-            //("4kbnr/p1P1pppp/b7/4q3/7n/8/PPQPPPPP/RNB1KBNR w KQk -", "c8=Q", (q - p) - q + b),
+            ("5k2/p2P2pp/8/1pb5/1Nn1P1n1/6Q1/PPP4P/R3K1NR w KQ -", "d8=Q", q - p),
+            ("r4k2/p2P2pp/8/1pb5/1Nn1P1n1/6Q1/PPP4P/R3K1NR w KQ -", "d8=Q", (q - p) - q),
+            ("5k2/p2P2pp/1b6/1p6/1Nn1P1n1/8/PPP4P/R2QK1NR w KQ -", "d8=Q",(q - p) - q + b),
+            ("4kbnr/p1P1pppp/b7/4q3/7n/8/PP1PPPPP/RNBQKBNR w KQk -", "c8=Q", (q - p) - q),
+            ("4kbnr/p1P1pppp/b7/4q3/7n/8/PPQPPPPP/RNB1KBNR w KQk -", "c8=Q", (q - p) - q + b),
             //("4kbnr/p1P1pppp/b7/4q3/7n/8/PPQPPPPP/RNB1KBNR w KQk -", "c8=Q", (q - p)),
             //("4kbnr/p1P4p/b1q5/5pP1/4n3/5Q2/PP1PPP1P/RNB1KBNR w KQk f6", "gxf6", p - p),
             //("4kbnr/p1P4p/b1q5/5pP1/4n3/5Q2/PP1PPP1P/RNB1KBNR w KQk f6", "gxf6",	p - p),
             //("4kbnr/p1P4p/b1q5/5pP1/4n2Q/8/PP1PPP1P/RNB1KBNR w KQk f6", "gxf6", p - p),
-            //("1n2kb1r/p1P4p/2qb4/5pP1/4n2Q/8/PP1PPP1P/RNB1KBNR w KQk -", "cxb8=Q", n + (q - p) - q),
+            ("1n2kb1r/p1P4p/2qb4/5pP1/4n2Q/8/PP1PPP1P/RNB1KBNR w KQk -", "cxb8=Q", n + (q - p) - q),
             ("rnbqk2r/pp3ppp/2p1pn2/3p4/3P4/N1P1BN2/PPB1PPPb/R2Q1RK1 w kq -", "Kxh2", b),
             ("3N4/2K5/2n5/1k6/8/8/8/8 b - -", "Nxd8", n - n),
             //("3N4/2P5/2n5/1k6/8/8/8/4K3 b - -", "Nxd8", n - (n + q - p)),
             //("3n3r/2P5/8/1k6/8/8/3Q4/4K3 w - -", "Qxd8", n),
-            //("3n3r/2P5/8/1k6/8/8/3Q4/4K3 w - -", "cxd8=Q", (n + q - p) - q + r),
+            ("3n3r/2P5/8/1k6/8/8/3Q4/4K3 w - -", "cxd8=Q", (n + q - p) - q + r),
             ("r2n3r/2P1P3/4N3/1k6/8/8/8/4K3 w - -", "Nxd8", n),
             ("8/8/8/1k6/6b1/4N3/2p3K1/3n4 w - -", "Nxd1", n - n),
             //("8/8/1k6/8/8/2N1N3/2p1p1K1/3n4 w - -", "Nxd1", n - (n + q - p)),
