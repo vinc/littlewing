@@ -13,22 +13,27 @@ use crate::game::Game;
 use crate::piece_move::PieceMove;
 use crate::piece_square_table::PST;
 
-pub const PAWN_VALUE:       Score =   100;
-pub const KNIGHT_VALUE:     Score =   350;
-pub const BISHOP_VALUE:     Score =   350;
-pub const ROOK_VALUE:       Score =   500;
-pub const QUEEN_VALUE:      Score =  1000; // R + B + P + bonus bishop pair
-pub const KING_VALUE:       Score = 10000;
+//pub const HALF_OPEN_FILE:  Score =     5;
+//pub const KNIGHT_PAWNS:    Score =     5;
+//pub const ROOK_OPEN_FILE:  Score =    20;
+//pub const ROOK_PAWNS:      Score =     5;
+//pub const DOUBLED_PAWN:    Score =   -10;
 
-const BONUS_BISHOP_PAIR:    Score =    50;
-//const BONUS_HALF_OPEN_FILE: Score =     5;
-//const BONUS_KNIGHT_PAWNS:   Score =     5;
-//const BONUS_ROOK_OPEN_FILE: Score =    20;
-//const BONUS_ROOK_PAWNS:     Score =     5;
-//const MALUS_DOUBLED_PAWN:   Score =   -10;
+pub const KING_VALUE:      Score = 10000;
+pub const PAWN_VALUE:      Score =   100;
+
+pub const KNIGHT_VALUE:    Score =   316;
+pub const BISHOP_VALUE:    Score =   309;
+pub const ROOK_VALUE:      Score =   474;
+pub const QUEEN_VALUE:     Score =  1033;
+pub const BISHOP_PAIR:     Score =    53;
+pub const KNIGHT_MOBILITY: Score =    19;
+pub const BISHOP_MOBILITY: Score =    47;
+pub const ROOK_MOBILITY:   Score =    44;
+pub const QUEEN_MOBILITY:  Score =    20;
 
 lazy_static! {
-    static ref PIECE_VALUES: [Score; 14] = {
+    pub static ref PIECE_VALUES: [Score; 14] = {
         let mut piece_values = [0; 14];
 
         piece_values[PAWN   as usize] = PAWN_VALUE;
@@ -44,6 +49,17 @@ lazy_static! {
         }
 
         piece_values
+    };
+
+    pub static ref MOBILITY: [Score; 14] = {
+        let mut mobility = [0; 14];
+
+        mobility[KNIGHT as usize] = KNIGHT_MOBILITY;
+        mobility[BISHOP as usize] = BISHOP_MOBILITY;
+        mobility[ROOK   as usize] = ROOK_MOBILITY;
+        mobility[QUEEN  as usize] = QUEEN_MOBILITY;
+
+        mobility
     };
 }
 
@@ -85,11 +101,11 @@ impl Eval for Game {
                 let n = pieces.count() as Score;
                 material[c as usize] += n * PIECE_VALUES[piece as usize];
                 if p == BISHOP && n > 1 { // FIXME: Slows eval from 1250ns to 1350ns
-                    material[c as usize] += BONUS_BISHOP_PAIR;
+                    material[c as usize] += BISHOP_PAIR;
                 }
                 while let Some(square) = pieces.next() {
                     let targets = piece_attacks(piece, square, occupied);
-                    mobility[c as usize] += targets.count() as Score;
+                    mobility[c as usize] += MOBILITY[p as usize] * targets.count() as Score;
                     position[c as usize][0] += PST[piece as usize][square as usize][0];
                     position[c as usize][1] += PST[piece as usize][square as usize][1];
                 }
@@ -111,13 +127,13 @@ impl Eval for Game {
         let y1 = position[c][1];
         position_score += (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
         material_score += material[c];
-        mobility_score += mobility[c];
+        mobility_score += mobility[c] / 10;
 
         let y0 = position[c ^ 1][0];
         let y1 = position[c ^ 1][1];
         position_score -= (y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0);
         material_score -= material[c ^ 1];
-        mobility_score -= mobility[c ^ 1];
+        mobility_score -= mobility[c ^ 1] / 10;
 
         let score = position_score + material_score + mobility_score;
 
@@ -144,7 +160,7 @@ impl Eval for Game {
 
         let half_open_files = half_open_files(color_pawns, other_pawns);
         let half_open_files_count = (half_open_files & RANK_1).count() as Score;
-        score += half_open_files_count * BONUS_HALF_OPEN_FILE;
+        score += half_open_files_count * HALF_OPEN_FILE;
         */
 
         for &p in &PIECES {
@@ -159,20 +175,20 @@ impl Eval for Game {
                     pawns_count = n;
 
                     let pawns_files_count = (filefill(pieces) & RANK_1).count() as Score;
-                    score += (pawns_count - pawns_files_count) * MALUS_DOUBLED_PAWN;
+                    score += (pawns_count - pawns_files_count) * DOUBLED_PAWN;
                 },
                 KNIGHT => {
-                    score += n * pawns_count * BONUS_KNIGHT_PAWNS;
+                    score += n * pawns_count * KNIGHT_PAWNS;
                 },
                 BISHOP if n == 2 => {
-                    score += BONUS_BISHOP_PAIR;
+                    score += BISHOP_PAIR;
                 },
                 ROOK => {
                     let rooks_on_open_files = (pieces & open_files).count();
                     let rooks_on_half_open_files = (pieces & half_open_files).count();
-                    score += (rooks_on_open_files as Score) * BONUS_ROOK_OPEN_FILE;
-                    score += (rooks_on_half_open_files as Score) * BONUS_ROOK_OPEN_FILE / 2;
-                    score += n * (8 - pawns_count) * BONUS_ROOK_PAWNS;
+                    score += (rooks_on_open_files as Score) * ROOK_OPEN_FILE;
+                    score += (rooks_on_half_open_files as Score) * ROOK_OPEN_FILE / 2;
+                    score += n * (8 - pawns_count) * ROOK_PAWNS;
                 },
                 _ => { }
             }
