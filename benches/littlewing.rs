@@ -137,10 +137,17 @@ fn bench_tt_256mb_get(c: &mut Criterion) {
 }
 
 criterion_group!(benches,
+    bench_next_move,
+    bench_next_move_without_ordering,
+    bench_eval_material,
     bench_make_undo_move,
     bench_eval,
-    bench_perft,
-    bench_search,
     bench_see,
+    bench_search,
+    bench_perft,
+    bench_move_from_lan,
+    bench_move_from_san,
+    bench_tt_16mb_get,
+    bench_tt_256mb_get,
 );
 criterion_main!(benches);
