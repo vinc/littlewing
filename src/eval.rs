@@ -22,15 +22,15 @@ use crate::piece_square_table::PST;
 pub const KING_VALUE:      Score = 10000;
 pub const PAWN_VALUE:      Score =   100;
 
-pub const KNIGHT_VALUE:    Score =   332;
-pub const BISHOP_VALUE:    Score =   330;
-pub const ROOK_VALUE:      Score =   494;
-pub const QUEEN_VALUE:     Score =  1024;
-pub const BISHOP_PAIR:     Score =    37;
-pub const KNIGHT_MOBILITY: Score =    10;
-pub const BISHOP_MOBILITY: Score =    30;
-pub const ROOK_MOBILITY:   Score =    30;
-pub const QUEEN_MOBILITY:  Score =    21;
+pub const KNIGHT_VALUE:    Score =   316;
+pub const BISHOP_VALUE:    Score =   309;
+pub const ROOK_VALUE:      Score =   474;
+pub const QUEEN_VALUE:     Score =  1033;
+pub const BISHOP_PAIR:     Score =    53;
+pub const KNIGHT_MOBILITY: Score =    19;
+pub const BISHOP_MOBILITY: Score =    47;
+pub const ROOK_MOBILITY:   Score =    44;
+pub const QUEEN_MOBILITY:  Score =    20;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
