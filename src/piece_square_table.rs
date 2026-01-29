@@ -182,9 +182,9 @@ mod tests {
 
     #[test]
     fn test_pst() {
-        let white_score = PST[WHITE_KNIGHT as usize][F3.flip(WHITE) as usize][0];
-        let black_score = PST[BLACK_KNIGHT as usize][F3.flip(BLACK) as usize][0];
-        assert!(white_score > 0);
+        let white_score = PST[WHITE_KNIGHT as usize][A1.flip(WHITE) as usize][0];
+        let black_score = PST[BLACK_KNIGHT as usize][A1.flip(BLACK) as usize][0];
+        assert!(white_score < 0);
         assert_eq!(white_score, black_score);
     }
 }
