@@ -46,3 +46,7 @@ harness = false
 
 [badges]
 travis-ci = { repository = "vinc/littlewing" }
+
+[profile.release]
+lto = true
+codegen-units = 1

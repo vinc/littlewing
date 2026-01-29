@@ -3,10 +3,9 @@
 
 PREFIX = /usr/local
 LITTLEWING_VERSION = $(shell git describe)
-build: RUSTFLAGS = -C target-cpu=native
 
 build:
-	cargo build --release
+	RUSTFLAGS="-C target-cpu=native" cargo build --release
 
 setup:
 	curl https://sh.rustup.rs -sSf | sh
