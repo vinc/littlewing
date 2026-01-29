@@ -188,7 +188,7 @@ impl Search for Game {
             let mut has_legal_moves = false;
             while let Some(m) = self.next_move() {
                 if self.clock.poll(self.nodes_count) {
-                    break; // Discard search at this depth if time is out
+                    break; // Discard search at this depth if time is out (TODO?)
                 }
 
                 self.make_move(m);
@@ -242,6 +242,7 @@ impl Search for Game {
 
             self.tt.print_stats();
         }
+        println!("info time {}", self.clock.elapsed_time());
 
         if best_move.is_null() {
             None

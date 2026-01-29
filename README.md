@@ -4,13 +4,13 @@ Little Wing: a chess engine written in Rust
 [![Travis](https://img.shields.io/travis/vinc/littlewing/master.svg)](https://travis-ci.org/vinc/littlewing/branches)
 [![Crates.io](https://img.shields.io/crates/v/littlewing.svg)](https://crates.io/crates/littlewing)
 
-Little Wing is the successor of [Purple Haze](https://github.com/vinc/purplehaze).
+Little Wing is the successor of my previous engine [Purple Haze](https://github.com/vinc/purplehaze).
 
 The project started in December 2014 to learn the Rust language and play with
-bitboards. Both experiments were conclusive and Little Wing it is still
-maintained in 2023.
+bitboards, both experiments were conclusive and Little Wing it is still
+maintained in 2026.
 
-Currently evaluated at around 2200 ELO on CCRL 40/4 Rating List.
+Currently evaluated at around 2100+ ELO on CCRL 40/4 Rating List.
 
 [![asciicast](https://asciinema.org/a/146112.png)](https://asciinema.org/a/146112)
 
@@ -210,7 +210,7 @@ and in addition it has its own text-based user interface:
       uci                       Start UCI mode
       xboard                    Start XBoard mode
 
-    Made with <3 in 2014-2023 by Vincent Ollivier <v@vinc.cc>
+    Made with <3 in 2014-2026 by Vincent Ollivier <v@vinc.cc>
 
     Report bugs to https://github.com/vinc/littlewing/issues
 
