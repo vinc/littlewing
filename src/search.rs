@@ -242,7 +242,7 @@ impl Search for Game {
 
             self.tt.print_stats();
         }
-        println!("info time {}", self.clock.elapsed_time());
+        //println!("info time {}", self.clock.elapsed_time());
 
         if best_move.is_null() {
             None
