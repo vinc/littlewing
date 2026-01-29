@@ -171,7 +171,7 @@ impl Tuner {
         params[B] = BISHOP_VALUE as f64;
         params[R] = ROOK_VALUE as f64;
         params[Q] = QUEEN_VALUE as f64;
-        params[BP] = BONUS_BISHOP_PAIR as f64;
+        params[BP] = BISHOP_PAIR as f64;
 
         params[MOB + 0] = KNIGHT_MOBILITY as f64;
         params[MOB + 1] = BISHOP_MOBILITY as f64;

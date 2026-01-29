@@ -13,24 +13,24 @@ use crate::game::Game;
 use crate::piece_move::PieceMove;
 use crate::piece_square_table::PST;
 
-pub const PAWN_VALUE:           Score =   100;
-pub const KNIGHT_VALUE:         Score =   350;
-pub const BISHOP_VALUE:         Score =   350;
-pub const ROOK_VALUE:           Score =   500;
-pub const QUEEN_VALUE:          Score =  1000; // R + B + P + bonus bishop pair
-pub const KING_VALUE:           Score = 10000;
+//pub const HALF_OPEN_FILE:  Score =     5;
+//pub const KNIGHT_PAWNS:    Score =     5;
+//pub const ROOK_OPEN_FILE:  Score =    20;
+//pub const ROOK_PAWNS:      Score =     5;
+//pub const DOUBLED_PAWN:    Score =   -10;
 
-pub const BONUS_BISHOP_PAIR:    Score =    50;
-//pub const BONUS_HALF_OPEN_FILE: Score =     5;
-//pub const BONUS_KNIGHT_PAWNS:   Score =     5;
-//pub const BONUS_ROOK_OPEN_FILE: Score =    20;
-//pub const BONUS_ROOK_PAWNS:     Score =     5;
-//pub const MALUS_DOUBLED_PAWN:   Score =   -10;
+pub const KING_VALUE:      Score = 10000;
+pub const PAWN_VALUE:      Score =   100;
 
-pub const KNIGHT_MOBILITY:      Score = 12;
-pub const BISHOP_MOBILITY:      Score = 12;
-pub const ROOK_MOBILITY:        Score = 8;
-pub const QUEEN_MOBILITY:       Score = 10;
+pub const KNIGHT_VALUE:    Score =   332;
+pub const BISHOP_VALUE:    Score =   330;
+pub const ROOK_VALUE:      Score =   494;
+pub const QUEEN_VALUE:     Score =  1024;
+pub const BISHOP_PAIR:     Score =    37;
+pub const KNIGHT_MOBILITY: Score =    10;
+pub const BISHOP_MOBILITY: Score =    30;
+pub const ROOK_MOBILITY:   Score =    30;
+pub const QUEEN_MOBILITY:  Score =    21;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
@@ -101,7 +101,7 @@ impl Eval for Game {
                 let n = pieces.count() as Score;
                 material[c as usize] += n * PIECE_VALUES[piece as usize];
                 if p == BISHOP && n > 1 { // FIXME: Slows eval from 1250ns to 1350ns
-                    material[c as usize] += BONUS_BISHOP_PAIR;
+                    material[c as usize] += BISHOP_PAIR;
                 }
                 while let Some(square) = pieces.next() {
                     let targets = piece_attacks(piece, square, occupied);
@@ -160,7 +160,7 @@ impl Eval for Game {
 
         let half_open_files = half_open_files(color_pawns, other_pawns);
         let half_open_files_count = (half_open_files & RANK_1).count() as Score;
-        score += half_open_files_count * BONUS_HALF_OPEN_FILE;
+        score += half_open_files_count * HALF_OPEN_FILE;
         */
 
         for &p in &PIECES {
@@ -175,20 +175,20 @@ impl Eval for Game {
                     pawns_count = n;
 
                     let pawns_files_count = (filefill(pieces) & RANK_1).count() as Score;
-                    score += (pawns_count - pawns_files_count) * MALUS_DOUBLED_PAWN;
+                    score += (pawns_count - pawns_files_count) * DOUBLED_PAWN;
                 },
                 KNIGHT => {
-                    score += n * pawns_count * BONUS_KNIGHT_PAWNS;
+                    score += n * pawns_count * KNIGHT_PAWNS;
                 },
                 BISHOP if n == 2 => {
-                    score += BONUS_BISHOP_PAIR;
+                    score += BISHOP_PAIR;
                 },
                 ROOK => {
                     let rooks_on_open_files = (pieces & open_files).count();
                     let rooks_on_half_open_files = (pieces & half_open_files).count();
-                    score += (rooks_on_open_files as Score) * BONUS_ROOK_OPEN_FILE;
-                    score += (rooks_on_half_open_files as Score) * BONUS_ROOK_OPEN_FILE / 2;
-                    score += n * (8 - pawns_count) * BONUS_ROOK_PAWNS;
+                    score += (rooks_on_open_files as Score) * ROOK_OPEN_FILE;
+                    score += (rooks_on_half_open_files as Score) * ROOK_OPEN_FILE / 2;
+                    score += n * (8 - pawns_count) * ROOK_PAWNS;
                 },
                 _ => { }
             }
