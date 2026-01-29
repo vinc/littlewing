@@ -25,6 +25,7 @@ use crate::pgn::*;
 use crate::protocols::xboard::XBoard;
 use crate::protocols::uci::UCI;
 use crate::search::Search;
+use crate::tune::Tuner;
 
 #[derive(Clone)]
 pub struct CLI {
@@ -133,6 +134,8 @@ impl CLI {
                 "divide"               => self.cmd_divide(&args),
                 "uci"                  => self.cmd_uci(),
                 "xboard"               => self.cmd_xboard(),
+                "extract"              => self.cmd_extract(&args),
+                "tune"                 => self.cmd_tune(&args),
                 "help" | "h"           => self.cmd_usage("help"),
                 "quit" | "q" | "exit"  => Ok(State::Stopped),
                 ""                     => Ok(State::Running),
@@ -190,7 +193,7 @@ impl CLI {
             "  uci                       Start UCI mode",
             "  xboard                    Start XBoard mode",
             "",
-            "Made with <3 in 2014-2023 by Vincent Ollivier <v@vinc.cc>",
+            "Made with <3 in 2014-2026 by Vincent Ollivier <v@vinc.cc>",
             "",
             "Report bugs to https://github.com/vinc/littlewing/issues",
             "",
@@ -270,6 +273,7 @@ impl CLI {
     fn cmd_init(&mut self) -> Result<State, Box<dyn Error>> {
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
+        self.game.tt.clear();
         self.game.load_fen(DEFAULT_FEN)?;
 
         if self.show_board {
@@ -297,11 +301,11 @@ impl CLI {
                     return Err("no filename given".into());
                 }
                 let path = Path::new(args[2]);
-                let pgn_str = fs::read_to_string(path)?;
+                let buf = fs::read_to_string(path)?;
                 // TODO: Add cmd arg to select which game to load in PGN file
                 // that have more than one game. Right now the last one will
                 // be loaded.
-                let pgn = PGN::from(pgn_str);
+                let pgn = PGN::from(buf.as_str());
                 self.game.load_pgn(pgn);
             }
             "help" => {
@@ -411,7 +415,7 @@ impl CLI {
         }
 
         if self.game.is_debug || self.game.is_search_verbose {
-            println!("");
+            println!();
         }
 
         self.think(true);
@@ -483,7 +487,7 @@ impl CLI {
                 println!();
                 println!("{}", self.game);
             } else if self.game.is_debug || self.game.is_search_verbose {
-                println!("");
+                println!();
             }
 
             if self.play_side == Some(self.game.side()) {
@@ -616,7 +620,7 @@ impl CLI {
             for field in fields {
                 let field = field.trim();
                 if !field.starts_with("D") {
-                    println!("");
+                    println!();
                     return Err("invalid perftsuite epd format".into());
                 }
                 let mut it = field.split(' ');
@@ -691,6 +695,87 @@ impl CLI {
             total_count += 1;
         }
         println!("Result {}/{}", found_count, total_count);
+        Ok(State::Running)
+    }
+
+    fn cmd_extract(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
+        let mut src = "";
+        let mut dst = "";
+        let mut min = 0;
+        let mut quiet = false;
+
+        for arg in &args[1..] {
+            match arg.split_once('=') {
+                Some(("src", val)) => src = val,
+                Some(("dst", val)) => dst = val,
+                Some(("min", val)) => min = val.parse().unwrap_or(0),
+                Some(("quiet", val)) => quiet = val.parse().unwrap_or(false),
+                Some(_) => return Err("unknown arg key given".into()),
+                None => return Err("unknown arg given".into()),
+            }
+        }
+
+        if dst.is_empty() {
+            return Err("no dst=<epd> given".into());
+        }
+        if src.is_empty() {
+            return Err("no src=<pgn> given".into());
+        }
+
+        println!("Reading file...");
+        let mut epd = File::create(dst)?;
+        let buf = fs::read_to_string(src)?;
+        let n = buf.matches("[Result").count();
+        let mut s = String::new();
+        let sep = "\n\n";
+        for (i, chunk) in buf.split(sep).enumerate() {
+            s.push_str(chunk);
+            s.push_str(sep);
+            if i % 2 == 1 {
+                print!("Parsing games... {}/{}\r", i / 2, n);
+                io::stdout().flush().ok();
+                let pgn = PGN::from(s.as_str());
+                let mut ply = 1;
+                self.game.walk_pgn(&pgn, |game| {
+                    if ply > min * 2 { // Skip <min> opening moves
+                        let e = game.eval();
+                        let q = game.quiescence(e - 1, e + 1, 0, 0);
+                        if !quiet || (e - q).abs() < 50 { // Skip non-quiet moves
+                            writeln!(epd, "{}; {}", game.to_fen(), pgn.result()).ok();
+                        }
+                    }
+                    ply += 1;
+                });
+                s.clear();
+            }
+        }
+        println!();
+        Ok(State::Running)
+    }
+
+    fn cmd_tune(&mut self, args: &[&str]) -> Result<State, Box<dyn Error>> {
+        if args.len() < 2 {
+            return Err("no <epd> given".into());
+        }
+        let path = Path::new(args[1]);
+
+        let mut iterations = 50000;
+        if args.len() > 2 {
+            iterations = args[2].parse()?;
+        }
+
+        let mut learning_rate = 0.001;
+        if args.len() > 3 {
+            learning_rate = args[3].parse()?;
+        }
+
+        let mut tuner = Tuner::new();
+        tuner.load_epd(path, &self.game).unwrap();
+        tuner.k = 0.7;
+        tuner.tune(iterations / 10, learning_rate);
+        tuner.tune_k();
+        tuner.tune(iterations, learning_rate);
+        tuner.print_params();
         Ok(State::Running)
     }
 

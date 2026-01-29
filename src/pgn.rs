@@ -86,8 +86,8 @@ impl fmt::Display for PGN {
 }
 
 #[cfg(feature = "std")]
-impl From<String> for PGN {
-    fn from(s: String) -> PGN {
+impl From<&str> for PGN {
+    fn from(s: &str) -> PGN {
         lazy_static! {
             static ref RE: Regex = Regex::new("\\[(?P<key>\\w+) \"(?P<val>.*)\"\\]").unwrap();
         }
@@ -195,13 +195,15 @@ impl ToPGN for Game {
 /// Portable Game Notation import
 #[cfg(feature = "std")]
 pub trait LoadPGN {
+    fn walk_pgn<F>(&mut self, pgn: &PGN, callback: F) where F: FnMut(&mut Game);
+
     /// Load PGN
     fn load_pgn(&mut self, pgn: PGN);
 }
 
 #[cfg(feature = "std")]
 impl LoadPGN for Game {
-    fn load_pgn(&mut self, pgn: PGN) {
+    fn walk_pgn<F>(&mut self, pgn: &PGN, mut callback: F) where F: FnMut(&mut Game) {
         self.clear();
         let starting_fen = pgn.headers.get("FEN").map_or(DEFAULT_FEN, String::as_str);
         self.load_fen(starting_fen).unwrap();
@@ -220,12 +222,20 @@ impl LoadPGN for Game {
                     continue;
                 }
 
+                self.tt.clear();
+                self.moves.clear_all();
                 if let Some(m) = self.parse_move(word) {
                     self.make_move(m);
                     self.history.push(m);
+
+                    callback(self);
                 }
             }
         }
+    }
+
+    fn load_pgn(&mut self, pgn: PGN) {
+        self.walk_pgn(&pgn, |_| {});
     }
 }
 
@@ -264,7 +274,7 @@ mod tests {
     #[test]
     fn test_string_to_pgn() {
         let content = fs::read_to_string("tests/fool.pgn").unwrap();
-        let pgn = PGN::from(content.clone());
+        let pgn = PGN::from(content.as_str());
         assert_eq!(pgn.to_string(), content);
         assert_eq!(pgn.result(), "0-1".to_string());
     }
@@ -274,16 +284,16 @@ mod tests {
         let mut game = Game::new();
 
         let s1 = fs::read_to_string("tests/fool.pgn").unwrap();
-        let pgn = PGN::from(s1.clone());
+        let pgn = PGN::from(s1.as_str());
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 4);
 
         let s2 = fs::read_to_string("tests/zukertort_vs_steinitz_1886.pgn").unwrap();
-        let pgn = PGN::from(s2.clone());
+        let pgn = PGN::from(s2.as_str());
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 58);
 
-        let pgn = PGN::from(format!("{}\n{}", s1, s2));
+        let pgn = PGN::from(format!("{}\n{}", s1, s2).as_str());
         game.load_pgn(pgn);
         assert_eq!(game.history.len(), 58);
     }

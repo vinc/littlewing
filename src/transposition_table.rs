@@ -1,6 +1,7 @@
 use std::prelude::v1::*;
 use std::mem;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 use crate::common::*;
 use crate::piece_move::PieceMove;
@@ -9,7 +10,7 @@ use crate::transposition::{Transposition, Bound};
 #[derive(Clone)]
 pub struct TranspositionTable {
     entries: Arc<SharedTable>,
-    age: u8,
+    age: Arc<AtomicU8>,
     stats_lookups: u64,
     stats_inserts: u64,
     stats_hits : u64,
@@ -26,7 +27,7 @@ impl TranspositionTable {
 
         TranspositionTable {
             entries: Arc::new(SharedTable::with_capacity(n)),
-            age: 0,
+            age: Arc::new(AtomicU8::new(0)),
             stats_lookups: 0,
             stats_inserts: 0,
             stats_hits: 0,
@@ -64,7 +65,7 @@ impl TranspositionTable {
     }
 
     pub fn set(&mut self, hash: u64, depth: Depth, score: Score, best_move: PieceMove, bound: Bound) {
-        let age = self.age;
+        let age = self.age.load(Ordering::Acquire);
         let h = self.entries.get();
         let n = self.len() as u64;
         let k = (hash % n) as usize;
@@ -78,13 +79,16 @@ impl TranspositionTable {
     }
 
     pub fn reset(&mut self) {
-        self.age = (self.age + 1) % u8::MAX;
+        let old_age = self.age.load(Ordering::Relaxed);
+        let new_age = if old_age >= u8::MAX - 1 { 0 } else { old_age + 1 };
+        self.age.store(new_age, Ordering::Release);
         self.clear_stats();
     }
 
     pub fn clear(&mut self) {
         let n = self.len();
         self.entries = Arc::new(SharedTable::with_capacity(n));
+        self.age.store(0, Ordering::Release);
         self.clear_stats();
     }
 

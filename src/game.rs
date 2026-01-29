@@ -82,7 +82,7 @@ impl Game {
         self.moves.clear_all();
         self.positions.clear();
         self.history.clear();
-        self.tt.clear();
+        //self.tt.clear();
     }
 
     /// Get a bitboard representation of the given piece in the game

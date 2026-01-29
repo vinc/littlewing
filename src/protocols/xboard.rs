@@ -64,6 +64,7 @@ impl XBoard {
     fn cmd_new(&mut self) {
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
+        self.game.tt.clear();
         self.game.load_fen(DEFAULT_FEN).unwrap();
     }
 
@@ -96,8 +97,7 @@ impl XBoard {
     }
 
     fn cmd_time(&mut self, args: &[&str]) {
-        // `time` is given in centiseconds
-        let time = args[1].parse::<u64>().unwrap();
+        let time = args[1].parse::<u64>().unwrap(); // centiseconds
         self.game.clock.set_time(time * 10);
     }
 
@@ -113,22 +113,29 @@ impl XBoard {
         let fen = args[1..].join(" ");
 
         self.game.clear();
+        self.game.tt.clear();
         self.game.load_fen(&fen).unwrap();
     }
 
+    // level <moves> <time> <time_increment>
+    // level <moves> <minutes>[:<seconds>] [<seconds>]
     fn cmd_level(&mut self, args: &[&str]) {
-        let moves = args[1].parse::<u16>().unwrap();
-
-        // `time` is given in `mm:ss` or `ss`.
+        debug_assert_eq!(args.len(), 4);
+        let moves = args[1].parse().unwrap_or(0);
         let time = match args[2].find(':') {
-            Some(i) => args[2][0..i].parse::<u64>().unwrap() * 60 +
-                       args[2][(i + 1)..].parse::<u64>().unwrap(),
-            None    => args[2].parse::<u64>().unwrap()
+            Some(i) => {
+                let m = args[2][0..i].parse::<u64>().unwrap();
+                let s = args[2][(i + 1)..].parse::<u64>().unwrap();
+                m * 60 + s
+            }
+            None => {
+                args[2].parse().unwrap()
+            }
         };
-
-        // FIXME: time increment is ignored
-
         self.game.clock = Clock::new(moves, time * 1000);
+
+        let time_increment = (args[3].parse().unwrap_or(0.0) * 1000.0) as u16;
+        self.game.clock.set_time_increment(time_increment);
     }
 
     fn cmd_depth(&mut self, args: &[&str]) {

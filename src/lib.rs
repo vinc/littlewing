@@ -101,6 +101,9 @@ pub mod search;
 /// Square type
 pub mod square;
 
+/// Tune eval
+pub mod tune;
+
 /// Chess prelude
 pub mod chess {
     pub use crate::attack::Attack;

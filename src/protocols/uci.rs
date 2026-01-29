@@ -15,6 +15,9 @@ use crate::search::Search;
 use crate::protocols::Protocol;
 use crate::version;
 
+#[derive(PartialEq)]
+enum PositionArg { Cmd, Fen, Moves }
+
 pub struct UCI {
     pub game: Game,
     max_depth: Depth,
@@ -34,16 +37,17 @@ impl UCI {
     pub fn run(&mut self) {
         self.game.protocol = Protocol::UCI;
         self.game.is_search_verbose = true;
-        println!("id name {}", version());
-        println!("id author Vincent Ollivier");
-        println!("uciok");
+        self.cmd_uci();
         loop {
             let mut cmd = String::new();
             io::stdin().read_line(&mut cmd).unwrap();
             let args: Vec<&str> = cmd.trim().split(' ').collect();
             match args[0] {
                 "quit"       => break,
+                "uci"        => self.cmd_uci(),
                 "stop"       => self.cmd_stop(),
+                "debug"      => self.cmd_debug(&args),
+                "setoption"  => self.cmd_setoption(&args),
                 "isready"    => self.cmd_isready(),
                 "ucinewgame" => self.cmd_ucinewgame(),
                 "position"   => self.cmd_position(&args),
@@ -54,8 +58,53 @@ impl UCI {
         self.abort_search();
     }
 
+    fn cmd_uci(&mut self) {
+        println!("id name {}", version());
+        println!("id author Vincent Ollivier");
+        println!("option name Threads type spin default 1 min 1 max 64");
+        println!("option name Hash type spin default 8 min 1 max 16384");
+        println!("uciok");
+    }
+
+    fn cmd_setoption(&mut self, args: &[&str]) {
+        let mut name = "";
+        let mut i = 0;
+        let n = args.len();
+        while i < n {
+            match args[i] {
+                "name" if i + 1 < n => {
+                    i += 1;
+                    name = args[i];
+                },
+                "value" if i + 1 < n => {
+                    i += 1;
+                    match name {
+                        "Threads" => {
+                            self.game.threads_count = args[i].parse().unwrap();
+                        },
+                        "Hash" => {
+                            let size = args[i].parse::<usize>().unwrap(); // MB
+                            self.game.tt_resize(size << 20);
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            }
+            i += 1;
+        }
+    }
+
     fn cmd_stop(&mut self) {
         self.stop_search();
+    }
+
+    fn cmd_debug(&mut self, args: &[&str]) {
+        match args.get(1) {
+            Some(&"on") => self.game.is_debug = true,
+            Some(&"off") => self.game.is_debug = false,
+            _ => {},
+        }
     }
 
     fn cmd_isready(&mut self) {
@@ -67,48 +116,60 @@ impl UCI {
 
         self.max_depth = (MAX_PLY - 10) as Depth;
         self.game.clear();
+        self.game.tt.clear();
     }
 
     fn cmd_go(&mut self, args: &[&str]) {
         self.abort_search();
-
         let side = self.game.side();
-        let mut time = u64::MAX; // Infinite time
         let mut moves = 0;
-        let mut next_arg_is_time = false;
-        let mut next_arg_is_moves = false;
-        for &arg in args {
-            match arg {
-                "wtime" => {
+        let mut time = 0;
+        let mut time_increment = 0;
+        let mut i = 0;
+        let n = args.len();
+        while i < n {
+            match args[i] {
+                "infinite" => {
+                    time = u64::MAX;
+                },
+                "wtime" if i + 1 < n => {
+                    i += 1;
                     if side == WHITE {
-                        next_arg_is_time = true;
+                        time = args[i].parse().unwrap();
                     }
                 },
-                "btime" => {
+                "btime" if i + 1 < n => {
+                    i += 1;
                     if side == BLACK {
-                        next_arg_is_time = true;
+                        time = args[i].parse().unwrap();
                     }
                 },
-                "movetime" => {
-                    next_arg_is_time = true;
-                }
-                "movestogo" => {
-                    next_arg_is_moves = true;
-                },
-                _ => {
-                    if next_arg_is_time {
-                        time = arg.parse::<u64>().unwrap();
-                        next_arg_is_time = false;
-                    } else if next_arg_is_moves {
-                        moves = arg.parse::<u16>().unwrap();
-                        next_arg_is_moves = false;
+                "winc" if i + 1 < n => {
+                    i += 1;
+                    if side == WHITE {
+                        time_increment = args[i].parse().unwrap();
                     }
-                }
+                },
+                "binc" if i + 1 < n => {
+                    i += 1;
+                    if side == BLACK {
+                        time_increment = args[i].parse().unwrap();
+                    }
+                },
+                "movetime" if i + 1 < n => {
+                    i += 1;
+                    time = args[i].parse().unwrap();
+                },
+                "movestogo" if i + 1 < n => {
+                    i += 1;
+                    moves = args[i].parse().unwrap();
+                },
+                _ => {}
             }
+            i += 1;
         }
-        // FIXME: time increment is ignored
         self.game.clock = Clock::new(moves, time);
-        self.game.clock.disable_level();
+        self.game.clock.set_time_increment(time_increment);
         self.print_bestmove.store(true, Ordering::Relaxed);
         self.start_search();
     }
@@ -116,30 +177,17 @@ impl UCI {
     fn cmd_position(&mut self, args: &[&str]) {
         self.abort_search();
 
-        let mut is_fen = false;
-        let mut is_move = false;
+        let mut next = PositionArg::Cmd;
         let mut fen = Vec::with_capacity(args.len());
         let mut moves = Vec::with_capacity(args.len());
         for &arg in args {
             match arg {
-                "startpos" => {
-                    fen.push(DEFAULT_FEN);
-                },
-                "fen" => { // Next args will form the fen string
-                    is_fen = true;
-                    is_move = false;
-                },
-                "moves" => { // Next args will form the moves list
-                    is_fen = false;
-                    is_move = true;
-                },
-                _ => {
-                    if is_fen {
-                        fen.push(arg);
-                    } else if is_move {
-                        moves.push(arg);
-                    }
-                }
+                "startpos" => fen.push(DEFAULT_FEN),
+                "fen" => next = PositionArg::Fen,
+                "moves" => next = PositionArg::Moves,
+                _ if next == PositionArg::Fen => fen.push(arg),
+                _ if next == PositionArg::Moves => moves.push(arg),
+                _ => {},
             }
         }
 
