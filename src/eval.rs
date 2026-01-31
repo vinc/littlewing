@@ -33,7 +33,7 @@ pub const BISHOP_MOBILITY: Score =    47;
 pub const ROOK_MOBILITY:   Score =    44;
 pub const QUEEN_MOBILITY:  Score =    20;
 
-pub const TEMPO:           Score =    10;
+pub const TEMPO:           Score =     7;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
