@@ -68,6 +68,8 @@ fn compute_trace(game: &Game) -> Trace {
         }
     }
 
+    trace.side = if game.side() == WHITE { 1 } else { -1 };
+
     trace
 }
 
@@ -87,6 +89,7 @@ pub struct Trace {
     // PST: [kind][square][color]
     pub pst: [[[i32; 2]; 64]; 6],
 
+    pub side: i32,
     pub piece_count: i32,
 }
 
@@ -107,7 +110,7 @@ impl Trace {
         }
 
         // Tempo
-        score += params[T];
+        score += params[T] * self.side as f64;
 
         // PST with phase interpolation
         let x = self.piece_count as f64;
@@ -155,6 +158,7 @@ impl Default for Trace {
             bishop_pair: [0; 2],
             mobility: [[0; 2]; 6],
             pst: [[[0; 2]; 64]; 6],
+            side: 0,
             piece_count: 0,
         }
     }
@@ -291,7 +295,7 @@ impl Tuner {
                     }
 
                     // Tempo gradient
-                    gradient[T] += coefficient;
+                    gradient[T] += coefficient * pos.trace.side as f64;
 
                     // PST gradients
                     let x = pos.trace.piece_count as f64;
