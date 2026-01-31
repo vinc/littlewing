@@ -27,10 +27,13 @@ pub const BISHOP_VALUE:    Score =   309;
 pub const ROOK_VALUE:      Score =   474;
 pub const QUEEN_VALUE:     Score =  1033;
 pub const BISHOP_PAIR:     Score =    53;
+
 pub const KNIGHT_MOBILITY: Score =    19;
 pub const BISHOP_MOBILITY: Score =    47;
 pub const ROOK_MOBILITY:   Score =    44;
 pub const QUEEN_MOBILITY:  Score =    20;
+
+pub const TEMPO:           Score =    10;
 
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
@@ -135,7 +138,7 @@ impl Eval for Game {
         material_score -= material[c ^ 1];
         mobility_score -= mobility[c ^ 1] / 10;
 
-        let score = position_score + material_score + mobility_score;
+        let score = position_score + material_score + mobility_score + TEMPO;
 
         if self.is_eval_verbose {
             println!("material: {:>5.2}", 0.01 * material_score as f64);
