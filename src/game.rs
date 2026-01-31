@@ -83,6 +83,7 @@ impl Game {
         self.board = [EMPTY; 64];
         self.moves.clear_all();
         self.positions.clear();
+        self.clear_history();
         self.plies.clear();
         //self.tt.clear();
     }
@@ -110,6 +111,10 @@ impl Game {
         let b = m.from() as usize;
         let c = self.side() as usize;
         self.history[c][b][a] = bonus;
+    }
+
+    pub fn clear_history(&mut self) {
+        self.history = [[[0; 64]; 64]; 2];
     }
 }
 
