@@ -353,7 +353,10 @@ impl Tuner {
             let gradient = self.compute_gradient();
 
             // Update parameters using Adam
-            for i in 1..MAX_PARAMS {
+            for i in 0..MAX_PARAMS {
+                if i == P {
+                    continue; // Keep PAWN_VALUE at 100
+                }
                 m[i] = beta1 * m[i] + (1.0 - beta1) * gradient[i];
                 v[i] = beta2 * v[i] + (1.0 - beta2) * gradient[i] * gradient[i];
 
