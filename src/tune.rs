@@ -21,7 +21,8 @@ const R: usize = 3;
 const Q: usize = 4;
 const BP: usize = 5;
 const MOB: usize = 6; // N + B + R + Q
-const PST_INDEX: usize = 6 + 4;
+const T: usize = MOB + 4;
+const PST_INDEX: usize = T + 1;
 const PST_SIZE: usize = 64 * 6 * 2;
 const MAX_PARAMS: usize = PST_INDEX + PST_SIZE;
 
@@ -105,6 +106,9 @@ impl Trace {
             score -= self.mobility[i + 1][1] as f64 * params[MOB + i] / 10.0;
         }
 
+        // Tempo
+        score += params[T];
+
         // PST with phase interpolation
         let x = self.piece_count as f64;
         let x0 = 32.0; // Opening (max pieces)
@@ -177,6 +181,8 @@ impl Tuner {
         params[MOB + 1] = BISHOP_MOBILITY as f64;
         params[MOB + 2] = ROOK_MOBILITY as f64;
         params[MOB + 3] = QUEEN_MOBILITY as f64;
+
+        params[T] = TEMPO as f64;
 
         for kind in 0..6 {
             let piece = PIECES[kind] as usize;
@@ -271,18 +277,21 @@ impl Tuner {
                     let coefficient = -2.0 * error * dsigmoid_deval / n;
 
                     // Material gradients
-                    gradient[0] += coefficient * (pos.trace.pawns[0] - pos.trace.pawns[1]) as f64;
-                    gradient[1] += coefficient * (pos.trace.knights[0] - pos.trace.knights[1]) as f64;
-                    gradient[2] += coefficient * (pos.trace.bishops[0] - pos.trace.bishops[1]) as f64;
-                    gradient[3] += coefficient * (pos.trace.rooks[0] - pos.trace.rooks[1]) as f64;
-                    gradient[4] += coefficient * (pos.trace.queens[0] - pos.trace.queens[1]) as f64;
-                    gradient[5] += coefficient * (pos.trace.bishop_pair[0] - pos.trace.bishop_pair[1]) as f64;
+                    gradient[P] += coefficient * (pos.trace.pawns[0] - pos.trace.pawns[1]) as f64;
+                    gradient[N] += coefficient * (pos.trace.knights[0] - pos.trace.knights[1]) as f64;
+                    gradient[B] += coefficient * (pos.trace.bishops[0] - pos.trace.bishops[1]) as f64;
+                    gradient[R] += coefficient * (pos.trace.rooks[0] - pos.trace.rooks[1]) as f64;
+                    gradient[Q] += coefficient * (pos.trace.queens[0] - pos.trace.queens[1]) as f64;
+                    gradient[BP] += coefficient * (pos.trace.bishop_pair[0] - pos.trace.bishop_pair[1]) as f64;
 
                     // Mobility gradients
                     for i in 0..4 { // Only for N, B, R, and Q
                         let mob = pos.trace.mobility[i + 1];
                         gradient[MOB + i] += coefficient * (mob[0] - mob[1]) as f64 / 10.0;
                     }
+
+                    // Tempo gradient
+                    gradient[T] += coefficient;
 
                     // PST gradients
                     let x = pos.trace.piece_count as f64;
@@ -392,16 +401,17 @@ impl Tuner {
     pub fn print_params(&self) {
         println!("Result:");
         println!();
-        println!("pub const PAWN_VALUE:      Score = {:>5.0};", self.params[0]);
-        println!("pub const KNIGHT_VALUE:    Score = {:>5.0};", self.params[1]);
-        println!("pub const BISHOP_VALUE:    Score = {:>5.0};", self.params[2]);
-        println!("pub const ROOK_VALUE:      Score = {:>5.0};", self.params[3]);
-        println!("pub const QUEEN_VALUE:     Score = {:>5.0};", self.params[4]);
-        println!("pub const BISHOP_PAIR:     Score = {:>5.0};", self.params[5]);
-        println!("pub const KNIGHT_MOBILITY: Score = {:>5.0};", self.params[6]);
-        println!("pub const BISHOP_MOBILITY: Score = {:>5.0};", self.params[7]);
-        println!("pub const ROOK_MOBILITY:   Score = {:>5.0};", self.params[8]);
-        println!("pub const QUEEN_MOBILITY:  Score = {:>5.0};", self.params[9]);
+        println!("pub const PAWN_VALUE:      Score = {:>5.0};", self.params[P]);
+        println!("pub const KNIGHT_VALUE:    Score = {:>5.0};", self.params[N]);
+        println!("pub const BISHOP_VALUE:    Score = {:>5.0};", self.params[B]);
+        println!("pub const ROOK_VALUE:      Score = {:>5.0};", self.params[R]);
+        println!("pub const QUEEN_VALUE:     Score = {:>5.0};", self.params[Q]);
+        println!("pub const BISHOP_PAIR:     Score = {:>5.0};", self.params[BP]);
+        println!("pub const KNIGHT_MOBILITY: Score = {:>5.0};", self.params[MOB + 0]);
+        println!("pub const BISHOP_MOBILITY: Score = {:>5.0};", self.params[MOB + 1]);
+        println!("pub const ROOK_MOBILITY:   Score = {:>5.0};", self.params[MOB + 2]);
+        println!("pub const QUEEN_MOBILITY:  Score = {:>5.0};", self.params[MOB + 3]);
+        println!("pub const TEMPO:           Score = {:>5.0};", self.params[T]);
 
         let piece_names = ["PAWN", "KNIGHT", "BISHOP", "ROOK", "QUEEN", "KING"];
         let phase_names = ["OPENING", "ENDGAME"];
