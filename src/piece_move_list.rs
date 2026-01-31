@@ -53,7 +53,7 @@ pub struct PieceMoveList {
     // ply up to `MAX_PLY`, the theoretical maximum number of plies in a chess
     // game. And likewise it must be able to store the generated moves up to
     // the maximum of any chess position `MAX_MOVES`.
-    lists: [[Scored<PieceMove, u8>; MAX_MOVES]; MAX_PLY],
+    lists: [[Scored<PieceMove, Score>; MAX_MOVES]; MAX_PLY],
 
     // Number of moves at a given ply.
     sizes: [usize; MAX_PLY],
@@ -395,15 +395,15 @@ impl Iterator for PieceMoveList {
 }
 
 impl Index<usize> for PieceMoveList {
-    type Output = Scored<PieceMove, u8>;
+    type Output = Scored<PieceMove, Score>;
 
-    fn index(&self, index: usize) -> &Scored<PieceMove, u8> {
+    fn index(&self, index: usize) -> &Scored<PieceMove, Score> {
         &self.lists[self.ply][index]
     }
 }
 
 impl IndexMut<usize> for PieceMoveList {
-    fn index_mut(&mut self, index: usize) -> &mut Scored<PieceMove, u8> {
+    fn index_mut(&mut self, index: usize) -> &mut Scored<PieceMove, Score> {
         &mut self.lists[self.ply][index]
     }
 }

@@ -424,6 +424,15 @@ impl Search for Game {
                 if score >= beta {
                     if !m.is_capture() {
                         self.moves.add_killer_move(m);
+
+                        let d = depth as Score;
+                        let x = 300;
+                        let y = 250;
+                        let z = 16384;
+                        let bonus = (d * x - y).clamp(0, z);
+                        let old = self.get_history(m);
+                        let new = old + bonus - bonus.abs() * (old / z);
+                        self.set_history(m, new);
                     }
                     self.tt.set(hash, depth, score, m, Bound::Lower);
                     return score;

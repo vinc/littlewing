@@ -21,7 +21,7 @@ lazy_static! {
     // RxP =  4, RxN = 12, RxB = 20, RxR = 28, RxQ = 36, RxK = 44
     // QxP =  3, QxN = 11, QxB = 19, QxR = 27, QxQ = 35, QxK = 43
     // KxP =  2, KxN = 10, KxB = 18, KxR = 26, KxQ = 34, KxK = 42
-    pub static ref MVV_LVA_SCORES: [[u8; 13]; 13] = {
+    pub static ref MVV_LVA_SCORES: [[Score; 13]; 13] = {
         let pieces = [EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING];
         let mut mvv_lva_scores = [[0; 13]; 13];
         for i in 1..7 {
@@ -58,7 +58,7 @@ pub trait PieceMoveGenerator {
 
 trait PieceMoveGeneratorExt {
     fn is_move_legal(&mut self, m: PieceMove) -> bool;
-    fn mvv_lva(&self, m: PieceMove) -> u8;
+    fn mvv_lva(&self, m: PieceMove) -> Score;
     fn can_king_castle(&mut self, side: Color) -> bool;
     fn can_queen_castle(&mut self, side: Color) -> bool;
     fn can_castle_on(&mut self, side: Color, wing: Piece) -> bool;
@@ -117,6 +117,10 @@ impl PieceMoveGenerator for Game {
                     self.moves[i].score += GOOD_CAPTURE_SCORE;
                 }
                 debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
+            } else {
+                let m = self.moves[i].item;
+                let score = self.get_history(m) / GOOD_CAPTURE_SCORE as Score;
+                self.moves[i].score = -(16384 - score);
             }
             for j in a..i {
                 if self.moves[j].score < self.moves[i].score {
@@ -435,7 +439,7 @@ impl PieceMoveGeneratorExt for Game {
         }
     }
 
-    fn mvv_lva(&self, m: PieceMove) -> u8 {
+    fn mvv_lva(&self, m: PieceMove) -> Score {
         let a = self.board[m.from() as usize].kind();
         let v = if m.is_en_passant() {
             PAWN

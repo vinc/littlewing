@@ -8,10 +8,10 @@ use crate::common::*;
 use crate::piece::PieceChar;
 use crate::square::SquareExt;
 
-pub const BEST_MOVE_SCORE:    u8 = 255;
-pub const KILLER_MOVE_SCORE:  u8 = 254;
-pub const GOOD_CAPTURE_SCORE: u8 = 64;
-pub const QUIET_MOVE_SCORE:   u8 = 0;
+pub const BEST_MOVE_SCORE:    Score = 255;
+pub const KILLER_MOVE_SCORE:  Score = 254;
+pub const GOOD_CAPTURE_SCORE: Score = 64;
+pub const QUIET_MOVE_SCORE:   Score = 0;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct PieceMove(u16);

@@ -34,6 +34,7 @@ pub struct Game {
     pub board: [Piece; 64],
     pub moves: PieceMoveList,
     pub plies: Vec<PieceMove>,
+    pub history: [[[Score; 64]; 64]; 2],
     pub positions: Positions,
     pub zobrist: Zobrist,
     pub tt: TranspositionTable
@@ -58,6 +59,7 @@ impl Game {
             board: [EMPTY; 64],
             moves: PieceMoveList::new(),
             plies: Vec::new(),
+            history: [[[0; 64]; 64]; 2],
             positions: Positions::new(),
             zobrist: Zobrist::new(),
             tt: TranspositionTable::with_memory(TT_SIZE)
@@ -94,6 +96,20 @@ impl Game {
     /// Get the current side color
     pub fn side(&self) -> Color {
         self.positions.top().side
+    }
+
+    pub fn get_history(&self, m: PieceMove) -> Score {
+        let a = m.to() as usize;
+        let b = m.from() as usize;
+        let c = self.side() as usize;
+        self.history[c][b][a]
+    }
+
+    pub fn set_history(&mut self, m: PieceMove, bonus: Score) {
+        let a = m.to() as usize;
+        let b = m.from() as usize;
+        let c = self.side() as usize;
+        self.history[c][b][a] = bonus;
     }
 }
 
