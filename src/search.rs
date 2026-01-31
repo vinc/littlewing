@@ -426,12 +426,13 @@ impl Search for Game {
                         self.moves.add_killer_move(m);
 
                         let d = depth as Score;
-                        let x = 300;
-                        let y = 250;
+                        //let x = 300; // TODO: Tune this
+                        //let y = 250; // TODO: Tune this
                         let z = 16384;
-                        let bonus = (d * x - y).clamp(0, z);
+                        //let bonus = (d * x - y).clamp(0, z);
+                        let bonus = (d * d).min(z);
                         let old = self.get_history(m);
-                        let new = old + bonus - bonus.abs() * (old / z);
+                        let new = old + bonus - bonus * (old / z); // Gravity
                         self.set_history(m, new);
                     }
                     self.tt.set(hash, depth, score, m, Bound::Lower);
