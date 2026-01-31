@@ -33,9 +33,9 @@ pub struct Game {
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
     pub moves: PieceMoveList,
+    pub plies: Vec<PieceMove>,
     pub positions: Positions,
     pub zobrist: Zobrist,
-    pub history: Vec<PieceMove>,
     pub tt: TranspositionTable
 }
 
@@ -57,9 +57,9 @@ impl Game {
             bitboards: [0; 14],
             board: [EMPTY; 64],
             moves: PieceMoveList::new(),
+            plies: Vec::new(),
             positions: Positions::new(),
             zobrist: Zobrist::new(),
-            history: Vec::new(),
             tt: TranspositionTable::with_memory(TT_SIZE)
         }
     }
@@ -81,7 +81,7 @@ impl Game {
         self.board = [EMPTY; 64];
         self.moves.clear_all();
         self.positions.clear();
-        self.history.clear();
+        self.plies.clear();
         //self.tt.clear();
     }
 

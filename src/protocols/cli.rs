@@ -445,8 +445,8 @@ impl CLI {
     }
 
     fn cmd_undo(&mut self) -> Result<State, Box<dyn Error>> {
-        if self.game.history.len() > 0 {
-            if let Some(m) = self.game.history.pop() {
+        if self.game.plies.len() > 0 {
+            if let Some(m) = self.game.plies.pop() {
                 self.game.undo_move(m);
             }
         }
@@ -481,7 +481,7 @@ impl CLI {
             }
 
             self.game.make_move(parsed_move);
-            self.game.history.push(parsed_move);
+            self.game.plies.push(parsed_move);
 
             if self.show_board {
                 println!();
@@ -791,7 +791,7 @@ impl CLI {
 
             if play {
                 self.game.make_move(m);
-                self.game.history.push(m);
+                self.game.plies.push(m);
 
                 if self.show_board {
                     println!();

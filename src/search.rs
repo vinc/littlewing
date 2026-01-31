@@ -817,7 +817,7 @@ mod tests {
         for s in moves {
             let m = game.move_from_lan(s);
             game.make_move(m);
-            game.history.push(m);
+            game.plies.push(m);
         }
 
         game.nodes_count = 0;
