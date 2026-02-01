@@ -122,7 +122,7 @@ impl PieceMoveGenerator for Game {
                 let m = self.moves[i].item;
                 self.moves[i].score = self.get_history(m) - HH_MAX;
                 debug_assert!(self.moves[i].score < 0);
-                debug_assert!(self.moves[i].score > -HH_MAX);
+                debug_assert!(self.moves[i].score >= -HH_MAX);
             }
             for j in a..i {
                 if self.moves[j].score < self.moves[i].score {
