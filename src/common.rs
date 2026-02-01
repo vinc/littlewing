@@ -164,6 +164,8 @@ pub const MAX_KILLERS: usize = 2;
 
 pub const TT_SIZE: usize = 8 << 20; // 8 Mb
 
+pub const HH_MAX: Score = 16 << 10;
+
 pub const XSHIFTS: [Shift; 2] = [LEFT, RIGHT];
 pub const YSHIFTS: [Shift; 2] = [UP, DOWN];
 pub const END_FILES: [Bitboard; 2] = [FILE_A, FILE_H];

@@ -428,7 +428,7 @@ impl Search for Game {
                         let d = depth as Score;
                         //let x = 300; // TODO: Tune this
                         //let y = 250; // TODO: Tune this
-                        let z = 16384;
+                        let z = HH_MAX;
                         //let bonus = (d * x - y).clamp(0, z);
                         let bonus = (d * d).min(z);
                         let old = self.get_history(m);
