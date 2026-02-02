@@ -426,15 +426,16 @@ impl Search for Game {
                     if !m.is_capture() {
                         self.moves.add_killer_move(m);
 
-                        let d = depth as Score;
+                        let d = depth as usize;
                         //let x = 300; // TODO: Tune this
                         //let y = 250; // TODO: Tune this
-                        let z = HH_MAX;
+                        let z = HH_MAX as usize;
                         //let bonus = (d * x - y).clamp(0, z);
                         let bonus = (d * d).min(z);
-                        let old = self.get_history(m);
-                        let new = old + bonus - bonus * (old / z); // Gravity
-                        self.set_history(m, new);
+                        let old = self.get_history(m) as usize;
+                        let new = old + bonus - old * bonus / z; // Gravity
+                        debug_assert!(new < Score::MAX as usize);
+                        self.set_history(m, new as Score);
                     }
                     self.tt.set(hash, depth, score, m, Bound::Lower);
                     return score;
