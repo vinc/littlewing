@@ -89,17 +89,17 @@ impl PieceMoveGenerator for Game {
                 self.moves.add_rooks_moves(&self.bitboards, side);
                 self.moves.add_queens_moves(&self.bitboards, side);
 
-                if self.moves.stage() == PieceMoveListStage::Capture {
-                    if !self.moves.skip_ordering {
-                        self.sort_moves();
-                    }
-                } else { // Castlings
+                if self.moves.stage() == PieceMoveListStage::QuietPieceMove {
                     if self.can_king_castle(side) {
                         self.moves.add_king_castle(side);
                     }
                     if self.can_queen_castle(side) {
                         self.moves.add_queen_castle(side);
                     }
+                }
+
+                if !self.moves.skip_ordering {
+                    self.sort_moves();
                 }
             },
             _ => () // Nothing to do in `BestPieceMove` or `Done` stages
