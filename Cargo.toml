@@ -10,6 +10,7 @@ authors = ["Vincent Ollivier <v@vinc.cc>"]
 repository = "https://github.com/vinc/littlewing"
 homepage = "https://vinc.cc/software/littlewing"
 readme = "README.md"
+edition = "2024"
 
 [lib]
 name = "littlewing"
