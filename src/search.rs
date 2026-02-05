@@ -333,8 +333,8 @@ impl Search for Game {
         // get it by searching the position at a reduced depth.
         let iid_allowed = is_pv && best_move.is_null();
 
-        if iid_allowed && depth > 3 {
-            self.search_node(-beta, -alpha, depth / 2, ply + 1);
+        if iid_allowed && depth > 2 {
+            self.search_node(alpha, beta, depth - 2, ply);
 
             if let Some(t) = self.tt.get(hash) {
                 best_move = t.best_move();
