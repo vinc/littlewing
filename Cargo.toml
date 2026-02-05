@@ -51,3 +51,4 @@ travis-ci = { repository = "vinc/littlewing" }
 [profile.release]
 lto = true
 codegen-units = 1
+panic = "abort"
