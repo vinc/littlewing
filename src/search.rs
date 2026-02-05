@@ -192,24 +192,29 @@ impl Search for Game {
                 }
 
                 self.make_move(m);
+
+                if self.is_check(side) {
+                    self.undo_move(m);
+                    continue;
+                }
+                has_legal_moves = true;
+                self.nodes_count += 1;
+
                 let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
-                if !self.is_check(side) {
-                    has_legal_moves = true;
-                    self.nodes_count += 1;
-                    if score > alpha {
-                        if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
-                            // TODO: skip the first thousand nodes to gain time?
 
-                            self.tt.set(hash, depth, score, m, Bound::Exact);
+                if score > alpha {
+                    if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
+                        // TODO: skip the first thousand nodes to gain time?
 
-                            // Get the PV line from the TT.
-                            #[cfg(feature = "std")]
-                            self.print_thinking(depth, score, m);
-                        }
-                        alpha = score;
-                        best_scores[depth as usize] = score;
-                        best_moves[depth as usize] = m;
+                        self.tt.set(hash, depth, score, m, Bound::Exact);
+
+                        // Get the PV line from the TT.
+                        #[cfg(feature = "std")]
+                        self.print_thinking(depth, score, m);
                     }
+                    alpha = score;
+                    best_scores[depth as usize] = score;
+                    best_moves[depth as usize] = m;
                 }
                 self.undo_move(m);
             }
