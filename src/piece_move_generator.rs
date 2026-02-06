@@ -8,6 +8,7 @@ use crate::attack::Attack;
 use crate::attack::piece_attacks;
 use crate::bitboard::BitboardExt;
 use crate::game::Game;
+use history::HistoryHeuristic;
 use crate::piece_move::*;
 use crate::piece_move_list::PieceMoveListStage;
 use crate::piece::PieceAttr;
@@ -122,7 +123,7 @@ impl PieceMoveGenerator for Game {
                 let history_score = self.get_history(self.moves[i].item);
                 self.moves[i].score = history_score - HH_MAX;
                 debug_assert!(self.moves[i].score <= QUIET_MOVE_SCORE);
-                debug_assert!(self.moves[i].score >= -HH_MAX);
+                debug_assert!(self.moves[i].score >= - 2 * HH_MAX);
             }
             for j in a..i {
                 if self.moves[j].score < self.moves[i].score {

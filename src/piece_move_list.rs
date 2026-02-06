@@ -24,6 +24,13 @@ impl<T, S> Scored<T, S> {
     }
 }
 
+impl<T, S> From<Scored<T, S>> for (T, S) {
+    fn from(s: Scored<T, S>) -> (T, S) {
+        let Scored { item, score } = s;
+        (item, score)
+    }
+}
+
 #[repr(u8)]
 #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Debug)]
 pub enum PieceMoveListStage { // If we don't care about `PartialOrd` we could do:

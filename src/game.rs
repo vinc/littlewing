@@ -7,6 +7,7 @@ use crate::piece::*;
 use crate::common::*;
 use crate::bitboard::Bitboard;
 use crate::clock::Clock;
+use crate::history::HistoryHeuristic;
 use crate::piece_move::PieceMove;
 use crate::piece_move_list::PieceMoveList;
 use crate::positions::Positions;
@@ -97,24 +98,6 @@ impl Game {
     /// Get the current side color
     pub fn side(&self) -> Color {
         self.positions.top().side
-    }
-
-    pub fn get_history(&self, m: PieceMove) -> Score {
-        let a = m.to() as usize;
-        let b = m.from() as usize;
-        let c = self.side() as usize;
-        self.history[c][b][a]
-    }
-
-    pub fn set_history(&mut self, m: PieceMove, bonus: Score) {
-        let a = m.to() as usize;
-        let b = m.from() as usize;
-        let c = self.side() as usize;
-        self.history[c][b][a] = bonus;
-    }
-
-    pub fn clear_history(&mut self) {
-        self.history = [[[0; 64]; 64]; 2];
     }
 }
 

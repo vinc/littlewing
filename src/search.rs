@@ -14,6 +14,7 @@ use crate::eval::Eval;
 #[cfg(feature = "std")]
 use crate::fen::FEN;
 use crate::game::Game;
+use crate::history::HistoryHeuristic;
 use crate::piece_move::PieceMove;
 use crate::piece_move_generator::PieceMoveGenerator;
 use crate::piece_move_notation::PieceMoveNotation;
@@ -423,19 +424,30 @@ impl Search for Game {
 
             if score > alpha {
                 if score >= beta {
-                    if !m.is_capture() {
-                        self.moves.add_killer_move(m);
+                    // Killer Heuristic (HH)
+                    let kh_allowed = !m.is_capture();
 
-                        let d = depth as usize;
-                        //let x = 300; // TODO: Tune this
-                        //let y = 250; // TODO: Tune this
-                        let z = HH_MAX as usize;
-                        //let bonus = (d * x - y).clamp(0, z);
-                        let bonus = (d * d).min(z);
-                        let old = self.get_history(m) as usize;
-                        let new = old + bonus - old * bonus / z; // Gravity
-                        debug_assert!(new < Score::MAX as usize);
-                        self.set_history(m, new as Score);
+                    if kh_allowed {
+                        self.moves.add_killer_move(m);
+                    }
+
+                    // History Heuristic (HH)
+                    let hh_allowed = !m.is_capture();
+
+                    if hh_allowed {
+                        // 1. Give a bonus to the current move
+                        self.inc_history(m, depth);
+
+                        // 2. Give a malus to the previous quiet moves that
+                        // failed to cause a cutoff
+                        let n = self.moves.index() - 1;
+                        for i in 1..n { // Skip first move
+                            let (previous_move, score) = self.moves[i].into();
+                            if score > 0 { // Skip noisy moves
+                                continue;
+                            }
+                            self.dec_history(previous_move, depth);
+                        }
                     }
                     self.tt.set(hash, depth, score, m, Bound::Lower);
                     return score;

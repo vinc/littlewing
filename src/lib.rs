@@ -79,6 +79,9 @@ pub mod fen;
 /// Game engine
 pub mod game;
 
+/// History heuristic
+pub mod history;
+
 /// Portable Game Notation support
 pub mod pgn;
 
