@@ -424,7 +424,7 @@ impl Search for Game {
 
             if score > alpha {
                 if score >= beta {
-                    // Killer Heuristic (HH)
+                    // Killer Heuristic (KH)
                     let kh_allowed = !m.is_capture();
 
                     if kh_allowed {
