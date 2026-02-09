@@ -8,7 +8,7 @@ use crate::attack::Attack;
 use crate::attack::piece_attacks;
 use crate::bitboard::BitboardExt;
 use crate::game::Game;
-use history::HistoryHeuristic;
+use crate::history::HistoryHeuristic;
 use crate::piece_move::*;
 use crate::piece_move_list::PieceMoveListStage;
 use crate::piece::PieceAttr;
