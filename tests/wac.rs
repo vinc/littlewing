@@ -31,10 +31,11 @@ fn test_wac() {
         game.load_fen(fen).unwrap();
         game.clock = Clock::new(1, 1000); // search for 1 second
 
+        //game.is_search_verbose = true;
         let m = game.search(1..99).unwrap();
         let best_move = game.move_to_san(m);
 
-        println!("{} <- {}", moves, best_move);
+        println!("{} bm{} <- {}", fen, moves, best_move);
 
         assert!(moves.contains(&best_move));
     }

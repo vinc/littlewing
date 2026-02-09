@@ -154,7 +154,7 @@ impl ToPGN for Game {
         };
         pgn.set_result(result);
 
-        let moves = self.history.clone();
+        let moves = self.plies.clone();
         self.load_fen(&starting_fen).unwrap();
 
         let mut first_move = true;
@@ -171,7 +171,7 @@ impl ToPGN for Game {
             line.push_str(&self.move_to_san(m));
 
             self.make_move(m);
-            self.history.push(m);
+            self.plies.push(m);
 
             if self.is_mate() {
                 line.push('#');
@@ -226,7 +226,7 @@ impl LoadPGN for Game {
                 self.moves.clear_all();
                 if let Some(m) = self.parse_move(word) {
                     self.make_move(m);
-                    self.history.push(m);
+                    self.plies.push(m);
 
                     callback(self);
                 }
@@ -263,7 +263,7 @@ mod tests {
         ];
         for m in moves {
             game.make_move(m);
-            game.history.push(m);
+            game.plies.push(m);
         }
         let pgn = game.to_pgn();
 
@@ -286,15 +286,15 @@ mod tests {
         let s1 = fs::read_to_string("tests/fool.pgn").unwrap();
         let pgn = PGN::from(s1.as_str());
         game.load_pgn(pgn);
-        assert_eq!(game.history.len(), 4);
+        assert_eq!(game.plies.len(), 4);
 
         let s2 = fs::read_to_string("tests/zukertort_vs_steinitz_1886.pgn").unwrap();
         let pgn = PGN::from(s2.as_str());
         game.load_pgn(pgn);
-        assert_eq!(game.history.len(), 58);
+        assert_eq!(game.plies.len(), 58);
 
         let pgn = PGN::from(format!("{}\n{}", s1, s2).as_str());
         game.load_pgn(pgn);
-        assert_eq!(game.history.len(), 58);
+        assert_eq!(game.plies.len(), 58);
     }
 }

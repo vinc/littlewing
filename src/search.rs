@@ -14,6 +14,7 @@ use crate::eval::Eval;
 #[cfg(feature = "std")]
 use crate::fen::FEN;
 use crate::game::Game;
+use crate::history::HistoryHeuristic;
 use crate::piece_move::PieceMove;
 use crate::piece_move_generator::PieceMoveGenerator;
 use crate::piece_move_notation::PieceMoveNotation;
@@ -75,6 +76,7 @@ impl Search for Game {
     fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         self.nodes_count = 0;
         self.tt.reset();
+        self.clear_history();
 
         // NOTE: `clear_all()` will zero everything internally, including
         // ply counter, while `clear()` will just reset the counter for
@@ -428,9 +430,30 @@ impl Search for Game {
 
             if score > alpha {
                 if score >= beta {
-                    if !m.is_capture() {
-                        // Killer Heuristic (KH / 50 ELO)
+                    // Killer Heuristic (KH / 50 ELO)
+                    let kh_allowed = !m.is_capture();
+
+                    if kh_allowed {
                         self.moves.add_killer_move(m);
+                    }
+
+                    // History Heuristic (HH / 20 ELO)
+                    let hh_allowed = !m.is_capture();
+
+                    if hh_allowed {
+                        // 1. Give a bonus to the current move
+                        self.inc_history(m, depth);
+
+                        // 2. Give a malus to the previous quiet moves that
+                        // failed to cause a cutoff
+                        let n = self.moves.index() - 1;
+                        for i in 1..n { // Skip first move
+                            let (previous_move, score) = self.moves[i].into();
+                            if score > 0 { // Skip noisy moves
+                                continue;
+                            }
+                            self.dec_history(previous_move, depth);
+                        }
                     }
                     self.tt.set(hash, depth, score, m, Bound::Lower);
                     return score;
@@ -824,7 +847,7 @@ mod tests {
         for s in moves {
             let m = game.move_from_lan(s);
             game.make_move(m);
-            game.history.push(m);
+            game.plies.push(m);
         }
 
         game.nodes_count = 0;

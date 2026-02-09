@@ -196,7 +196,7 @@ impl UCI {
         for s in moves {
             let m = self.game.move_from_lan(s);
             self.game.make_move(m);
-            self.game.history.push(m);
+            self.game.plies.push(m);
         }
     }
 

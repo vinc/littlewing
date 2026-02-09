@@ -82,17 +82,17 @@ impl XBoard {
     }
 
     fn cmd_undo(&mut self) {
-        if self.game.history.len() > 0 {
-            let m = self.game.history.pop().unwrap();
+        if self.game.plies.len() > 0 {
+            let m = self.game.plies.pop().unwrap();
             self.game.undo_move(m);
         }
     }
 
     fn cmd_remove(&mut self) {
-        let m = self.game.history.pop().unwrap();
+        let m = self.game.plies.pop().unwrap();
         self.game.undo_move(m);
 
-        let m = self.game.history.pop().unwrap();
+        let m = self.game.plies.pop().unwrap();
         self.game.undo_move(m);
     }
 
@@ -166,7 +166,7 @@ impl XBoard {
 
         let m = self.game.move_from_lan(args[0]);
         self.game.make_move(m);
-        self.game.history.push(m);
+        self.game.plies.push(m);
 
         if !self.force {
             self.think();
@@ -187,7 +187,7 @@ impl XBoard {
             },
             Some(m) => {
                 self.game.make_move(m);
-                self.game.history.push(m);
+                self.game.plies.push(m);
 
                 println!("move {}", m.to_lan());
             }
