@@ -194,24 +194,29 @@ impl Search for Game {
                 }
 
                 self.make_move(m);
+
+                if self.is_check(side) {
+                    self.undo_move(m);
+                    continue;
+                }
+                has_legal_moves = true;
+                self.nodes_count += 1;
+
                 let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
-                if !self.is_check(side) {
-                    has_legal_moves = true;
-                    self.nodes_count += 1;
-                    if score > alpha {
-                        if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
-                            // TODO: skip the first thousand nodes to gain time?
 
-                            self.tt.set(hash, depth, score, m, Bound::Exact);
+                if score > alpha {
+                    if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
+                        // TODO: skip the first thousand nodes to gain time?
 
-                            // Get the PV line from the TT.
-                            #[cfg(feature = "std")]
-                            self.print_thinking(depth, score, m);
-                        }
-                        alpha = score;
-                        best_scores[depth as usize] = score;
-                        best_moves[depth as usize] = m;
+                        self.tt.set(hash, depth, score, m, Bound::Exact);
+
+                        // Get the PV line from the TT.
+                        #[cfg(feature = "std")]
+                        self.print_thinking(depth, score, m);
                     }
+                    alpha = score;
+                    best_scores[depth as usize] = score;
+                    best_moves[depth as usize] = m;
                 }
                 self.undo_move(m);
             }
@@ -276,7 +281,7 @@ impl Search for Game {
         let mut best_score = alpha;
         let old_alpha = alpha; // To test if best score raise initial alpha
 
-        // Try to get the best move from transposition_table table
+        // Try to get the best move from transposition table (TT / 175 ELO)
         if let Some(t) = self.tt.get(hash) {
             if !is_pv && t.depth() >= depth {
                 match t.bound() {
@@ -304,7 +309,7 @@ impl Search for Game {
 
         let is_in_check = self.is_check(side);
 
-        // Null Move Pruning (NMP)
+        // Null Move Pruning (NMP / 95 ELO)
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
@@ -329,14 +334,14 @@ impl Search for Game {
             }
         }
 
-        // Internal Iterative Deepening (IID)
+        // Internal Iterative Deepening (IID / 0 ELO)
         //
         // If we didn't get a best move from the transposition_table table,
         // get it by searching the position at a reduced depth.
         let iid_allowed = is_pv && best_move.is_null();
 
-        if iid_allowed && depth > 3 {
-            self.search_node(-beta, -alpha, depth / 2, ply + 1);
+        if iid_allowed && depth > 2 {
+            self.search_node(alpha, beta, depth - 2, ply);
 
             if let Some(t) = self.tt.get(hash) {
                 best_move = t.best_move();
@@ -375,7 +380,7 @@ impl Search for Game {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
 
-                // Futility Pruning (FP)
+                // Futility Pruning (FP / 60 ELO)
                 let fp_allowed =
                     !is_pv &&
                     !is_in_check &&
@@ -391,7 +396,7 @@ impl Search for Game {
                     }
                 }
 
-                // Late Move Reduction (LMR)
+                // Late Move Reduction (LMR / 35 ELO)
                 let lmr_allowed =
                     !is_pv &&
                     !is_in_check &&
@@ -404,6 +409,7 @@ impl Search for Game {
                     if depth > 4 {
                         r += depth / 4;
                     }
+                    // TODO: Reduce more based on moves count
                 }
 
                 // Search the other moves with the reduced window
@@ -424,7 +430,7 @@ impl Search for Game {
 
             if score > alpha {
                 if score >= beta {
-                    // Killer Heuristic (KH)
+                    // Killer Heuristic (KH / 50 ELO)
                     let kh_allowed = !m.is_capture();
 
                     if kh_allowed {

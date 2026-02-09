@@ -10,6 +10,7 @@ authors = ["Vincent Ollivier <v@vinc.cc>"]
 repository = "https://github.com/vinc/littlewing"
 homepage = "https://vinc.cc/software/littlewing"
 readme = "README.md"
+edition = "2024"
 
 [lib]
 name = "littlewing"
@@ -38,7 +39,7 @@ rustyline = { version = "15.0.0", optional = true }
 rustyline-derive = { version = "0.11.1", optional = true }
 
 [dev-dependencies]
-criterion = { version = "0.7", features = ["html_reports"] }
+criterion = { version = "0.8", features = ["html_reports"] }
 
 [[bench]]
 name = "littlewing"
@@ -50,3 +51,4 @@ travis-ci = { repository = "vinc/littlewing" }
 [profile.release]
 lto = true
 codegen-units = 1
+panic = "abort"
