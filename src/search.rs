@@ -437,7 +437,7 @@ impl Search for Game {
                         self.moves.add_killer_move(m);
                     }
 
-                    // History Heuristic (HH)
+                    // History Heuristic (HH / 20 ELO)
                     let hh_allowed = !m.is_capture();
 
                     if hh_allowed {
