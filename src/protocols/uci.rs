@@ -63,6 +63,17 @@ impl UCI {
         println!("id author Vincent Ollivier");
         println!("option name Threads type spin default 1 min 1 max 64");
         println!("option name Hash type spin default 8 min 1 max 16384");
+
+        let params = [
+            ("FutilityPruningMargin", &self.game.params.fp_margin)
+        ];
+        for (label, param) in params {
+            println!(
+                "option name {} type spin default {} min {} max {}",
+                label, param.val, param.min, param.max,
+            );
+        }
+
         println!("uciok");
     }
 
@@ -85,6 +96,9 @@ impl UCI {
                         "Hash" => {
                             let size = args[i].parse::<usize>().unwrap(); // MB
                             self.game.tt_resize(size << 20);
+                        },
+                        "FutilityPruningMargin" => {
+                            self.game.params.fp_margin.val = args[i].parse().unwrap();
                         },
                         _ => {}
                     }
