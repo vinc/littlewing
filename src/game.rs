@@ -17,6 +17,59 @@ use crate::piece::{PieceAttr, PieceChar};
 #[cfg(feature = "std")]
 use crate::protocols::Protocol;
 
+#[derive(Clone)]
+pub struct TunableParam {
+    pub val: i32,
+    pub min: i32,
+    pub max: i32,
+    pub step: i32,
+}
+
+impl TunableParam {
+    pub fn new(val: i32, min: i32, max: i32, step: i32) -> Self {
+        Self { val, min, max, step }
+    }
+}
+
+#[derive(Clone)]
+pub struct TunableParams {
+    // History Heuristic
+    pub hhb_quadra: TunableParam, // Bonus: based on depth
+    pub hhb_linear: TunableParam, //        (x * d * d) + (y * d) + z
+    pub hhb_offset: TunableParam, //          quadratic + linear  + offset
+    pub hhm_quadra: TunableParam, // Malus: same formula (negated)
+    pub hhm_linear: TunableParam,
+    pub hhm_offset: TunableParam,
+    pub hh_clamp: TunableParam,   // Clamp: bonus.clamp(0, max)
+
+    // Futility Pruning
+    pub fp_margin: TunableParam,
+
+    // Delta Pruning
+    pub dp_margin: TunableParam,
+}
+
+impl TunableParams {
+    pub fn new() -> Self {
+        Self {
+            // History Heuristic
+            hhb_quadra: TunableParam::new(16, 2, 64, 8),
+            hhb_linear: TunableParam::new(128, 16, 512, 8),
+            hhb_offset: TunableParam::new(-256, -500, -100, 25),
+            hhm_quadra: TunableParam::new(16, 2, 64, 8),
+            hhm_linear: TunableParam::new(128, 16, 512, 8),
+            hhm_offset: TunableParam::new(-256, -500, -100, 25),
+            hh_clamp: TunableParam::new(4096, 1024, 16384, 1024),
+
+            // Futility Pruning
+            fp_margin: TunableParam::new(100, 25, 250, 25),
+
+            // Delta Pruning
+            dp_margin: TunableParam::new(1000, 500, 2000, 50),
+        }
+    }
+}
+
 /// A `Game` type to store the state of a chess game
 #[derive(Clone)]
 pub struct Game {
@@ -38,7 +91,8 @@ pub struct Game {
     pub history: [[[Score; 64]; 64]; 2],
     pub positions: Positions,
     pub zobrist: Zobrist,
-    pub tt: TranspositionTable
+    pub tt: TranspositionTable,
+    pub params: TunableParams,
 }
 
 impl Game {
@@ -63,7 +117,8 @@ impl Game {
             history: [[[0; 64]; 64]; 2],
             positions: Positions::new(),
             zobrist: Zobrist::new(),
-            tt: TranspositionTable::with_memory(TT_SIZE)
+            tt: TranspositionTable::with_memory(TT_SIZE),
+            params: TunableParams::new(),
         }
     }
 
