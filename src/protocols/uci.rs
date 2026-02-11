@@ -65,7 +65,8 @@ impl UCI {
         println!("option name Hash type spin default 8 min 1 max 16384");
 
         let params = [
-            ("FutilityPruningMargin", &self.game.params.fp_margin)
+            ("DeltaPruningMargin", &self.game.params.dp_margin),
+            ("FutilityPruningMargin", &self.game.params.fp_margin),
         ];
         for (label, param) in params {
             println!(
@@ -96,6 +97,9 @@ impl UCI {
                         "Hash" => {
                             let size = args[i].parse::<usize>().unwrap(); // MB
                             self.game.tt_resize(size << 20);
+                        },
+                        "DeltaPruningMargin" => {
+                            self.game.params.dp_margin.val = args[i].parse().unwrap();
                         },
                         "FutilityPruningMargin" => {
                             self.game.params.fp_margin.val = args[i].parse().unwrap();

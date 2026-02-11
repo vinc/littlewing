@@ -501,8 +501,8 @@ impl Search for Game {
         }
 
         // Delta pruning
-        let delta = 1000; // Queen value
-        if eval < alpha - delta {
+        let margin = self.params.dp_margin.val as Score;
+        if eval < alpha - margin {
             return alpha;
         }
 

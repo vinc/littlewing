@@ -42,11 +42,12 @@ pub struct TunableParams {
     pub hhm_offset: TunableParam,
     pub hh_clamp: TunableParam,   // Clamp: bonus.clamp(0, max)
 
+    // Delta Pruning
+    pub dp_margin: TunableParam,
+
     // Futility Pruning
     pub fp_margin: TunableParam,
 
-    // Delta Pruning
-    pub dp_margin: TunableParam,
 }
 
 impl TunableParams {
@@ -61,11 +62,12 @@ impl TunableParams {
             hhm_offset: TunableParam::new(-256, -500, -100, 25),
             hh_clamp: TunableParam::new(4096, 1024, 16384, 1024),
 
+            // Delta Pruning
+            dp_margin: TunableParam::new(1000, 800, 1200, 50),
+
             // Futility Pruning
             fp_margin: TunableParam::new(100, 25, 250, 25),
 
-            // Delta Pruning
-            dp_margin: TunableParam::new(1000, 500, 2000, 50),
         }
     }
 }
