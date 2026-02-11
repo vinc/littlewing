@@ -84,7 +84,7 @@ mod tests {
 
         let bonuses = [0, 64, 272, 512, 784, 1088, 1424, 1792, 2192, 2624];
         for (depth, bonus) in bonuses.iter().enumerate() {
-            assert_eq!(delta((depth + 1) as Depth, 16, 128, -256), *bonus);
+            assert_eq!(game.delta((depth + 1) as Depth, 16, 128, -256), *bonus);
         }
     }
 
