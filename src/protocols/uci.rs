@@ -67,6 +67,9 @@ impl UCI {
         let params = [
             ("DeltaPruningMargin", &self.game.params.dp_margin),
             ("FutilityPruningMargin", &self.game.params.fp_margin),
+            ("LateMoveReductionHistoryMargin", &self.game.params.lmr_hm),
+            ("LateMoveReductionMinimum", &self.game.params.lmr_min),
+            ("LateMoveReductionDivisor", &self.game.params.lmr_div),
         ];
         for (label, param) in params {
             println!(
@@ -103,6 +106,15 @@ impl UCI {
                         },
                         "FutilityPruningMargin" => {
                             self.game.params.fp_margin.val = args[i].parse().unwrap();
+                        },
+                        "LateMoveReductionHistoryMargin" => {
+                            self.game.params.lmr_hm.val = args[i].parse().unwrap();
+                        },
+                        "LateMoveReductionMinimum" => {
+                            self.game.params.lmr_min.val = args[i].parse().unwrap();
+                        },
+                        "LateMoveReductionDivisor" => {
+                            self.game.params.lmr_div.val = args[i].parse().unwrap();
                         },
                         _ => {}
                     }

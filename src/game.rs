@@ -48,6 +48,10 @@ pub struct TunableParams {
     // Futility Pruning
     pub fp_margin: TunableParam,
 
+    // Late Move Reduction
+    pub lmr_hm: TunableParam,
+    pub lmr_min: TunableParam,
+    pub lmr_div: TunableParam,
 }
 
 impl TunableParams {
@@ -68,6 +72,10 @@ impl TunableParams {
             // Futility Pruning
             fp_margin: TunableParam::new(100, 25, 250, 25),
 
+            // Late Move Reduction
+            lmr_hm: TunableParam::new(1024, 0, 8192, 256),
+            lmr_min: TunableParam::new(75, 50, 100, 10),
+            lmr_div: TunableParam::new(250, 200, 300, 25),
         }
     }
 }

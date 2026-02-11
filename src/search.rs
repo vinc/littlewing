@@ -187,7 +187,7 @@ impl Search for Game {
                 }
             }
 
-            let mut has_legal_moves = false;
+            let mut moves_count = 0;
             while let Some(m) = self.next_move() {
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out (TODO?)
@@ -199,8 +199,8 @@ impl Search for Game {
                     self.undo_move(m);
                     continue;
                 }
-                has_legal_moves = true;
                 self.nodes_count += 1;
+                moves_count += 1;
 
                 let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
@@ -230,7 +230,7 @@ impl Search for Game {
             }
 
             // No need to iterate if there's no legal moves to play
-            if !has_legal_moves {
+            if moves_count == 0 {
                 break;
             }
         }
@@ -355,8 +355,7 @@ impl Search for Game {
 
         let eval = self.eval_material(side) - self.eval_material(side ^ 1);
 
-        let mut has_legal_moves = false;
-        let mut is_first_move = true;
+        let mut moves_count = 0;
         while let Some(m) = self.next_move() {
             self.make_move(m);
 
@@ -366,16 +365,15 @@ impl Search for Game {
             }
 
             self.nodes_count += 1;
-            has_legal_moves = true;
+            moves_count += 1;
 
             let mut score;
-            if is_first_move {
+            if moves_count == 1 {
                 // Search the first move with the full window
                 score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
                 best_score = score;
                 best_move = m;
-                is_first_move = false;
             } else {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
@@ -402,15 +400,19 @@ impl Search for Game {
                     !is_in_check &&
                     !is_giving_check &&
                     !m.is_capture() &&
-                    !m.is_promotion();
+                    !m.is_promotion() &&
+                    self.get_history(m) < (self.params.lmr_hm.val as Score);
 
-                if lmr_allowed && depth > 2 {
-                    r += 1; // Do the search at a reduced depth
-                    if depth > 4 {
-                        r += depth / 4;
-                    }
-                    // TODO: Reduce more based on moves count
+                if lmr_allowed && depth > 2 && moves_count > 3 {
+                    // TODO: Add precomputed table LMR[depth][moves]
+                    let min = (self.params.lmr_min.val as f64) / 100.0;
+                    let div = (self.params.lmr_div.val as f64) / 100.0;
+                    let depth = depth as f64;
+                    let moves = moves_count as f64;
+                    r += (min + depth.ln() * moves.ln() / div).round() as Depth;
                 }
+
+                r = r.clamp(0, depth - 1);
 
                 // Search the other moves with the reduced window
                 score = -self.search_node(-alpha - 1, -alpha, depth - r - 1, ply + 1);
@@ -466,7 +468,7 @@ impl Search for Game {
         }
 
         // TODO: could we just use `best_move.is_null()` ?
-        if !has_legal_moves { // End of game
+        if moves_count == 0 { // End of game
             if is_in_check {
                 return -INF + (ply as Score); // Checkmate
             } else {
