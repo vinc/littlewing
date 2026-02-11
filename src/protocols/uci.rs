@@ -65,6 +65,13 @@ impl UCI {
         println!("option name Hash type spin default 8 min 1 max 16384");
 
         let params = [
+            ("HistoryHeuristicBonusQuadratic", &self.game.params.hhb_quadra),
+            ("HistoryHeuristicBonusLinear", &self.game.params.hhb_linear),
+            ("HistoryHeuristicBonusOffset", &self.game.params.hhb_offset),
+            ("HistoryHeuristicMalusQuadratic", &self.game.params.hhm_quadra),
+            ("HistoryHeuristicMalusLinear", &self.game.params.hhm_linear),
+            ("HistoryHeuristicMalusOffset", &self.game.params.hhm_offset),
+            ("HistoryHeuristicClamp", &self.game.params.hh_clamp),
             ("DeltaPruningMargin", &self.game.params.dp_margin),
             ("FutilityPruningMargin", &self.game.params.fp_margin),
             ("LateMoveReductionHistoryMargin", &self.game.params.lmr_hm),
@@ -100,6 +107,27 @@ impl UCI {
                         "Hash" => {
                             let size = args[i].parse::<usize>().unwrap(); // MB
                             self.game.tt_resize(size << 20);
+                        },
+                        "HistoryHeuristicBonusQuadratic" => {
+                            self.game.params.hhb_quadra.val = args[i].parse().unwrap();
+                        },
+                        "HistoryHeuristicBonusLinear" => {
+                            self.game.params.hhb_linear.val = args[i].parse().unwrap();
+                        },
+                        "HistoryHeuristicBonusOffset" => {
+                            self.game.params.hhb_offset.val = args[i].parse().unwrap();
+                        },
+                        "HistoryHeuristicMalusQuadratic" => {
+                            self.game.params.hhm_quadra.val = args[i].parse().unwrap();
+                        },
+                        "HistoryHeuristicMalusLinear" => {
+                            self.game.params.hhm_linear.val = args[i].parse().unwrap();
+                        },
+                        "HistoryHeuristicMalusOffset" => {
+                            self.game.params.hhm_offset.val = args[i].parse().unwrap();
+                        },
+                        "HistoryHeuristicClamp" => {
+                            self.game.params.hh_clamp.val = args[i].parse().unwrap();
                         },
                         "DeltaPruningMargin" => {
                             self.game.params.dp_margin.val = args[i].parse().unwrap();

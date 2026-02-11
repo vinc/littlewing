@@ -450,6 +450,7 @@ impl Search for Game {
                         // failed to cause a cutoff
                         let n = self.moves.index() - 1;
                         for i in 1..n { // Skip first move
+                            // FIXME: Some moves may have been illegal
                             let (previous_move, score) = self.moves[i].into();
                             if score > 0 { // Skip noisy moves
                                 continue;
