@@ -52,7 +52,7 @@ pub struct TunableParams {
     pub lmr_hm: TunableParam,
     pub lmr_min: TunableParam,
     pub lmr_div: TunableParam,
-    pub lmr: [[i32; MAX_MOVES]; MAX_PLY],
+    pub lmr: Box<[[Depth; MAX_MOVES]; MAX_PLY]>,
 }
 
 impl TunableParams {
@@ -77,7 +77,7 @@ impl TunableParams {
             lmr_hm: TunableParam::new(1024, 0, 8192, 256),
             lmr_min: TunableParam::new(75, 50, 100, 10),
             lmr_div: TunableParam::new(250, 200, 300, 25),
-            lmr: [[0; MAX_MOVES]; MAX_PLY],
+            lmr: Box::new([[0; MAX_MOVES]; MAX_PLY]),
         };
         params.compute_lmr();
         params
@@ -89,7 +89,8 @@ impl TunableParams {
         for depth in 0..MAX_PLY {
             for moves in 0..MAX_MOVES {
                 let r = min + (depth as f64).ln() * (moves as f64).ln() / div;
-                self.lmr[depth][moves] = r.round() as i32;
+                let r = (r.round() as usize).clamp(0, MAX_PLY) as Depth;
+                self.lmr[depth][moves] = r;
             }
         }
     }

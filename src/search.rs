@@ -404,7 +404,7 @@ impl Search for Game {
                     self.get_history(m) < (self.params.lmr_hm.val as Score);
 
                 if lmr_allowed && depth > 2 && moves_count > 3 {
-                    r += self.params.lmr[depth as usize][moves_count] as Depth;
+                    r += self.params.lmr[depth as usize][moves_count];
                 }
 
                 r = r.clamp(0, depth - 1);
