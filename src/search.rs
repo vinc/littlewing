@@ -404,12 +404,7 @@ impl Search for Game {
                     self.get_history(m) < (self.params.lmr_hm.val as Score);
 
                 if lmr_allowed && depth > 2 && moves_count > 3 {
-                    // TODO: Add precomputed table LMR[depth][moves]
-                    let min = (self.params.lmr_min.val as f64) / 100.0;
-                    let div = (self.params.lmr_div.val as f64) / 100.0;
-                    let depth = depth as f64;
-                    let moves = moves_count as f64;
-                    r += (min + depth.ln() * moves.ln() / div).round() as Depth;
+                    r += self.params.lmr[depth as usize][moves_count] as Depth;
                 }
 
                 r = r.clamp(0, depth - 1);

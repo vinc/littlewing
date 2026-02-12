@@ -140,9 +140,11 @@ impl UCI {
                         },
                         "LateMoveReductionMinimum" => {
                             self.game.params.lmr_min.val = args[i].parse().unwrap();
+                            self.game.params.compute_lmr();
                         },
                         "LateMoveReductionDivisor" => {
                             self.game.params.lmr_div.val = args[i].parse().unwrap();
+                            self.game.params.compute_lmr();
                         },
                         _ => {}
                     }

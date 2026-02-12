@@ -52,15 +52,16 @@ pub struct TunableParams {
     pub lmr_hm: TunableParam,
     pub lmr_min: TunableParam,
     pub lmr_div: TunableParam,
+    pub lmr: [[i32; MAX_MOVES]; MAX_PLY],
 }
 
 impl TunableParams {
     pub fn new() -> Self {
-        Self {
+        let mut params = Self {
             // History Heuristic
             hhb_quadra: TunableParam::new(16, 2, 64, 8),
-            hhb_linear: TunableParam::new(128, 16, 512, 8),
-            hhb_offset: TunableParam::new(-256, -500, -100, 25),
+            hhb_linear: TunableParam::new(128, 16, 512, 64),
+            hhb_offset: TunableParam::new(-256, -512, -128, 32),
             hhm_quadra: TunableParam::new(16, 2, 64, 8),
             hhm_linear: TunableParam::new(128, 16, 512, 8),
             hhm_offset: TunableParam::new(-256, -500, -100, 25),
@@ -76,6 +77,20 @@ impl TunableParams {
             lmr_hm: TunableParam::new(1024, 0, 8192, 256),
             lmr_min: TunableParam::new(75, 50, 100, 10),
             lmr_div: TunableParam::new(250, 200, 300, 25),
+            lmr: [[0; MAX_MOVES]; MAX_PLY],
+        };
+        params.compute_lmr();
+        params
+    }
+
+    pub fn compute_lmr(&mut self) {
+        let min = (self.lmr_min.val as f64) / 100.0;
+        let div = (self.lmr_div.val as f64) / 100.0;
+        for depth in 0..MAX_PLY {
+            for moves in 0..MAX_MOVES {
+                let r = min + (depth as f64).ln() * (moves as f64).ln() / div;
+                self.lmr[depth][moves] = r.round() as i32;
+            }
         }
     }
 }
