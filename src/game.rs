@@ -86,11 +86,12 @@ impl TunableParams {
     pub fn compute_lmr(&mut self) {
         let min = (self.lmr_min.val as f64) / 100.0;
         let div = (self.lmr_div.val as f64) / 100.0;
-        for depth in 0..MAX_PLY {
-            for moves in 0..MAX_MOVES {
+        for depth in 1..MAX_PLY {
+            for moves in 1..MAX_MOVES {
                 let r = min + (depth as f64).ln() * (moves as f64).ln() / div;
-                let r = (r.round() as usize).clamp(0, MAX_PLY) as Depth;
-                self.lmr[depth][moves] = r;
+                debug_assert!(r >= 0.0);
+                debug_assert!(r < Depth::MAX as f64);
+                self.lmr[depth][moves] = r.round() as Depth;
             }
         }
     }
