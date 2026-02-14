@@ -38,6 +38,7 @@ Features
   - Quiescence Search (QS)
   - Delta Pruning (DP)
   - Transposition Table (TT)
+  - Reverse Futility Pruning (RFP)
   - Null Move Pruning (NMP)
   - Internal Iterative Deepening (IID)
   - Futility Pruning (FP)
