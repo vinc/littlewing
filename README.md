@@ -1,8 +1,8 @@
 Little Wing: a chess engine written in Rust
 ===========================================
 
-[![Travis](https://img.shields.io/travis/vinc/littlewing/master.svg)](https://travis-ci.org/vinc/littlewing/branches)
-[![Crates.io](https://img.shields.io/crates/v/littlewing.svg)](https://crates.io/crates/littlewing)
+[![CI](https://github.com/vinc/littlewing/actions/workflows/rust.yml/badge.svg)](https://github.com/vinc/littlewing/actions/workflows/rust.yml)
+[![Crate](https://img.shields.io/crates/v/littlewing.svg)](https://crates.io/crates/littlewing)
 
 Little Wing is the successor of my previous engine [Purple Haze](https://github.com/vinc/purplehaze).
 
@@ -23,25 +23,27 @@ Features
   - XBoard and UCI communication protocols
   - Public API with [documented library](https://docs.rs/littlewing)
 - Board representation
+  - FEN support
   - Bitboard with LLVM CTPOP and CTTZ
   - Sliding piece attacks with Hyperbola Quintessence and First Rank Attacks
   - Zobrist hashing with Xorshift RNG
   - Staged moves generation
-  - MVV/LVA and SEE moves ordering with insertion sort
-  - FEN support
-- Search
-  - Principal variation search
-  - Quiescence search
-  - Transposition table
-  - Null move pruning
-  - Internal iterative deepening
-  - Futility pruning
-  - Late move reduction
-  - Killer heuristic
+  - MVV/LVA, SEE, and HH moves ordering with insertion sort
 - Evaluation
-  - Piece square table evaluation
-  - Mobility evaluation
-  - Static exchange evaluation
+  - Tempo, Material, Mobility
+  - Piece Square Table (PST)
+  - Static Exchange Evaluation (SEE)
+- Search
+  - Principal Variation Search (PVS)
+  - Quiescence Search (QS)
+  - Delta Pruning (DP)
+  - Transposition Table (TT)
+  - Null Move Pruning (NMP)
+  - Internal Iterative Deepening (IID)
+  - Futility Pruning (FP)
+  - Late Move Reduction (LMR)
+  - Killer Heuristic (KH)
+  - History Heuristic (HH)
 
 
 Install
