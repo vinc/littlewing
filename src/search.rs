@@ -1,5 +1,4 @@
 use std::prelude::v1::*;
-use std::cmp;
 use std::ops::Range;
 
 #[cfg(feature = "std")]
