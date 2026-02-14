@@ -46,12 +46,12 @@ pub struct TunableParams {
     pub dp_margin: TunableParam,
 
     // Futility Pruning
-    pub fp_margin: TunableParam,
+    pub fp_margin: TunableParam, // Check: eval + margin * depth < alpha
 
     // Late Move Reduction
-    pub lmr_hm: TunableParam,
-    pub lmr_min: TunableParam,
-    pub lmr_div: TunableParam,
+    pub lmr_hm: TunableParam,  // History Margin
+    pub lmr_min: TunableParam, // Reduction: based on depth and moves tried
+    pub lmr_div: TunableParam, //            min + ln(depth) * ln(moves) / div
     pub lmr: Box<[[Depth; MAX_MOVES]; MAX_PLY]>,
 }
 
