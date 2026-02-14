@@ -307,21 +307,37 @@ impl Search for Game {
             best_move = t.best_move();
         }
 
+        let eval = self.eval();
         let is_in_check = self.is_check(side);
-
-        // Null Move Pruning (NMP / 95 ELO)
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
 
-        let nmp_allowed =
+        // Reverse Futility Pruning (RFP)
+        let rfp_margin = 75 * depth as Score;
+        let rfp_allowed =
+            !is_pv &&
             !is_in_check &&
             !is_null_move &&
+            !is_pawn_ending &&
+            depth < 7 &&
+            eval.abs() < INF - MAX_PLY as Score &&
+            eval >= beta + rfp_margin;
+
+        if rfp_allowed {
+            return eval;
+        }
+
+        // Null Move Pruning (NMP / 95 ELO)
+        let nmp_allowed =
             !is_pv &&
-            !is_pawn_ending;
+            !is_in_check &&
+            !is_null_move &&
+            !is_pawn_ending &&
+            eval >= beta; // NOTE: Added with RFP
 
         if nmp_allowed {
-            let r = cmp::min(depth - 1, 3 + depth / 4);
+            let r = (3 + depth / 4).clamp(0, depth - 1);
             let m = PieceMove::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
@@ -338,9 +354,12 @@ impl Search for Game {
         //
         // If we didn't get a best move from the transposition_table table,
         // get it by searching the position at a reduced depth.
-        let iid_allowed = is_pv && best_move.is_null();
+        let iid_allowed =
+            is_pv &&
+            best_move.is_null() &&
+            depth > 2;
 
-        if iid_allowed && depth > 2 {
+        if iid_allowed {
             self.search_node(alpha, beta, depth - 2, ply);
 
             if let Some(t) = self.tt.get(hash) {
@@ -352,8 +371,6 @@ impl Search for Game {
         if !best_move.is_null() {
             self.moves.add_move(best_move);
         }
-
-        let eval = self.eval_material(side) - self.eval_material(side ^ 1);
 
         let mut has_legal_moves = false;
         let mut is_first_move = true;
