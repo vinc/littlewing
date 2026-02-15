@@ -332,8 +332,7 @@ impl Search for Game {
             !is_pv &&
             !is_in_check &&
             !is_null_move &&
-            !is_pawn_ending &&
-            eval >= beta; // NOTE: Added with RFP
+            !is_pawn_ending;
 
         if nmp_allowed {
             let r = (3 + depth / 4).clamp(0, depth - 1);
