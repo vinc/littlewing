@@ -1,5 +1,6 @@
 use std::prelude::v1::*;
 use std::ops::Range;
+use std::cmp;
 
 #[cfg(feature = "std")]
 use std::thread;
@@ -31,6 +32,12 @@ pub trait Search {
 
     /// Searh the best move from the root position at the given depth range
     fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove>;
+
+    /// Specialized aspiration search at root
+    fn aspiration(&mut self, depth: Depth, best_score: Score, best_move: PieceMove) -> (Score, PieceMove);
+
+    /// Generic moves search at root
+    fn search_moves(&mut self, alpha: Score, beta: Score, depth: Depth, best_move: PieceMove) -> (Score, PieceMove);
 
     /// Searh the best score between alpha and beta from a node position at the given depth
     fn search_node(&mut self, alpha: Score, beta: Score, depth: Depth, ply: usize) -> Score;
@@ -136,8 +143,6 @@ impl Search for Game {
 
     fn search_root(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         let hash = self.positions.top().hash;
-        let side = self.side();
-        let ply = 0;
 
         #[cfg(feature = "std")]
         if self.is_debug {
@@ -158,16 +163,9 @@ impl Search for Game {
         let mut best_scores = [0; MAX_PLY];
         let mut best_moves = [PieceMove::new_null(); MAX_PLY];
 
+        // Iterative Deepening (ID)
         debug_assert!(depths.start > 0);
         for depth in depths {
-            let mut alpha = -INF;
-            let beta = INF;
-
-            self.moves.clear();
-            if !best_move.is_null() {
-                self.moves.add_move(best_move);
-            }
-
             // Mate pruning
             if depth > 6 {
                 // Stop the search if the position was mate at the 3 previous
@@ -186,51 +184,25 @@ impl Search for Game {
                 }
             }
 
-            let mut has_legal_moves = false;
-            while let Some(m) = self.next_move() {
-                if self.clock.poll(self.nodes_count) {
-                    break; // Discard search at this depth if time is out (TODO?)
-                }
-
-                self.make_move(m);
-
-                if self.is_check(side) {
-                    self.undo_move(m);
-                    continue;
-                }
-                has_legal_moves = true;
-                self.nodes_count += 1;
-
-                let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
-
-                if score > alpha {
-                    if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
-                        // TODO: skip the first thousand nodes to gain time?
-
-                        self.tt.set(hash, depth, score, m, Bound::Exact);
-
-                        // Get the PV line from the TT.
-                        #[cfg(feature = "std")]
-                        self.print_thinking(depth, score, m);
-                    }
-                    alpha = score;
-                    best_scores[depth as usize] = score;
-                    best_moves[depth as usize] = m;
-                }
-                self.undo_move(m);
-            }
-
-            // Save the best move
-            if !best_moves[depth as usize].is_null() && (depth == 1 || !self.clock.poll(self.nodes_count)) {
-                best_move = best_moves[depth as usize];
-                best_score = best_scores[depth as usize];
-
-                self.tt.set(hash, depth, best_score, best_move, Bound::Exact);
-            }
+            // Aspiration Windows (AW)
+            let (s, m) = if depth > 6 {
+                self.aspiration(depth, best_score, best_move)
+            } else {
+                self.search_moves(-INF, INF, depth, best_move)
+            };
+            best_scores[depth as usize] = s;
+            best_moves[depth as usize] = m;
 
             // No need to iterate if there's no legal moves to play
-            if !has_legal_moves {
+            if m.is_null() {
                 break;
+            }
+
+            // Save the search at least once or more if there's time left
+            if depth == 1 || !self.clock.poll(self.nodes_count) {
+                best_score = s;
+                best_move = m;
+                self.tt.set(hash, depth, best_score, best_move, Bound::Exact);
             }
         }
 
@@ -255,6 +227,89 @@ impl Search for Game {
         } else {
             Some(best_move)
         }
+    }
+
+    fn aspiration(&mut self, depth: Depth, best_score: Score, mut best_move: PieceMove) -> (Score, PieceMove) {
+        let mut delta = 60;
+        let mut alpha = cmp::max(best_score.saturating_sub(delta), -INF);
+        let mut beta = cmp::min(best_score.saturating_add(delta), INF);
+
+        loop {
+            let (score, m) = self.search_moves(alpha, beta, depth, best_move);
+
+            if self.clock.poll(self.nodes_count) {
+                return (0, PieceMove::new_null());
+            }
+
+            if score <= alpha { // Fail low
+                alpha = cmp::max(alpha.saturating_sub(delta), -INF);
+            } else if score >= beta { // Fail high
+                beta = cmp::min(beta.saturating_add(delta), INF);
+            } else {
+                return (score, m);
+            }
+            delta += delta / 2; // Widening
+        }
+    }
+
+    fn search_moves(&mut self, mut alpha: Score, beta: Score, depth: Depth, mut best_move: PieceMove) -> (Score, PieceMove) {
+        self.moves.clear();
+        if !best_move.is_null() {
+            self.moves.add_move(best_move);
+        }
+
+        let ply = 0;
+        let side = self.side();
+        let hash = self.positions.top().hash;
+        let mut best_score = -INF;
+        //let mut moves_count = 0;
+        while let Some(m) = self.next_move() {
+            if self.clock.poll(self.nodes_count) {
+                //println!("OUT OF TIME 2");
+                break; // Discard search at this depth when out of time
+            }
+
+            self.make_move(m);
+
+            if self.is_check(side) {
+                self.undo_move(m);
+                continue;
+            }
+            self.nodes_count += 1;
+            //moves_count += 1;
+
+            // PVS
+            /*
+            let score = if moves_count == 1 {
+                -self.search_node(-beta, -alpha, depth - 1, ply + 1)
+            } else {
+                let s = -self.search_node(-alpha - 1, -alpha, depth - 1, ply + 1);
+                if s > alpha && s < beta {
+                    -self.search_node(-beta, -alpha, depth - 1, ply + 1)
+                } else {
+                    s
+                }
+            };
+            */
+            let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
+
+            if score > alpha {
+                if !self.clock.poll(self.nodes_count) {
+                    self.tt.set(hash, depth, score, m, Bound::Exact);
+                    #[cfg(feature = "std")]
+                    if self.is_search_verbose {
+                        // Get the PV line from the TT
+                        self.print_thinking(depth, score, m);
+                    }
+                }
+                alpha = score;
+                best_score = score;
+                best_move = m;
+            }
+            self.undo_move(m);
+        }
+
+        (best_score, best_move)
     }
 
     fn search_node(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
