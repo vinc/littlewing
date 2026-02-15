@@ -317,7 +317,6 @@ impl Search for Game {
         let rfp_allowed =
             !is_pv &&
             !is_in_check &&
-            !is_null_move &&
             !is_pawn_ending &&
             depth < 7 &&
             eval.abs() < INF - MAX_PLY as Score &&
