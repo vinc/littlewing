@@ -230,6 +230,7 @@ impl Search for Game {
     }
 
     fn aspiration(&mut self, depth: Depth, best_score: Score, mut best_move: PieceMove) -> (Score, PieceMove) {
+        let widening = 16;
         let mut delta = 60;
         let mut alpha = cmp::max(best_score.saturating_sub(delta), -INF);
         let mut beta = cmp::min(best_score.saturating_add(delta), INF);
@@ -242,13 +243,16 @@ impl Search for Game {
             }
 
             if score <= alpha { // Fail low
+                //beta = (alpha + beta) / 2;
                 alpha = cmp::max(alpha.saturating_sub(delta), -INF);
             } else if score >= beta { // Fail high
                 beta = cmp::min(beta.saturating_add(delta), INF);
+                //best_move = m;
             } else {
                 return (score, m);
             }
-            delta += delta / 2; // Widening
+            //delta += delta / 2;
+            delta += delta * widening / 16;
         }
     }
 
