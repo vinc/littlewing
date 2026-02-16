@@ -255,7 +255,7 @@ impl Search for Game {
                 return (score, m);
             }
             //delta += delta / 2;
-            delta += delta * widening / 16;
+            delta += ((delta as i64 * widening as i64) / 16) as Score;
         }
     }
 
