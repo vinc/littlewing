@@ -70,9 +70,9 @@ impl TranspositionTable {
         let n = self.len() as u64;
         let k = (hash % n) as usize;
 
-        // Always replace entries from previous searches (entry.age < age)
-        // but use depth preferred replacement strategy for the current search.
-        if age > h[k].age() || (age == 0 && h[k].age() > 0) || depth >= h[k].depth() {
+        // Always replace entries from previous searches and use depth preferred
+        // replacement strategy for the current search.
+        if age != h[k].age() || depth >= h[k].depth() {
             h[k].store(hash, depth, score, best_move, bound, age);
             self.stats_inserts += 1;
         }
