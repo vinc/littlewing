@@ -18,7 +18,7 @@
 //!         assert_eq!(game.move_to_san(m), "Bxc4");
 //!
 //!         game.make_move(m);
-//!         game.history.push(m); // Keep track of the moves played
+//!         game.plies.push(m); // Keep track of the moves played
 //!
 //!         println!("Engine played {}", m.to_lan());
 //!     },
@@ -78,6 +78,9 @@ pub mod fen;
 
 /// Game engine
 pub mod game;
+
+/// History heuristic
+pub mod history;
 
 /// Portable Game Notation support
 pub mod pgn;

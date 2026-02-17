@@ -1,6 +1,33 @@
 # Changelog
 
 ## Unreleased
+### Fixed
+- Do check before search in root (#131)
+- Fix internal iterative deepening (#130)
+- Fix UCI issue with PV after draw (#112)
+- Fix invalid claim (#103)
+- Fix std (#100)
+- Fix clippy warnings (#99)
+### Added
+- Add automated tuning (#122)
+- Add depth command (#101)
+### Changed
+- Replace Bencher by Criterion (#123)
+- Improve UCI support (#114)
+- Use safe lockless transposition table (#113)
+- Set default number of moves for UCI go command (#104)
+- Migrate from 2015 edition to 2018 (#98)
+- Change license from GPL to MIT (#97)
+### Bumped
+- Update criterion requirement from 0.7 to 0.8 (#126)
+- Update rand crates (#120)
+- Update rustyline requirement from 11.0.0 to 17.0.2 (#119)
+- Update dirs requirement from 5.0.1 to 6.0.0 (#118)
+- Upgrade GitHub Actions cache (#111)
+- Update dirs requirement from 4.0.0 to 5.0.1 (#110)
+- Update rustyline requirement from 10.0.0 to 11.0.0 (#105)
+- Update rustyline-derive requirement from 0.7.0 to 0.8.0 (#106)
+- Update crates (#96)
 
 ### 0.7.0 (2021-08-21)
 ### Fixed

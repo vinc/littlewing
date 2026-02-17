@@ -1,5 +1,4 @@
 use std::prelude::v1::*;
-use std::cmp;
 use std::ops::Range;
 
 #[cfg(feature = "std")]
@@ -14,6 +13,7 @@ use crate::eval::Eval;
 #[cfg(feature = "std")]
 use crate::fen::FEN;
 use crate::game::Game;
+use crate::history::HistoryHeuristic;
 use crate::piece_move::PieceMove;
 use crate::piece_move_generator::PieceMoveGenerator;
 use crate::piece_move_notation::PieceMoveNotation;
@@ -75,6 +75,7 @@ impl Search for Game {
     fn search(&mut self, depths: Range<Depth>) -> Option<PieceMove> {
         self.nodes_count = 0;
         self.tt.reset();
+        self.clear_history();
 
         // NOTE: `clear_all()` will zero everything internally, including
         // ply counter, while `clear()` will just reset the counter for
@@ -192,24 +193,29 @@ impl Search for Game {
                 }
 
                 self.make_move(m);
+
+                if self.is_check(side) {
+                    self.undo_move(m);
+                    continue;
+                }
+                has_legal_moves = true;
+                self.nodes_count += 1;
+
                 let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
-                if !self.is_check(side) {
-                    has_legal_moves = true;
-                    self.nodes_count += 1;
-                    if score > alpha {
-                        if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
-                            // TODO: skip the first thousand nodes to gain time?
 
-                            self.tt.set(hash, depth, score, m, Bound::Exact);
+                if score > alpha {
+                    if self.is_search_verbose && !self.clock.poll(self.nodes_count) {
+                        // TODO: skip the first thousand nodes to gain time?
 
-                            // Get the PV line from the TT.
-                            #[cfg(feature = "std")]
-                            self.print_thinking(depth, score, m);
-                        }
-                        alpha = score;
-                        best_scores[depth as usize] = score;
-                        best_moves[depth as usize] = m;
+                        self.tt.set(hash, depth, score, m, Bound::Exact);
+
+                        // Get the PV line from the TT.
+                        #[cfg(feature = "std")]
+                        self.print_thinking(depth, score, m);
                     }
+                    alpha = score;
+                    best_scores[depth as usize] = score;
+                    best_moves[depth as usize] = m;
                 }
                 self.undo_move(m);
             }
@@ -274,7 +280,7 @@ impl Search for Game {
         let mut best_score = alpha;
         let old_alpha = alpha; // To test if best score raise initial alpha
 
-        // Try to get the best move from transposition_table table
+        // Try to get the best move from transposition table (TT / 175 ELO)
         if let Some(t) = self.tt.get(hash) {
             if !is_pv && t.depth() >= depth {
                 match t.bound() {
@@ -300,21 +306,35 @@ impl Search for Game {
             best_move = t.best_move();
         }
 
+        let eval = self.eval();
         let is_in_check = self.is_check(side);
-
-        // Null Move Pruning (NMP)
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
 
+        // Reverse Futility Pruning (RFP)
+        let rfp_margin = 75 * depth as Score;
+        let rfp_allowed =
+            !is_pv &&
+            !is_in_check &&
+            !is_pawn_ending &&
+            depth < 7 &&
+            eval.abs() < INF - MAX_PLY as Score &&
+            eval >= beta + rfp_margin;
+
+        if rfp_allowed {
+            return eval;
+        }
+
+        // Null Move Pruning (NMP / 95 ELO)
         let nmp_allowed =
+            !is_pv &&
             !is_in_check &&
             !is_null_move &&
-            !is_pv &&
             !is_pawn_ending;
 
         if nmp_allowed {
-            let r = cmp::min(depth - 1, 3 + depth / 4);
+            let r = (3 + depth / 4).clamp(0, depth - 1);
             let m = PieceMove::new_null();
             self.make_move(m);
             self.positions.disable_null_move();
@@ -327,14 +347,17 @@ impl Search for Game {
             }
         }
 
-        // Internal Iterative Deepening (IID)
+        // Internal Iterative Deepening (IID / 0 ELO)
         //
         // If we didn't get a best move from the transposition_table table,
         // get it by searching the position at a reduced depth.
-        let iid_allowed = is_pv && best_move.is_null();
+        let iid_allowed =
+            is_pv &&
+            best_move.is_null() &&
+            depth > 2;
 
-        if iid_allowed && depth > 3 {
-            self.search_node(-beta, -alpha, depth / 2, ply + 1);
+        if iid_allowed {
+            self.search_node(alpha, beta, depth - 2, ply);
 
             if let Some(t) = self.tt.get(hash) {
                 best_move = t.best_move();
@@ -345,8 +368,6 @@ impl Search for Game {
         if !best_move.is_null() {
             self.moves.add_move(best_move);
         }
-
-        let eval = self.eval_material(side) - self.eval_material(side ^ 1);
 
         let mut has_legal_moves = false;
         let mut is_first_move = true;
@@ -373,7 +394,7 @@ impl Search for Game {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
 
-                // Futility Pruning (FP)
+                // Futility Pruning (FP / 60 ELO)
                 let fp_allowed =
                     !is_pv &&
                     !is_in_check &&
@@ -389,7 +410,7 @@ impl Search for Game {
                     }
                 }
 
-                // Late Move Reduction (LMR)
+                // Late Move Reduction (LMR / 35 ELO)
                 let lmr_allowed =
                     !is_pv &&
                     !is_in_check &&
@@ -402,6 +423,7 @@ impl Search for Game {
                     if depth > 4 {
                         r += depth / 4;
                     }
+                    // TODO: Reduce more based on moves count
                 }
 
                 // Search the other moves with the reduced window
@@ -422,8 +444,30 @@ impl Search for Game {
 
             if score > alpha {
                 if score >= beta {
-                    if !m.is_capture() {
+                    // Killer Heuristic (KH / 50 ELO)
+                    let kh_allowed = !m.is_capture();
+
+                    if kh_allowed {
                         self.moves.add_killer_move(m);
+                    }
+
+                    // History Heuristic (HH / 20 ELO)
+                    let hh_allowed = !m.is_capture();
+
+                    if hh_allowed {
+                        // 1. Give a bonus to the current move
+                        self.inc_history(m, depth);
+
+                        // 2. Give a malus to the previous quiet moves that
+                        // failed to cause a cutoff
+                        let n = self.moves.index() - 1;
+                        for i in 1..n { // Skip first move
+                            let (previous_move, score) = self.moves[i].into();
+                            if score > 0 { // Skip noisy moves
+                                continue;
+                            }
+                            self.dec_history(previous_move, depth);
+                        }
                     }
                     self.tt.set(hash, depth, score, m, Bound::Lower);
                     return score;
@@ -817,7 +861,7 @@ mod tests {
         for s in moves {
             let m = game.move_from_lan(s);
             game.make_move(m);
-            game.history.push(m);
+            game.plies.push(m);
         }
 
         game.nodes_count = 0;

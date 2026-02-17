@@ -7,6 +7,7 @@ use crate::piece::*;
 use crate::common::*;
 use crate::bitboard::Bitboard;
 use crate::clock::Clock;
+use crate::history::HistoryHeuristic;
 use crate::piece_move::PieceMove;
 use crate::piece_move_list::PieceMoveList;
 use crate::positions::Positions;
@@ -33,9 +34,10 @@ pub struct Game {
     pub bitboards: [Bitboard; 14],
     pub board: [Piece; 64],
     pub moves: PieceMoveList,
+    pub plies: Vec<PieceMove>,
+    pub history: [[[Score; 64]; 64]; 2],
     pub positions: Positions,
     pub zobrist: Zobrist,
-    pub history: Vec<PieceMove>,
     pub tt: TranspositionTable
 }
 
@@ -57,9 +59,10 @@ impl Game {
             bitboards: [0; 14],
             board: [EMPTY; 64],
             moves: PieceMoveList::new(),
+            plies: Vec::new(),
+            history: [[[0; 64]; 64]; 2],
             positions: Positions::new(),
             zobrist: Zobrist::new(),
-            history: Vec::new(),
             tt: TranspositionTable::with_memory(TT_SIZE)
         }
     }
@@ -81,7 +84,8 @@ impl Game {
         self.board = [EMPTY; 64];
         self.moves.clear_all();
         self.positions.clear();
-        self.history.clear();
+        self.clear_history();
+        self.plies.clear();
         //self.tt.clear();
     }
 
