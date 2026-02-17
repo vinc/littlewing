@@ -41,13 +41,13 @@ impl TranspositionTable {
         TranspositionTable::with_capacity(capacity)
     }
 
-    pub fn get(&mut self, hash: u64) -> Option<&Transposition> {
+    pub fn get(&mut self, hash: u64) -> Option<Transposition> {
         self.stats_lookups += 1;
 
         let h = self.entries.get();
         let n = self.len() as u64;
-        let k = (hash % n) as usize; // TODO: hash & (n - 1)
-        let t = &h[k]; // TODO: use get_unchecked?
+        let k = (hash % n) as usize;
+        let t = h[k].clone();
 
         // TODO: how faster would it be to just also return null move?
         if t.best_move().is_null() {
