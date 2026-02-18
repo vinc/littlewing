@@ -403,7 +403,7 @@ impl Search for Game {
                     !m.is_promotion();
 
                 if fp_allowed && depth < 6 {
-                    let margin = 100 * depth as Score;
+                    let margin = 50 * depth as Score;
                     if eval + margin < alpha {
                         self.undo_move(m);
                         continue;
