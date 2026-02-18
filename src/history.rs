@@ -4,24 +4,13 @@ use crate::common::*;
 use crate::game::Game;
 use crate::piece_move::PieceMove;
 
-// TODO: Tune this
-const HH_BONUS_QUADRA: Score = 16;
-const HH_BONUS_LINEAR: Score = 128;
-const HH_BONUS_OFFSET: Score = -256;
-const HH_BONUS_CLAMP: Score = HH_MAX / 4;
-
-// TODO: Use separate values
-const HH_MALUS_QUADRA: Score = HH_BONUS_QUADRA;
-const HH_MALUS_LINEAR: Score = HH_BONUS_LINEAR;
-const HH_MALUS_OFFSET: Score = HH_BONUS_OFFSET;
-//const HH_MALUS_CLAMP: Score = HH_BONUS_CLAMP;
-
 pub trait HistoryHeuristic {
     fn clear_history(&mut self);
     fn get_history(&self, m: PieceMove) -> Score;
     fn set_history(&mut self, m: PieceMove, s: Score);
     fn inc_history(&mut self, m: PieceMove, d: Depth);
     fn dec_history(&mut self, m: PieceMove, d: Depth);
+    fn delta(&self, depth: Depth, quadra: i32, linear: i32, offset: i32) -> Score;
 }
 
 impl HistoryHeuristic for Game {
@@ -54,23 +43,29 @@ impl HistoryHeuristic for Game {
     }
 
     fn inc_history(&mut self, m: PieceMove, d: Depth) {
-        let s = delta(d, HH_BONUS_QUADRA, HH_BONUS_LINEAR, HH_BONUS_OFFSET);
+        let quadra = self.params.hhb_quadra.val;
+        let linear = self.params.hhb_linear.val;
+        let offset = self.params.hhb_offset.val;
+        let s = self.delta(d, quadra, linear, offset);
         self.set_history(m, s);
     }
 
     fn dec_history(&mut self, m: PieceMove, d: Depth) {
-        let s = -delta(d, HH_MALUS_QUADRA, HH_MALUS_LINEAR, HH_MALUS_OFFSET);
+        let quadra = self.params.hhm_quadra.val;
+        let linear = self.params.hhm_linear.val;
+        let offset = self.params.hhm_offset.val;
+        let s = -self.delta(d, quadra, linear, offset);
         self.set_history(m, s);
     }
-}
 
-fn delta(depth: Depth, quadra: Score, linear: Score, offset: Score) -> Score {
-    let d = depth as i32;
-    let x = quadra as i32;
-    let y = linear as i32;
-    let z = offset as i32;
+    fn delta(&self, depth: Depth, quadra: i32, linear: i32, offset: i32) -> Score {
+        let d = depth as i32;
+        let x = quadra;
+        let y = linear;
+        let z = offset;
 
-    (x * d * d + y * d + z).clamp(0, HH_BONUS_CLAMP as i32) as Score
+        (x * d * d + y * d + z).clamp(0, self.params.hh_clamp.val) as Score
+    }
 }
 
 #[cfg(test)]
@@ -89,7 +84,7 @@ mod tests {
 
         let bonuses = [0, 64, 272, 512, 784, 1088, 1424, 1792, 2192, 2624];
         for (depth, bonus) in bonuses.iter().enumerate() {
-            assert_eq!(delta((depth + 1) as Depth, 16, 128, -256), *bonus);
+            assert_eq!(game.delta((depth + 1) as Depth, 16, 128, -256), *bonus);
         }
     }
 

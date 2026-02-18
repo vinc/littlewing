@@ -186,7 +186,7 @@ impl Search for Game {
                 }
             }
 
-            let mut has_legal_moves = false;
+            let mut moves_count = 0;
             while let Some(m) = self.next_move() {
                 if self.clock.poll(self.nodes_count) {
                     break; // Discard search at this depth if time is out (TODO?)
@@ -198,8 +198,8 @@ impl Search for Game {
                     self.undo_move(m);
                     continue;
                 }
-                has_legal_moves = true;
                 self.nodes_count += 1;
+                moves_count += 1;
 
                 let score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
@@ -229,7 +229,7 @@ impl Search for Game {
             }
 
             // No need to iterate if there's no legal moves to play
-            if !has_legal_moves {
+            if moves_count == 0 {
                 break;
             }
         }
@@ -369,8 +369,8 @@ impl Search for Game {
             self.moves.add_move(best_move);
         }
 
-        let mut has_legal_moves = false;
-        let mut is_first_move = true;
+        let mut moves_count = 0;
+
         while let Some(m) = self.next_move() {
             self.make_move(m);
 
@@ -380,16 +380,15 @@ impl Search for Game {
             }
 
             self.nodes_count += 1;
-            has_legal_moves = true;
+            moves_count += 1;
 
             let mut score;
-            if is_first_move {
+            if moves_count == 1 {
                 // Search the first move with the full window
                 score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
                 best_score = score;
                 best_move = m;
-                is_first_move = false;
             } else {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
@@ -403,7 +402,7 @@ impl Search for Game {
                     !m.is_promotion();
 
                 if fp_allowed && depth < 6 {
-                    let margin = 100 * depth as Score;
+                    let margin = (self.params.fp_margin.val as Score) * (depth as Score);
                     if eval + margin < alpha {
                         self.undo_move(m);
                         continue;
@@ -416,15 +415,14 @@ impl Search for Game {
                     !is_in_check &&
                     !is_giving_check &&
                     !m.is_capture() &&
-                    !m.is_promotion();
+                    !m.is_promotion() &&
+                    self.get_history(m) < (self.params.lmr_hm.val as Score);
 
-                if lmr_allowed && depth > 2 {
-                    r += 1; // Do the search at a reduced depth
-                    if depth > 4 {
-                        r += depth / 4;
-                    }
-                    // TODO: Reduce more based on moves count
+                if lmr_allowed && depth > 2 && moves_count > 3 {
+                    r += self.params.lmr[depth as usize][moves_count];
                 }
+
+                r = r.clamp(0, depth - 1);
 
                 // Search the other moves with the reduced window
                 score = -self.search_node(-alpha - 1, -alpha, depth - r - 1, ply + 1);
@@ -462,6 +460,7 @@ impl Search for Game {
                         // failed to cause a cutoff
                         let n = self.moves.index() - 1;
                         for i in 1..n { // Skip first move
+                            // FIXME: Some moves may have been illegal
                             let (previous_move, score) = self.moves[i].into();
                             if score > 0 { // Skip noisy moves
                                 continue;
@@ -480,7 +479,7 @@ impl Search for Game {
         }
 
         // TODO: could we just use `best_move.is_null()` ?
-        if !has_legal_moves { // End of game
+        if moves_count == 0 { // End of game
             if is_in_check {
                 return -INF + (ply as Score); // Checkmate
             } else {
@@ -515,8 +514,8 @@ impl Search for Game {
         }
 
         // Delta pruning
-        let delta = 1000; // Queen value
-        if eval < alpha - delta {
+        let margin = self.params.dp_margin.val as Score;
+        if eval < alpha - margin {
             return alpha;
         }
 
