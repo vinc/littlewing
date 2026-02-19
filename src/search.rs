@@ -21,6 +21,27 @@ use crate::transposition::Bound;
 #[cfg(feature = "std")]
 use crate::protocols::Protocol;
 
+const LMR_MIN: Score = 75;
+const LMR_DIV: Score = 250;
+
+lazy_static! {
+    pub static ref LMR: [[Depth; MAX_MOVES]; MAX_PLY] = {
+        let mut lmr = [[0; MAX_MOVES]; MAX_PLY];
+        let min = (LMR_MIN as f64) / 100.0;
+        let div = (LMR_DIV as f64) / 100.0;
+        for depth in 1..MAX_PLY {
+            for moves in 1..MAX_MOVES {
+                let r = min + (depth as f64).ln() * (moves as f64).ln() / div;
+                debug_assert!(r >= 0.0);
+                debug_assert!(r < Depth::MAX as f64);
+                lmr[depth][moves] = r.round() as Depth;
+            }
+        }
+        lmr
+    };
+}
+
+
 /// Search the game
 pub trait Search {
     /// Search the number of legal moves at the given depth
@@ -369,8 +390,7 @@ impl Search for Game {
             self.moves.add_move(best_move);
         }
 
-        let mut has_legal_moves = false;
-        let mut is_first_move = true;
+        let mut moves_count = 0;
         while let Some(m) = self.next_move() {
             self.make_move(m);
 
@@ -379,17 +399,16 @@ impl Search for Game {
                 continue;
             }
 
+            moves_count += 1;
             self.nodes_count += 1;
-            has_legal_moves = true;
 
             let mut score;
-            if is_first_move {
+            if moves_count == 1 {
                 // Search the first move with the full window
                 score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
                 best_score = score;
                 best_move = m;
-                is_first_move = false;
             } else {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
@@ -416,15 +435,16 @@ impl Search for Game {
                     !is_in_check &&
                     !is_giving_check &&
                     !m.is_capture() &&
-                    !m.is_promotion();
+                    !m.is_promotion() &&
+                    depth > 2 &&
+                    moves_count > 3;
 
-                if lmr_allowed && depth > 2 {
-                    r += 1; // Do the search at a reduced depth
-                    if depth > 4 {
-                        r += depth / 4;
-                    }
-                    // TODO: Reduce more based on moves count
+                if lmr_allowed {
+                    r += LMR[depth as usize][moves_count];
+                    */
                 }
+
+                r = r.clamp(0, depth - 1);
 
                 // Search the other moves with the reduced window
                 score = -self.search_node(-alpha - 1, -alpha, depth - r - 1, ply + 1);
@@ -479,8 +499,7 @@ impl Search for Game {
             }
         }
 
-        // TODO: could we just use `best_move.is_null()` ?
-        if !has_legal_moves { // End of game
+        if moves_count == 0 { // End of game
             if is_in_check {
                 return -INF + (ply as Score); // Checkmate
             } else {
