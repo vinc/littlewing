@@ -48,6 +48,9 @@ pub struct TunableParams {
     // Futility Pruning
     pub fp_margin: TunableParam, // Check: eval + margin * depth < alpha
 
+    // Reverse Futility Pruning
+    pub rfp_margin: TunableParam,
+
     // Late Move Reduction
     pub lmr_hm: TunableParam,  // History Margin
     pub lmr_min: TunableParam, // Reduction: based on depth and moves tried
@@ -71,7 +74,10 @@ impl TunableParams {
             dp_margin: TunableParam::new(1000, 800, 1200, 50),
 
             // Futility Pruning
-            fp_margin: TunableParam::new(100, 25, 250, 25),
+            fp_margin: TunableParam::new(50, 25, 75, 15),
+
+            // Futility Pruning
+            rfp_margin: TunableParam::new(75, 40, 100, 25),
 
             // Late Move Reduction
             lmr_hm: TunableParam::new(1024, 0, 8192, 256),

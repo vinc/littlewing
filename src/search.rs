@@ -313,7 +313,7 @@ impl Search for Game {
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
 
         // Reverse Futility Pruning (RFP)
-        let rfp_margin = 75 * depth as Score;
+        let rfp_margin = (self.params.rfp_margin.val as Score) * (depth as Score);
         let rfp_allowed =
             !is_pv &&
             !is_in_check &&

@@ -74,6 +74,7 @@ impl UCI {
             ("HistoryHeuristicClamp", &self.game.params.hh_clamp),
             ("DeltaPruningMargin", &self.game.params.dp_margin),
             ("FutilityPruningMargin", &self.game.params.fp_margin),
+            ("ReverseFutilityPruningMargin", &self.game.params.rfp_margin),
             ("LateMoveReductionHistoryMargin", &self.game.params.lmr_hm),
             ("LateMoveReductionMinimum", &self.game.params.lmr_min),
             ("LateMoveReductionDivisor", &self.game.params.lmr_div),
@@ -134,6 +135,9 @@ impl UCI {
                         },
                         "FutilityPruningMargin" => {
                             self.game.params.fp_margin.val = args[i].parse().unwrap();
+                        },
+                        "ReverseFutilityPruningMargin" => {
+                            self.game.params.rfp_margin.val = args[i].parse().unwrap();
                         },
                         "LateMoveReductionHistoryMargin" => {
                             self.game.params.lmr_hm.val = args[i].parse().unwrap();
