@@ -431,16 +431,26 @@ impl Search for Game {
 
                 // Late Move Reduction (LMR / 35 ELO)
                 let lmr_allowed =
-                    !is_pv &&
-                    !is_in_check &&
-                    !is_giving_check &&
+                    // !is_pv &&
+                    // !is_in_check &&
+                    // !is_giving_check &&
                     !m.is_capture() &&
                     !m.is_promotion() &&
                     depth > 2 &&
-                    moves_count > 3;
+                    moves_count > 3 + (is_pv as usize);
 
                 if lmr_allowed {
                     r += LMR[depth as usize][moves_count];
+
+                    if is_pv {
+                        r -= 1;
+                    }
+                    if is_in_check {
+                        r -= 1;
+                    }
+                    if is_giving_check {
+                        r -= 1;
+                    }
                 }
 
                 r = r.clamp(0, depth - 1);
