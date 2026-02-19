@@ -307,13 +307,16 @@ impl Search for Game {
         }
 
         let eval = self.eval();
+        self.positions.set_score(eval);
+        let is_improving = self.positions.is_improving();
+
         let is_in_check = self.is_check(side);
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
 
         // Reverse Futility Pruning (RFP)
-        let rfp_margin = 75 * depth as Score;
+        let rfp_margin = 75 * depth as Score - 20 * is_improving as Score;
         let rfp_allowed =
             !is_pv &&
             !is_in_check &&
