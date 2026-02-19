@@ -441,7 +441,6 @@ impl Search for Game {
 
                 if lmr_allowed {
                     r += LMR[depth as usize][moves_count];
-                    */
                 }
 
                 r = r.clamp(0, depth - 1);
