@@ -9,8 +9,12 @@ use crate::attack::*;
 use crate::piece_move::*;
 use crate::square::SquareExt;
 use crate::bitboard::{Bitboard, BitboardExt, BitboardIterator};
-use crate::hyperbola::bishop_attacks;
-use crate::hyperbola::rook_attacks;
+
+#[cfg(all(target_arch = "x86_64", target_feature = "bmi2"))]
+pub use crate::pext::*;
+
+#[cfg(not(all(target_arch = "x86_64", target_feature = "bmi2")))]
+pub use crate::hyperbola::*;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Scored<T, S> {

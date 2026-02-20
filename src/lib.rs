@@ -48,11 +48,15 @@ extern crate rustyline;
 #[cfg(feature = "std")]
 extern crate rustyline_derive;
 
-pub mod attack;
 mod board;
 mod common;
 mod dumb7fill;
 mod hyperbola;
+
+#[cfg(all(target_arch = "x86_64", target_feature = "bmi2"))]
+mod pext;
+
+pub mod attack;
 mod piece_move;
 mod piece_move_list;
 mod positions;
