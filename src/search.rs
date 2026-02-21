@@ -278,9 +278,17 @@ impl Search for Game {
         }
     }
 
-    fn search_node(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
+    fn search_node(&mut self, mut alpha: Score, mut beta: Score, mut depth: Depth, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
             return 0;
+        }
+
+        let side = self.side();
+        let is_in_check = self.is_check(side);
+
+        // Check Extension (CE)
+        if is_in_check {
+            depth += 1;
         }
 
         if depth == 0 {
@@ -293,7 +301,6 @@ impl Search for Game {
         }
 
         let hash = self.positions.top().hash;
-        let side = self.side();
         let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
 
@@ -328,7 +335,6 @@ impl Search for Game {
         }
 
         let eval = self.eval();
-        let is_in_check = self.is_check(side);
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
