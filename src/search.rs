@@ -22,6 +22,27 @@ use crate::transposition::Bound;
 #[cfg(feature = "std")]
 use crate::protocols::Protocol;
 
+const LMR_MIN: Score = 75;
+const LMR_DIV: Score = 250;
+
+lazy_static! {
+    pub static ref LMR: [[Depth; MAX_MOVES]; MAX_PLY] = {
+        let mut lmr = [[0; MAX_MOVES]; MAX_PLY];
+        let min = (LMR_MIN as f64) / 100.0;
+        let div = (LMR_DIV as f64) / 100.0;
+        for depth in 1..MAX_PLY {
+            for moves in 1..MAX_MOVES {
+                let r = min + (depth as f64).ln() * (moves as f64).ln() / div;
+                debug_assert!(r >= 0.0);
+                debug_assert!(r < Depth::MAX as f64);
+                lmr[depth][moves] = r.round() as Depth;
+            }
+        }
+        lmr
+    };
+}
+
+
 /// Search the game
 pub trait Search {
     /// Search the number of legal moves at the given depth
@@ -319,9 +340,17 @@ impl Search for Game {
         (best_score, best_move)
     }
 
-    fn search_node(&mut self, mut alpha: Score, mut beta: Score, depth: Depth, ply: usize) -> Score {
+    fn search_node(&mut self, mut alpha: Score, mut beta: Score, mut depth: Depth, ply: usize) -> Score {
         if self.clock.poll(self.nodes_count) {
             return 0;
+        }
+
+        let side = self.side();
+        let is_in_check = self.is_check(side);
+
+        // Check Extension (CE)
+        if is_in_check {
+            depth += 1;
         }
 
         if depth == 0 {
@@ -334,7 +363,6 @@ impl Search for Game {
         }
 
         let hash = self.positions.top().hash;
-        let side = self.side();
         let is_null_move = !self.positions.top().null_move_right;
         let is_pv = alpha != beta - 1;
 
@@ -369,7 +397,6 @@ impl Search for Game {
         }
 
         let eval = self.eval();
-        let is_in_check = self.is_check(side);
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
@@ -431,8 +458,7 @@ impl Search for Game {
             self.moves.add_move(best_move);
         }
 
-        let mut has_legal_moves = false;
-        let mut is_first_move = true;
+        let mut moves_count = 0;
         while let Some(m) = self.next_move() {
             self.make_move(m);
 
@@ -441,17 +467,16 @@ impl Search for Game {
                 continue;
             }
 
+            moves_count += 1;
             self.nodes_count += 1;
-            has_legal_moves = true;
 
             let mut score;
-            if is_first_move {
+            if moves_count == 1 {
                 // Search the first move with the full window
                 score = -self.search_node(-beta, -alpha, depth - 1, ply + 1);
 
                 best_score = score;
                 best_move = m;
-                is_first_move = false;
             } else {
                 let is_giving_check = self.is_check(side ^ 1);
                 let mut r = 0; // Depth reduction
@@ -465,7 +490,7 @@ impl Search for Game {
                     !m.is_promotion();
 
                 if fp_allowed && depth < 6 {
-                    let margin = 100 * depth as Score;
+                    let margin = 50 * depth as Score;
                     if eval + margin < alpha {
                         self.undo_move(m);
                         continue;
@@ -474,19 +499,29 @@ impl Search for Game {
 
                 // Late Move Reduction (LMR / 35 ELO)
                 let lmr_allowed =
-                    !is_pv &&
-                    !is_in_check &&
-                    !is_giving_check &&
+                    // !is_pv &&
+                    // !is_in_check &&
+                    // !is_giving_check &&
                     !m.is_capture() &&
-                    !m.is_promotion();
+                    !m.is_promotion() &&
+                    depth > 2 &&
+                    moves_count > 3 + (is_pv as usize);
 
-                if lmr_allowed && depth > 2 {
-                    r += 1; // Do the search at a reduced depth
-                    if depth > 4 {
-                        r += depth / 4;
+                if lmr_allowed {
+                    r += LMR[depth as usize][moves_count];
+
+                    if is_pv {
+                        r -= 1;
                     }
-                    // TODO: Reduce more based on moves count
+                    if is_in_check {
+                        r -= 1;
+                    }
+                    if is_giving_check {
+                        r -= 1;
+                    }
                 }
+
+                r = r.clamp(0, depth - 1);
 
                 // Search the other moves with the reduced window
                 score = -self.search_node(-alpha - 1, -alpha, depth - r - 1, ply + 1);
@@ -541,8 +576,7 @@ impl Search for Game {
             }
         }
 
-        // TODO: could we just use `best_move.is_null()` ?
-        if !has_legal_moves { // End of game
+        if moves_count == 0 { // End of game
             if is_in_check {
                 return -INF + (ply as Score); // Checkmate
             } else {
