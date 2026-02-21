@@ -18,10 +18,9 @@ fn castling_rights_index(side: Color, wing: Piece) -> u8 {
 pub struct Position {
     pub hash: u64,
     pub side: Color,
-    //pub score: Option<Score>,
-    pub score: Score,
-    pub capture: Piece, // TODO: use `Option<Piece>`?
-    pub en_passant: Square, // TODO: use `Option<Square>`?
+    pub score: Score, // TODO: Use `Option<Score>`
+    pub capture: Piece, // TODO: use `Option<Piece>`
+    pub en_passant: Square, // TODO: use `Option<Square>`
     pub null_move_right: bool,
     pub castling_rights: u8,
     pub halfmoves_count: u8,
@@ -30,12 +29,11 @@ pub struct Position {
 impl Position {
     pub fn new() -> Position {
         Position {
-            hash: 0, // TODO: is it a problem for the starting position?
+            hash: 0, // TODO: Is it a problem for the starting position?
             side: WHITE,
-            //score: None,
-            score: INF,
-            capture: EMPTY, // TODO: use `None`?
-            en_passant: OUT, // TODO: use `None`?
+            score: INF, // TODO: Use `None`
+            capture: EMPTY, // TODO: use `None`
+            en_passant: OUT, // TODO: use `None`
             null_move_right: true,
             castling_rights: 0,
             halfmoves_count: 0,
@@ -119,23 +117,13 @@ impl Positions {
     }
 
     pub fn set_score(&mut self, score: Score) {
-        //self.stack[self.ply - 1].score = Some(score);
         self.stack[self.ply - 1].score = score;
     }
 
     pub fn is_improving(&self) -> bool {
-        /*
+        // Check if the position has improved since our last move (2 plies ago)
         if self.ply > 2 {
-            if let Some(previous_score) = self.stack[self.ply - 3].score {
-                if let Some(current_score) = self.stack[self.ply - 1].score {
-                    return previous_score < current_score;
-                }
-            }
-        }
-        false
-        */
-        if self.ply > 2 {
-            self.stack[self.ply - 3].score < self.stack[self.ply - 1].score
+            self.stack[self.ply - 1].score > self.stack[self.ply - 3].score
         } else {
             false
         }
