@@ -4,12 +4,7 @@ use crate::square::*;
 use crate::common::*;
 use crate::bitboard::{Bitboard, BitboardExt};
 use crate::game::Game;
-
-#[cfg(all(target_arch = "x86_64", target_feature = "bmi2"))]
-pub use crate::pext::*;
-
-#[cfg(not(all(target_arch = "x86_64", target_feature = "bmi2")))]
-pub use crate::hyperbola::*;
+use crate::sliders::{bishop_attacks, rook_attacks};
 
 pub trait Attack {
     fn is_check(&self, side: Color) -> bool;
