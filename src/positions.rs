@@ -75,7 +75,7 @@ impl Positions {
     }
 
     pub fn push(&mut self, position: Position) {
-        self.stack[self.ply] = position; // FIXME: this operation is very slow
+        self.stack[self.ply] = position;
         self.ply += 1;
     }
 

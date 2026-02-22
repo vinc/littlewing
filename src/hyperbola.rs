@@ -17,7 +17,7 @@ pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
     file | rank
 }
 
-#[cfg(all(target_arch = "x86_64", target_feature = "bmi2"))]
+#[cfg(target_feature = "bmi2")]
 pub fn bishop_mask(from: Square) -> Bitboard {
     let sq = from as usize;
     let diag = HyperbolaMask::Diag as usize;
@@ -25,7 +25,7 @@ pub fn bishop_mask(from: Square) -> Bitboard {
     HYPERBOLA_MASKS[sq][diag] | HYPERBOLA_MASKS[sq][anti]
 }
 
-#[cfg(all(target_arch = "x86_64", target_feature = "bmi2"))]
+#[cfg(target_feature = "bmi2")]
 pub fn rook_mask(from: Square) -> Bitboard {
     let sq = from as usize;
     let file = HYPERBOLA_MASKS[sq][HyperbolaMask::File as usize];

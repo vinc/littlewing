@@ -54,14 +54,14 @@ mod common;
 mod dumb7fill; // NOTE: Replaced by hyperbola
 mod hyperbola;
 
-#[cfg(all(target_feature = "bmi2"))]
+#[cfg(target_feature = "bmi2")]
 mod pext;
 
 mod sliders {
-    #[cfg(all(target_feature = "bmi2"))]
+    #[cfg(target_feature = "bmi2")]
     pub use crate::pext::{bishop_attacks, rook_attacks};
 
-    #[cfg(not(all(target_feature = "bmi2")))]
+    #[cfg(not(target_feature = "bmi2"))]
     pub use crate::hyperbola::{bishop_attacks, rook_attacks};
 
     //pub use crate::dumb7fill::{bishop_attacks, rook_attacks};
