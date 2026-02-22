@@ -21,6 +21,9 @@ use crate::transposition::Bound;
 #[cfg(feature = "std")]
 use crate::protocols::Protocol;
 
+const RFP_MARGIN: Score = 75;
+const RFP_IMPROV: Score = 20;
+//const NMP_IMPROV: Score = 25;
 const LMR_MIN: Score = 75;
 const LMR_DIV: Score = 250;
 
@@ -335,30 +338,36 @@ impl Search for Game {
         }
 
         let eval = self.eval();
+        self.positions.set_score(eval);
+        let is_improving = self.positions.is_improving();
+
         let pieces_count = self.bitboard(side).count();
         let pawns_count = self.bitboard(side | PAWN).count();
         let is_pawn_ending = pieces_count == pawns_count + 1; // pawns + king
 
         // Reverse Futility Pruning (RFP)
-        let rfp_margin = 75 * depth as Score;
+        let rfp_margin = RFP_MARGIN * depth as Score;
+        let rfp_improv = RFP_IMPROV * is_improving as Score;
         let rfp_allowed =
             !is_pv &&
             !is_in_check &&
             !is_pawn_ending &&
             depth < 7 &&
             eval.abs() < INF - MAX_PLY as Score &&
-            eval >= beta + rfp_margin;
+            eval >= beta + rfp_margin - rfp_improv;
 
         if rfp_allowed {
             return eval;
         }
 
         // Null Move Pruning (NMP / 95 ELO)
+        // let nmp_improv = NMP_IMPROV * is_improving as Score;
         let nmp_allowed =
             !is_pv &&
             !is_in_check &&
             !is_null_move &&
-            !is_pawn_ending;
+            !is_pawn_ending &&
+            eval >= beta; // - nmp_improv;
 
         if nmp_allowed {
             let r = (3 + depth / 4).clamp(0, depth - 1);
@@ -437,9 +446,6 @@ impl Search for Game {
 
                 // Late Move Reduction (LMR / 35 ELO)
                 let lmr_allowed =
-                    // !is_pv &&
-                    // !is_in_check &&
-                    // !is_giving_check &&
                     !m.is_capture() &&
                     !m.is_promotion() &&
                     depth > 2 &&
