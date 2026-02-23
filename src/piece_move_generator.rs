@@ -42,7 +42,7 @@ pub trait PieceMoveGenerator {
     fn generate_moves(&mut self);
 
     /// Sort the moves list to try good candidates first in search
-    fn sort_moves(&mut self);
+    fn sort_moves(&mut self, offset: usize);
 
     /// Get the next capture from the moves list (for quiescence search)
     fn next_capture(&mut self) -> Option<PieceMove>;
@@ -79,6 +79,7 @@ impl PieceMoveGenerator for Game {
                 }
             },
             PieceMoveListStage::Capture | PieceMoveListStage::QuietPieceMove => {
+                let previous_moves_count = self.moves.len();
                 let &position = self.positions.top();
                 let side = position.side;
                 let ep = position.en_passant;
@@ -99,37 +100,59 @@ impl PieceMoveGenerator for Game {
                     }
                 }
 
-                if !self.moves.skip_ordering {
-                    self.sort_moves();
+                if self.moves.skip_ordering {
+                    return;
+                }
+
+                let current_moves_count = self.moves.len();
+                if previous_moves_count < current_moves_count {
+                    self.sort_moves(previous_moves_count);
                 }
             },
             _ => () // Nothing to do in `BestPieceMove` or `Done` stages
         }
     }
 
-    fn sort_moves(&mut self) {
-        // Sort all moves currently in the list except the best move
-        let a = if self.moves[0].score == BEST_MOVE_SCORE { 1 } else { 0 };
-        let b = self.moves.len();
-        for i in a..b {
-            if self.moves[i].item.is_capture() {
-                self.moves[i].score = self.mvv_lva(self.moves[i].item);
-                if self.see(self.moves[i].item) >= 0 {
-                    self.moves[i].score += GOOD_CAPTURE_SCORE;
+    // Sort every moves after the given offset
+    fn sort_moves(&mut self, offset: usize) {
+        // In regular search `offset == self.moves.index()` but this might not
+        // be true if we call the movegen multiple times before picking moves.
+        debug_assert_ne!(self.moves[offset].score, BEST_MOVE_SCORE);
+        debug_assert_ne!(self.moves[offset].score, KILLER_MOVE_SCORE);
+        let stage = self.moves.stage();
+        let moves_count = self.moves.len();
+        for i in offset..moves_count {
+            match stage {
+                PieceMoveListStage::Capture => {
+                    debug_assert_eq!(self.moves[i].score, CAPTURE_SCORE);
+                    self.moves[i].score = self.mvv_lva(self.moves[i].item);
+                    if self.see(self.moves[i].item) >= 0 {
+                        self.moves[i].score += GOOD_CAPTURE_SCORE;
+                    }
+                    debug_assert!(self.moves[i].item.is_capture());
+                    debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
+                    debug_assert!(self.moves[i].score > QUIET_MOVE_SCORE);
                 }
-                debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
-                debug_assert!(self.moves[i].score > QUIET_MOVE_SCORE);
-            } else if self.moves[i].score == QUIET_MOVE_SCORE {
-                let history_score = self.get_history(self.moves[i].item);
-                self.moves[i].score = history_score - HH_MAX;
-                debug_assert!(self.moves[i].score <= QUIET_MOVE_SCORE);
-                debug_assert!(self.moves[i].score >= - 2 * HH_MAX);
-            }
-            for j in a..i {
-                if self.moves[j].score < self.moves[i].score {
-                    self.moves.swap(i, j);
+                PieceMoveListStage::QuietPieceMove => {
+                    debug_assert_eq!(self.moves[i].score, QUIET_MOVE_SCORE);
+                    let history_score = self.get_history(self.moves[i].item);
+                    self.moves[i].score = history_score - HH_MAX;
+                    debug_assert!(self.moves[i].score <= QUIET_MOVE_SCORE);
+                    debug_assert!(self.moves[i].score >= - 2 * HH_MAX);
                 }
+                _ => panic!()
             }
+        }
+
+        // Insertion sort
+        let mut i = offset + 1;
+        while i < moves_count {
+            let mut j = i;
+            while j > offset && self.moves[j - 1].score < self.moves[j].score {
+                self.moves.swap(j, j - 1);
+                j -= 1;
+            }
+            i += 1;
         }
     }
 
@@ -146,24 +169,34 @@ impl PieceMoveGenerator for Game {
         next_move
     }
 
-    // Specialized version of `next_move` for quiescence search.
+    // Specialized version of `next_move` for quiescence search
     fn next_capture(&mut self) -> Option<PieceMove> {
+        // Return the best move if it's a capture
         if self.moves.stage() == PieceMoveListStage::BestPieceMove {
+            match self.moves.next() {
+                Some(m) if m.is_capture() => return Some(m),
+                _ => {}
+            }
             self.moves.next_stage();
             self.generate_moves();
-            debug_assert_eq!(self.moves.stage(), PieceMoveListStage::Capture);
         }
 
-        // Skip bad captures
+        debug_assert_eq!(self.moves.stage(), PieceMoveListStage::Capture);
+
+        // When insertion sort is used during movegen the moves are already
+        // sorted here but when selection sort is used in the iterator we need
+        // to get the current index before incrementing it and check the score
+        // only after the sort happened.
         let i = self.moves.index();
         let n = self.moves.len();
-        if i < n {
-            if self.moves[i].score < GOOD_CAPTURE_SCORE {
-                return None;
-            }
+        let next_move = self.moves.next();
+
+        // Skip bad captures
+        if i < n && self.moves[i].score < GOOD_CAPTURE_SCORE {
+            return None;
         }
 
-        self.moves.next()
+        next_move
     }
 
     fn make_move(&mut self, m: PieceMove) {
@@ -647,9 +680,6 @@ mod tests {
 
         game.moves.next_stage(); // Captures
         game.generate_moves();
-        game.moves.next_stage(); // Killer moves
-        game.moves.next_stage(); // Quiet moves
-        game.generate_moves();
 
         assert_eq!(game.moves.next(), Some(PieceMove::new(B2, C3, CAPTURE)));
         assert_eq!(game.moves.next(), Some(PieceMove::new(B3, C3, CAPTURE)));
@@ -657,7 +687,7 @@ mod tests {
         assert_eq!(game.moves.next(), Some(PieceMove::new(B3, C2, CAPTURE)));
         assert_eq!(game.moves.next(), Some(PieceMove::new(D2, C2, CAPTURE)));
 
-        assert!(!game.moves.next().unwrap().is_capture());
+        assert_eq!(game.moves.next(), None);
     }
 
     #[test]
