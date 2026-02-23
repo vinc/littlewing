@@ -11,7 +11,7 @@ use crate::square::SquareExt;
 pub const BEST_MOVE_SCORE:    Score = 255;
 pub const KILLER_MOVE_SCORE:  Score = 254;
 pub const GOOD_CAPTURE_SCORE: Score = 64;
-pub const CAPTURE_SCORE:      Score = 1;
+pub const CAPTURE_SCORE:      Score = 2;
 pub const QUIET_MOVE_SCORE:   Score = 0;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
