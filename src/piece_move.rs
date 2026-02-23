@@ -60,6 +60,10 @@ impl PieceMove {
         self.kind() & (CAPTURE_MASK | PROMOTION_MASK) != 0
     }
 
+    pub fn is_quiet(self) -> bool {
+        !self.is_noisy()
+    }
+
     pub fn is_en_passant(self) -> bool {
         self.kind() == EN_PASSANT
     }
