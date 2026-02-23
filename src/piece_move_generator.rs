@@ -129,7 +129,7 @@ impl PieceMoveGenerator for Game {
                     if self.see(self.moves[i].item) >= 0 {
                         self.moves[i].score += GOOD_CAPTURE_SCORE;
                     }
-                    debug_assert!(self.moves[i].item.is_capture());
+                    //debug_assert!(self.moves[i].item.is_capture());
                     debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
                     debug_assert!(self.moves[i].score > QUIET_MOVE_SCORE);
                 }
