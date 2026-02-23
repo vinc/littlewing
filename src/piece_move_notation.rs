@@ -179,7 +179,7 @@ impl PieceMoveNotation for Game {
         }
 
         // Piece disambiguation or pawn capture
-        if !piece.is_pawn() || m.is_capture() || m.is_en_passant() {
+        if !piece.is_pawn() || m.is_capture() {
             let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
             let pieces = self.bitboard(piece);
             let attacks = piece_attacks(piece, m.to(), occupied);
@@ -196,8 +196,7 @@ impl PieceMoveNotation for Game {
             }
         }
 
-        // TODO: Should en passant be a capture?
-        if m.is_capture() || m.is_en_passant() {
+        if m.is_capture() {
             out.push('x');
         }
 

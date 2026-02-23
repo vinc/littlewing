@@ -45,9 +45,15 @@ impl PieceMove {
         self.0 == 0
     }
 
-    // TODO: Add en passant?
     pub fn is_capture(self) -> bool {
-        self.kind() == CAPTURE || self.kind() & PROMOTION_KIND_MASK == PROMOTION_KIND_MASK
+        // Include three kinds of captures: generic, en passant, and promotion
+        // NOTE: This also include null moves that have the same bit set so we
+        // might need to exclude them specifically.
+        self.kind() & CAPTURE_MASK != 0
+    }
+
+    pub fn is_promotion(self) -> bool {
+        self.kind() & PROMOTION_MASK != 0
     }
 
     pub fn is_en_passant(self) -> bool {
@@ -62,12 +68,8 @@ impl PieceMove {
         QUEEN_CASTLE << self.kind() - 1
     }
 
-    pub fn is_promotion(self) -> bool {
-        self.kind() & PROMOTION_MASK > 0
-    }
-
     pub fn promotion_kind(self) -> Piece {
-        PROMOTION_KINDS[(self.kind() & PROMOTION_KIND_MASK >> 2) as usize]
+        PROMOTION_KINDS[(self.kind() & (PROMOTION_KIND_MASK >> 2)) as usize]
     }
 
     pub fn to_lan(self) -> String {
