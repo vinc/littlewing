@@ -227,6 +227,18 @@ Run the test suite with Cargo:
 
     $ cargo test
 
+Run Sequential Probability Ratio Test (SPRT) at Short Time Control (STC) with
+gainer bounds:
+
+    $ make && cp target/release/littlewing littlewing-old
+    $ patch -p1 < something.patch
+    $ make && cp target/release/littlewing littlewing-new
+    $ sh tests/tournament.sh sprt stc gainer
+
+Or with non-regression bounds:
+
+    $ sh tests/tournament.sh sprt stc non-regression
+
 Little Wing also have a `perft` command for counting the number of nodes at
 each depth from the starting position.
 

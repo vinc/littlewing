@@ -433,8 +433,7 @@ impl Search for Game {
                     !is_pv &&
                     !is_in_check &&
                     !is_giving_check &&
-                    !m.is_capture() &&
-                    !m.is_promotion();
+                    m.is_quiet();
 
                 if fp_allowed && depth < 6 {
                     let margin = 50 * depth as Score;
@@ -446,8 +445,7 @@ impl Search for Game {
 
                 // Late Move Reduction (LMR / 35 ELO)
                 let lmr_allowed =
-                    !m.is_capture() &&
-                    !m.is_promotion() &&
+                    m.is_quiet() &&
                     depth > 2 &&
                     moves_count > 3 + (is_pv as usize);
 
@@ -486,14 +484,14 @@ impl Search for Game {
             if score > alpha {
                 if score >= beta {
                     // Killer Heuristic (KH / 50 ELO)
-                    let kh_allowed = !m.is_capture();
+                    let kh_allowed = m.is_quiet();
 
                     if kh_allowed {
                         self.moves.add_killer_move(m);
                     }
 
                     // History Heuristic (HH / 20 ELO)
-                    let hh_allowed = !m.is_capture();
+                    let hh_allowed = m.is_quiet();
 
                     if hh_allowed {
                         // 1. Give a bonus to the current move

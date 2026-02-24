@@ -23,7 +23,7 @@ static RE_LAN: &str = r"^(?P<from>[a-h][1-8])(?P<to>[a-h][1-8])(?P<promotion>[nb
 
 #[cfg(feature = "std")]
 static RE_SAN: &str = r"(?x)
-    ^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-8])?(?P<capture>x)?(?P<to>[a-h][1-8])=?(?P<promotion>[KBRQ])?
+    ^(?P<piece>[NBRQK])?(?P<file>[a-h])?(?P<rank>[1-8])?(?P<capture>x)?(?P<to>[a-h][1-8])=?(?P<promotion>[NBRQ])?
     |(?P<queen>O-O-O)
     |(?P<king>O-O)";
 
@@ -179,7 +179,7 @@ impl PieceMoveNotation for Game {
         }
 
         // Piece disambiguation or pawn capture
-        if !piece.is_pawn() || m.is_capture() || m.is_en_passant() {
+        if !piece.is_pawn() || m.is_capture() {
             let occupied = self.bitboard(WHITE) | self.bitboard(BLACK);
             let pieces = self.bitboard(piece);
             let attacks = piece_attacks(piece, m.to(), occupied);
@@ -196,8 +196,7 @@ impl PieceMoveNotation for Game {
             }
         }
 
-        // TODO: Should en passant be a capture?
-        if m.is_capture() || m.is_en_passant() {
+        if m.is_capture() {
             out.push('x');
         }
 
@@ -317,6 +316,7 @@ mod tests {
         assert_eq!(game.move_from_san("Nfxe5"), Some(PieceMove::new(F3, E5, CAPTURE)));
         assert_eq!(game.move_from_san("Ncxe5"), Some(PieceMove::new(C4, E5, CAPTURE)));
         assert_eq!(game.move_from_san("a8Q"), Some(PieceMove::new(A7, A8, QUEEN_PROMOTION)));
+        assert_eq!(game.move_from_san("a8N"), Some(PieceMove::new(A7, A8, KNIGHT_PROMOTION)));
         assert_eq!(game.move_from_san("axb8N"), Some(PieceMove::new(A7, B8, KNIGHT_PROMOTION_CAPTURE)));
         assert_eq!(game.move_from_san("g4"), Some(PieceMove::new(G2, G4, DOUBLE_PAWN_PUSH)));
         assert_eq!(game.move_from_san("hxg6"), Some(PieceMove::new(H5, G6, EN_PASSANT)));

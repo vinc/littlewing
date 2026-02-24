@@ -132,6 +132,7 @@ pub const QUEEN_PROMOTION_CAPTURE:  PieceMoveType = 0b1111; // 15
 pub const BEST_MOVE:                PieceMoveType = 0b00010000; // 16
 pub const KILLER_MOVE:              PieceMoveType = 0b00010001; // 17
 
+pub const CAPTURE_MASK:             PieceMoveType = 0b0100;
 pub const PROMOTION_MASK:           PieceMoveType = 0b1000;
 pub const PROMOTION_KIND_MASK:      PieceMoveType = 0b1100;
 

@@ -129,14 +129,24 @@ impl PieceMoveGenerator for Game {
                     if self.see(self.moves[i].item) >= 0 {
                         self.moves[i].score += GOOD_CAPTURE_SCORE;
                     }
-                    //debug_assert!(self.moves[i].item.is_capture());
+                    debug_assert!(self.moves[i].item.is_capture());
                     debug_assert!(self.moves[i].score < BEST_MOVE_SCORE);
                     debug_assert!(self.moves[i].score > QUIET_MOVE_SCORE);
                 }
                 PieceMoveListStage::QuietPieceMove => {
+                    // Queen promotions will be tried first, followed by
+                    // quiet moves with a positive history, then the other
+                    // kind of promotions, followed by quiet moves with bad
+                    // history.
                     debug_assert_eq!(self.moves[i].score, QUIET_MOVE_SCORE);
-                    let history_score = self.get_history(self.moves[i].item);
-                    self.moves[i].score = history_score - HH_MAX;
+                    if self.moves[i].item.is_promotion() {
+                        if self.moves[i].item.promotion_kind() != QUEEN {
+                            self.moves[i].score = -HH_MAX;
+                        }
+                    } else {
+                        let history_score = self.get_history(self.moves[i].item);
+                        self.moves[i].score = history_score - HH_MAX;
+                    }
                     debug_assert!(self.moves[i].score <= QUIET_MOVE_SCORE);
                     debug_assert!(self.moves[i].score >= - 2 * HH_MAX);
                 }
