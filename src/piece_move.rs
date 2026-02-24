@@ -25,6 +25,10 @@ impl PieceMove {
         PieceMove(((from as u16) << 10) | ((to as u16) << 4) | mt as u16)
     }
 
+    // TODO: Rename this `null()` and use NULL_MOVE instead of QUIET_MOVE for
+    // the move type and OUT instead of A1 for the from and to squares.
+    // That way we can differentiate between a null move that we created and
+    // a zeroed move. We could call the later an empty move if needed.
     pub fn new_null() -> PieceMove {
         PieceMove(0)
     }
@@ -41,15 +45,15 @@ impl PieceMove {
         (self.0 & 0b1111) as PieceMoveType
     }
 
+    // TODO: Compare to `OUT << 10 | OUT << 4 | NULL_MOVE`
     pub fn is_null(self) -> bool {
         self.0 == 0
     }
 
     pub fn is_capture(self) -> bool {
         // Include three kinds of captures: generic, en passant, and promotion
-        // NOTE: This also include null moves that have the same bit set so we
-        // might need to exclude them specifically.
-        self.kind() & CAPTURE_MASK != 0
+        // TODO: This also include NULL_MOVE that is not currently used
+        self.kind() & CAPTURE_MASK != 0 // && self.kind() != NULL_MOVE
     }
 
     pub fn is_promotion(self) -> bool {
