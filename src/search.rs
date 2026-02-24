@@ -4,20 +4,23 @@ use std::ops::Range;
 #[cfg(feature = "std")]
 use std::thread;
 
-use crate::color::*;
 use crate::piece::*;
 use crate::common::*;
 use crate::attack::Attack;
 use crate::bitboard::BitboardExt;
 use crate::eval::Eval;
-#[cfg(feature = "std")]
-use crate::fen::FEN;
 use crate::game::Game;
 use crate::history::HistoryHeuristic;
 use crate::piece_move::PieceMove;
 use crate::piece_move_generator::PieceMoveGenerator;
-use crate::piece_move_notation::PieceMoveNotation;
 use crate::transposition::Bound;
+
+#[cfg(feature = "std")]
+use crate::color::*;
+#[cfg(feature = "std")]
+use crate::fen::FEN;
+#[cfg(feature = "std")]
+use crate::piece_move_notation::PieceMoveNotation;
 #[cfg(feature = "std")]
 use crate::protocols::Protocol;
 
@@ -34,10 +37,10 @@ lazy_static! {
         let div = (LMR_DIV as f64) / 100.0;
         for depth in 1..MAX_PLY {
             for moves in 1..MAX_MOVES {
-                let r = min + (depth as f64).ln() * (moves as f64).ln() / div;
+                let r = min + libm::log(depth as f64) * libm::log(moves as f64) / div;
                 debug_assert!(r >= 0.0);
                 debug_assert!(r < Depth::MAX as f64);
-                lmr[depth][moves] = r.round() as Depth;
+                lmr[depth][moves] = libm::round(r) as Depth;
             }
         }
         lmr
@@ -66,14 +69,11 @@ pub trait Search {
     fn get_moves(&mut self) -> Vec<PieceMove>;
 }
 
+#[cfg(feature = "std")]
 trait SearchExt {
     fn get_pv(&mut self, depth: Depth) -> String;
-
-    #[cfg(feature = "std")]
     fn print_debug_init(&self, depth: Depth);
-    #[cfg(feature = "std")]
     fn print_thinking_init(&self);
-    #[cfg(feature = "std")]
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
 }
 
@@ -667,8 +667,8 @@ impl Search for Game {
     }
 }
 
+#[cfg(feature = "std")]
 impl SearchExt for Game {
-    #[cfg(feature = "std")]
     fn print_debug_init(&self, depth: Depth) {
         println!("# FEN {}", self.to_fen());
         println!("# allocating {} ms to move", self.clock.allocated_time());
@@ -676,14 +676,12 @@ impl SearchExt for Game {
         println!();
     }
 
-    #[cfg(feature = "std")]
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
             println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "ply", "score", "time", "nodes", "pv");
         }
     }
 
-    #[cfg(feature = "std")]
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove) {
         self.undo_move(m);
 
@@ -730,10 +728,7 @@ impl SearchExt for Game {
     }
 
     fn get_pv(&mut self, depth: Depth) -> String {
-        #[cfg(feature = "std")]
         let is_san_format = self.protocol != Protocol::UCI;
-        #[cfg(not(feature = "std"))]
-        let is_san_format = false;
 
         if depth == 0 {
             return String::new();
