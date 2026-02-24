@@ -2,6 +2,7 @@ use std::prelude::v1::*;
 use std::mem;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
+use branches::prefetch_read_data;
 
 use crate::common::*;
 use crate::piece_move::PieceMove;
@@ -37,8 +38,14 @@ impl TranspositionTable {
 
     pub fn with_memory(memory: usize) -> TranspositionTable {
         let capacity = memory / mem::size_of::<Transposition>();
-
         TranspositionTable::with_capacity(capacity)
+    }
+
+    pub fn prefetch(&self, hash: u64) {
+        let h = self.entries.get();
+        let n = self.len() as u64;
+        let k = (hash % n) as usize;
+        prefetch_read_data::<_, 0>(&h[k]);
     }
 
     pub fn get(&mut self, hash: u64) -> Option<Transposition> {
