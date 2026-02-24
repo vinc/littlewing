@@ -2,6 +2,7 @@
 
 N="$1"
 T="$2"
+S="$3"
 F="$(date +"$T-%Y%m%d-%H%M%S.pgn")"
 C="$(($(getconf _NPROCESSORS_ONLN) - 1))"
 
@@ -11,10 +12,16 @@ case "$T" in
   *) exit ;;
 esac
 
+case "$S" in
+  "non-regression") E0="-10"; E1="0" ;;
+  "gainer")         E0="0"; E1="10" ;;
+  *)                E0="0"; E1="10" ;;
+esac
+
 if [ "$N" = "sprt" ]; then
   # Usage: sh tournament.sh sprt {short|long}
   fastchess -tournament gauntlet -rounds "10000" -concurrency "$C" -repeat \
-    -sprt elo0=0 elo1=10 alpha=0.05 beta=0.05 \
+    -sprt elo0="$E0" elo1="$E1" alpha=0.05 beta=0.05 \
     -resign movecount=3 score=400 -draw movenumber=40 movecount=8 score=10 \
     -openings file=8moves_v3.pgn format=pgn order=random \
     -ratinginterval 20 -pgnout file="$F" -recover \
