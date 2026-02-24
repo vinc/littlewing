@@ -47,8 +47,8 @@ pub trait PieceMoveNotation {
     fn is_parsed_move_legal(&mut self, m: PieceMove) -> bool;
 }
 
+#[cfg(feature = "std")]
 trait PieceMoveNotationExt {
-    #[cfg(feature = "std")]
     fn move_from_lan_checked(&mut self, s: &str) -> Option<PieceMove>;
 }
 
@@ -227,8 +227,8 @@ impl PieceMoveNotation for Game {
     }
 }
 
+#[cfg(feature = "std")]
 impl PieceMoveNotationExt for Game {
-    #[cfg(feature = "std")]
     fn move_from_lan_checked(&mut self, s: &str) -> Option<PieceMove> {
         lazy_static! {
             static ref RE: Regex = Regex::new(RE_LAN).unwrap();
