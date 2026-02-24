@@ -409,6 +409,8 @@ impl Search for Game {
         while let Some(m) = self.next_move() {
             self.make_move(m);
 
+            self.tt.prefetch(self.positions.top().hash);
+
             if self.is_check(side) {
                 self.undo_move(m);
                 continue;
@@ -603,6 +605,8 @@ impl Search for Game {
         }
         while let Some(m) = self.next_capture() {
             self.make_move(m);
+
+            self.tt.prefetch(self.positions.top().hash);
 
             if self.is_check(side) {
                 self.undo_move(m);
