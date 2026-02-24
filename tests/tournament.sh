@@ -7,8 +7,8 @@ F="$(date +"$T-%Y%m%d-%H%M%S.pgn")"
 C="$(($(getconf _NPROCESSORS_ONLN) - 1))"
 
 case "$T" in
-  "short") TC="10+0.1"; H="16" ;;
-  "long")  TC="60+0.6"; H="128" ;;
+  "stc") TC="10+0.1"; H="16" ;;
+  "ltc") TC="60+0.6"; H="128" ;;
   *) exit ;;
 esac
 
