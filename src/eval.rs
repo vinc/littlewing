@@ -160,7 +160,7 @@ impl Eval for Game {
                         let enemy_pawns = self.bitboards[(c ^ 1 | PAWN) as usize];
                         let mask = PASSED_PAWN_MASKS[c as usize][square as usize];
                         if mask & enemy_pawns == 0 {
-                            let rank = square.flip(c ^ 1).rank() as usize;
+                            let rank = square.flip(c).rank() as usize;
                             position[c as usize][0] += PASSED_PAWN_OPENING[rank];
                             position[c as usize][1] += PASSED_PAWN_ENDGAME[rank];
                         }
