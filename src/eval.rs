@@ -35,6 +35,9 @@ pub const QUEEN_MOBILITY:  Score =    21;
 
 pub const TEMPO:           Score =    11;
 
+pub const PASSED_PAWN_OPENING: [Score; 8] = [0, 5, 5, 15, 30, 50, 80, 0];
+pub const PASSED_PAWN_ENDGAME: [Score; 8] = [0, 10, 10, 30, 60, 100, 150, 0];
+
 lazy_static! {
     pub static ref PIECE_VALUES: [Score; 14] = {
         let mut piece_values = [0; 14];
@@ -63,6 +66,46 @@ lazy_static! {
         mobility[QUEEN  as usize] = QUEEN_MOBILITY;
 
         mobility
+    };
+
+    pub static ref PASSED_PAWN_MASKS: [[Bitboard; 64]; 2] = {
+        let mut masks = [[0; 64]; 2];
+
+        for sq in 0..64 {
+            let file = sq % 8;
+            let rank = sq / 8;
+
+            // Look above for white
+            let mut mask = 0;
+            for r in (rank + 1)..8 {
+                // Left file
+                if file > 0 {
+                    mask |= 1 << (r * 8 + file - 1);
+                }
+                // Same file
+                mask |= 1 << (r * 8 + file);
+                // Right file
+                if file < 7 {
+                    mask |= 1 << (r * 8 + file + 1);
+                }
+            }
+            masks[WHITE as usize][sq] = mask;
+
+            // Look below for black
+            let mut mask = 0;
+            for r in 0..rank {
+                if file > 0 {
+                    mask |= 1 << (r * 8 + file - 1);
+                }
+                mask |= 1 << (r * 8 + file);
+                if file < 7 {
+                    mask |= 1 << (r * 8 + file + 1);
+                }
+            }
+            masks[BLACK as usize][sq] = mask;
+        }
+
+        masks
     };
 }
 
@@ -111,6 +154,17 @@ impl Eval for Game {
                     mobility[c as usize] += MOBILITY[p as usize] * targets.count() as Score;
                     position[c as usize][0] += PST[piece as usize][square as usize][0];
                     position[c as usize][1] += PST[piece as usize][square as usize][1];
+
+                    if p == PAWN {
+                        // Passed pawn
+                        let enemy_pawns = self.bitboards[(c ^ 1 | PAWN) as usize];
+                        let mask = PASSED_PAWN_MASKS[c as usize][square as usize];
+                        if mask & enemy_pawns == 0 {
+                            let rank = square.flip(c ^ 1).rank() as usize;
+                            position[c as usize][0] += PASSED_PAWN_OPENING[rank];
+                            position[c as usize][1] += PASSED_PAWN_ENDGAME[rank];
+                        }
+                    }
                 }
             }
         }
