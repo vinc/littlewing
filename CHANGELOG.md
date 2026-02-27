@@ -2,6 +2,7 @@
 
 ## Unreleased
 ### Fixed
+- Fix insertion sort in movegen (#143)
 - Do check before search in root (#131)
 - Fix internal iterative deepening (#130)
 - Fix UCI issue with PV after draw (#112)
@@ -9,9 +10,21 @@
 - Fix std (#100)
 - Fix clippy warnings (#99)
 ### Added
+- Add TT prefetch (#145)
+- Add check extension (#142)
+- Add history heuristic (#128)
+- Add improving heuristic (#139)
+- Add libm to compute log in no_std (#146)
+- Add noisy/quiet moves (#144)
+- Add reverse futility pruning (#135)
+- Add tempo to eval (#127)
 - Add automated tuning (#122)
 - Add depth command (#101)
 ### Changed
+- Reduce futility pruning margin (#138)
+- Refactor transposition table (#137)
+- Update LMR (#140)
+- Update eval params (#133)
 - Replace Bencher by Criterion (#123)
 - Improve UCI support (#114)
 - Use safe lockless transposition table (#113)
