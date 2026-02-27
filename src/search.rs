@@ -24,9 +24,10 @@ use crate::piece_move_notation::PieceMoveNotation;
 #[cfg(feature = "std")]
 use crate::protocols::Protocol;
 
+const DP_MARGIN: Score = 1000;
 const RFP_MARGIN: Score = 75;
 const RFP_IMPROV: Score = 20;
-//const NMP_IMPROV: Score = 25;
+const FP_MARGIN: Score = 50;
 const LMR_MIN: Score = 75;
 const LMR_DIV: Score = 250;
 
@@ -137,7 +138,7 @@ impl Search for Game {
                     clone.is_debug = false;
                 }
 
-                let min_depth = depths.start; // TODO: + i as usize;
+                let min_depth = depths.start;
                 let max_depth = depths.end;
 
                 let builder = thread::Builder::new().
@@ -361,13 +362,12 @@ impl Search for Game {
         }
 
         // Null Move Pruning (NMP / 95 ELO)
-        // let nmp_improv = NMP_IMPROV * is_improving as Score;
         let nmp_allowed =
             !is_pv &&
             !is_in_check &&
             !is_null_move &&
             !is_pawn_ending &&
-            eval >= beta; // - nmp_improv;
+            eval >= beta;
 
         if nmp_allowed {
             let r = (3 + depth / 4).clamp(0, depth - 1);
@@ -438,7 +438,7 @@ impl Search for Game {
                     m.is_quiet();
 
                 if fp_allowed && depth < 6 {
-                    let margin = 50 * depth as Score;
+                    let margin = (FP_MARGIN as Score) * (depth as Score);
                     if eval + margin < alpha {
                         self.undo_move(m);
                         continue;
@@ -554,9 +554,8 @@ impl Search for Game {
             return eval;
         }
 
-        // Delta pruning
-        let delta = 1000; // Queen value
-        if eval < alpha - delta {
+        // Delta Pruning (DP)
+        if eval < alpha - DP_MARGIN {
             return alpha;
         }
 
