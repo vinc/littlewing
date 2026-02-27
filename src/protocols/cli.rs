@@ -568,7 +568,7 @@ impl CLI {
             return Err("no <depth> given".into());
         }
         let depth = args[1].parse::<usize>()?;
-        self.max_depth = depth as Depth;
+        self.max_depth = (depth + 1) as Depth;
         Ok(State::Running)
     }
 
