@@ -27,8 +27,8 @@ Features
   - Bitboard with LLVM CTPOP and CTTZ
   - Sliding piece attacks with Hyperbola Quintessence and First Rank Attacks
   - Zobrist hashing with Xorshift RNG
-  - Staged moves generation
-  - MVV/LVA, SEE, and HH moves ordering with insertion sort
+  - Staged move generation
+  - MVV/LVA, SEE, and HH moves ordering by insertion sort
 - Evaluation
   - Tempo, Material, Mobility
   - Piece Square Table (PST)
@@ -37,7 +37,8 @@ Features
   - Principal Variation Search (PVS)
   - Quiescence Search (QS)
   - Delta Pruning (DP)
-  - Transposition Table (TT)
+  - Check Extension (CE)
+  - Transposition Table (TT) with prefetching
   - Reverse Futility Pruning (RFP)
   - Null Move Pruning (NMP)
   - Internal Iterative Deepening (IID)
