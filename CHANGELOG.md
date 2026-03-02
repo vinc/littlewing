@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 0.8.0 (2026-03-03)
 ### Fixed
 - Fix insertion sort in movegen (#143)
 - Do check before search in root (#131)
@@ -42,7 +44,7 @@
 - Update rustyline-derive requirement from 0.7.0 to 0.8.0 (#106)
 - Update crates (#96)
 
-### 0.7.0 (2021-08-21)
+## 0.7.0 (2021-08-21)
 ### Fixed
 - Fix getopts parsing (#75)
 ### Added
