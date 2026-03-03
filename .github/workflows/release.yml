@@ -27,13 +27,6 @@ jobs:
             artifact: littlewing-linux-x86-v2
             rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt,+prefetchwt1"
 
-          # Linux ARM64 (native runner)
-          - os: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
-            binary: littlewing
-            artifact: littlewing-linux-arm64
-            rustflags: "-C target-cpu=generic"
-
           # Windows x86_64 v1 (generic baseline)
           - os: windows-latest
             target: x86_64-pc-windows-msvc
@@ -47,20 +40,6 @@ jobs:
             binary: littlewing.exe
             artifact: littlewing-windows-x86-v2.exe
             rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt,+prefetchwt1 -C link-args=/STACK:8388608"
-
-          # macOS x86_64 v1 (generic baseline)
-          - os: macos-13
-            target: x86_64-apple-darwin
-            binary: littlewing
-            artifact: littlewing-macos-x86-v1
-            rustflags: "-C target-cpu=x86-64"
-
-          # macOS x86_64 v2 (popcnt + prefetch)
-          - os: macos-13
-            target: x86_64-apple-darwin
-            binary: littlewing
-            artifact: littlewing-macos-x86-v2
-            rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt,+prefetchwt1"
 
           # macOS ARM64 (Apple Silicon, native runner)
           - os: macos-latest
