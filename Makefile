@@ -1,4 +1,4 @@
-.PHONY: setup build install clean cross
+.PHONY: setup build install clean
 .EXPORT_ALL_VARIABLES:
 
 PREFIX = /usr/local
@@ -19,17 +19,3 @@ uninstall:
 
 clean:
 	cargo clean
-
-release:
-	mkdir -p release
-	cp README.md release/README.txt
-	cp LICENSE release/LICENSE.txt
-	cp CHANGELOG.md release/CHANGELOG.txt
-	cross build --release --target x86_64-unknown-linux-gnu
-	cross build --release --target x86_64-pc-windows-gnu
-	cross build --release --target armv7-linux-androideabi
-	cp target/x86_64-unknown-linux-gnu/release/littlewing release/littlewing-$(LITTLEWING_VERSION)-linux-x86
-	cp target/armv7-linux-androideabi/release/littlewing release/littlewing-$(LITTLEWING_VERSION)-android-armv7
-	cp target/x86_64-pc-windows-gnu/release/littlewing.exe release/littlewing-$(LITTLEWING_VERSION)-windows-x86.exe
-	gzip release/littlewing-*
-	cd release && shasum littlewing-* > shasums.txt
