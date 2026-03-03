@@ -1,0 +1,115 @@
+name: Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          # Linux x86_64 v1 (generic baseline)
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: littlewing
+            artifact: littlewing-linux-x86-v1
+            rustflags: "-C target-cpu=x86-64"
+
+          # Linux x86_64 v2 (popcnt + prefetch)
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: littlewing
+            artifact: littlewing-linux-x86-v2
+            rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt,+prefetchwt1"
+
+          # Linux ARM64 (native runner)
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            binary: littlewing
+            artifact: littlewing-linux-arm64
+            rustflags: "-C target-cpu=generic"
+
+          # Windows x86_64 v1 (generic baseline)
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: littlewing.exe
+            artifact: littlewing-windows-x86-v1.exe
+            rustflags: "-C target-cpu=x86-64 -C link-args=/STACK:8388608"
+
+          # Windows x86_64 v2 (popcnt + prefetch)
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: littlewing.exe
+            artifact: littlewing-windows-x86-v2.exe
+            rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt,+prefetchwt1 -C link-args=/STACK:8388608"
+
+          # macOS x86_64 v1 (generic baseline)
+          - os: macos-13
+            target: x86_64-apple-darwin
+            binary: littlewing
+            artifact: littlewing-macos-x86-v1
+            rustflags: "-C target-cpu=x86-64"
+
+          # macOS x86_64 v2 (popcnt + prefetch)
+          - os: macos-13
+            target: x86_64-apple-darwin
+            binary: littlewing
+            artifact: littlewing-macos-x86-v2
+            rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt,+prefetchwt1"
+
+          # macOS ARM64 (Apple Silicon, native runner)
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary: littlewing
+            artifact: littlewing-macos-arm64
+            rustflags: "-C target-cpu=apple-m1"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary
+        shell: bash
+        run: |
+          cp target/${{ matrix.target }}/release/${{ matrix.binary }} ${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: release/
+          merge-multiple: true
+
+      - name: Compress and checksum
+        run: |
+          cd release
+          gzip *
+          shasum littlewing-* > shasums.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
