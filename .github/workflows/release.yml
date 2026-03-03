@@ -3,7 +3,9 @@ name: Binaries
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
+    branches:
+      - "chore/binaries"
   workflow_dispatch:
 
 jobs:
