@@ -1,0 +1,91 @@
+name: Binaries
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: littlewing
+            artifact: littlewing-linux-amd64-v1
+            rustflags: "-C target-cpu=x86-64"
+
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: littlewing
+            artifact: littlewing-linux-amd64-v2
+            rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt"
+
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: littlewing.exe
+            artifact: littlewing-windows-amd64-v1.exe
+            rustflags: "-C target-cpu=x86-64 -C link-args=/STACK:8388608"
+
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: littlewing.exe
+            artifact: littlewing-windows-amd64-v2.exe
+            rustflags: "-C target-cpu=x86-64 -C target-feature=+popcnt -C link-args=/STACK:8388608"
+
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary: littlewing
+            artifact: littlewing-macos-arm64
+            rustflags: "-C target-cpu=apple-m1"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary
+        shell: bash
+        run: |
+          cp target/${{ matrix.target }}/release/${{ matrix.binary }} ${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: release/
+          merge-multiple: true
+
+      - name: Compress and checksum
+        run: |
+          cd release
+          gzip *
+          shasum littlewing-* > shasums.txt
+
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: release/*
