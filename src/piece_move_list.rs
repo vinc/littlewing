@@ -9,8 +9,7 @@ use crate::attack::*;
 use crate::piece_move::*;
 use crate::square::SquareExt;
 use crate::bitboard::{Bitboard, BitboardExt, BitboardIterator};
-use crate::hyperbola::bishop_attacks;
-use crate::hyperbola::rook_attacks;
+use crate::sliders::{bishop_attacks, rook_attacks};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Scored<T, S> {

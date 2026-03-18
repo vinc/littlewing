@@ -6,13 +6,31 @@ use crate::square::*;
 use crate::bitboard::{Bitboard, BitboardExt};
 
 pub fn bishop_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    hyperbola(occupied, from, HyperbolaMask::Diag) |
-    hyperbola(occupied, from, HyperbolaMask::Anti)
+    let diag = hyperbola(occupied, from, HyperbolaMask::Diag);
+    let anti = hyperbola(occupied, from, HyperbolaMask::Anti);
+    diag | anti
 }
 
 pub fn rook_attacks(from: Square, occupied: Bitboard) -> Bitboard {
-    hyperbola(occupied, from, HyperbolaMask::File) |
-    rank_attacks(occupied, from)
+    let file = hyperbola(occupied, from, HyperbolaMask::File);
+    let rank = rank_attacks(occupied, from);
+    file | rank
+}
+
+#[cfg(target_feature = "bmi2")]
+pub fn bishop_mask(from: Square) -> Bitboard {
+    let sq = from as usize;
+    let diag = HyperbolaMask::Diag as usize;
+    let anti = HyperbolaMask::Anti as usize;
+    HYPERBOLA_MASKS[sq][diag] | HYPERBOLA_MASKS[sq][anti]
+}
+
+#[cfg(target_feature = "bmi2")]
+pub fn rook_mask(from: Square) -> Bitboard {
+    let sq = from as usize;
+    let file = HYPERBOLA_MASKS[sq][HyperbolaMask::File as usize];
+    let rank = (0xFF << (sq & !7)) & !Bitboard::from_square(from);
+    (file & !RANK_1 & !RANK_8) | (rank & !FILE_A & !FILE_H)
 }
 
 #[repr(usize)]

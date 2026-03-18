@@ -48,11 +48,26 @@ extern crate rustyline;
 #[cfg(feature = "std")]
 extern crate rustyline_derive;
 
-pub mod attack;
 mod board;
 mod common;
-mod dumb7fill;
+
+mod dumb7fill; // NOTE: Replaced by hyperbola
 mod hyperbola;
+
+#[cfg(target_feature = "bmi2")]
+mod pext;
+
+mod sliders {
+    #[cfg(target_feature = "bmi2")]
+    pub use crate::pext::{bishop_attacks, rook_attacks};
+
+    #[cfg(not(target_feature = "bmi2"))]
+    pub use crate::hyperbola::{bishop_attacks, rook_attacks};
+
+    //pub use crate::dumb7fill::{bishop_attacks, rook_attacks};
+}
+
+pub mod attack;
 mod piece_move;
 mod piece_move_list;
 mod positions;

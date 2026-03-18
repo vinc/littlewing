@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add PEXT bitboards (#141)
 - Add binaries workflow to GitHub Actions (#150)
 
 ## 0.8.0 (2026-03-03)

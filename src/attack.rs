@@ -4,8 +4,7 @@ use crate::square::*;
 use crate::common::*;
 use crate::bitboard::{Bitboard, BitboardExt};
 use crate::game::Game;
-use crate::hyperbola::bishop_attacks;
-use crate::hyperbola::rook_attacks;
+use crate::sliders::{bishop_attacks, rook_attacks};
 
 pub trait Attack {
     fn is_check(&self, side: Color) -> bool;
