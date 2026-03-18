@@ -11,7 +11,7 @@ use crate::square::SquareExt;
 use crate::bitboard::{Bitboard, BitboardExt, BitboardIterator};
 use crate::sliders::{bishop_attacks, rook_attacks};
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Scored<T, S> {
     pub item: T,
     pub score: S
@@ -132,10 +132,10 @@ impl PieceMoveList {
     pub fn next_stage(&mut self) {
         self.stages[self.ply] = match self.stages[self.ply] {
             PieceMoveListStage::BestPieceMove   => PieceMoveListStage::Capture,
-            PieceMoveListStage::Capture    => PieceMoveListStage::KillerPieceMove,
+            PieceMoveListStage::Capture         => PieceMoveListStage::KillerPieceMove,
             PieceMoveListStage::KillerPieceMove => PieceMoveListStage::QuietPieceMove,
             PieceMoveListStage::QuietPieceMove  => PieceMoveListStage::Done,
-            PieceMoveListStage::Done       => panic!("no next stage")
+            PieceMoveListStage::Done            => panic!("no next stage")
         }
     }
 
@@ -172,10 +172,10 @@ impl PieceMoveList {
         // here because we don't have access to the board from `PieceMoveList`.
         let score = match self.stage() {
             PieceMoveListStage::BestPieceMove   => BEST_MOVE_SCORE,
-            PieceMoveListStage::Capture    => QUIET_MOVE_SCORE,
+            PieceMoveListStage::Capture         => CAPTURE_SCORE,
             PieceMoveListStage::KillerPieceMove => KILLER_MOVE_SCORE,
             PieceMoveListStage::QuietPieceMove  => QUIET_MOVE_SCORE,
-            PieceMoveListStage::Done       => panic!("last stage")
+            PieceMoveListStage::Done            => panic!("last stage")
         };
 
         self.lists[self.ply][self.sizes[self.ply]] = Scored::new(m, score);
@@ -377,6 +377,10 @@ impl Iterator for PieceMoveList {
         if i < n {
             self.indexes[self.ply] += 1;
             /*
+            // NOTE: This is commented out because we use insertion sort after
+            // generating captures and quiet moves in the staged movegen. It
+            // would be more efficient to sort here lazily, but SEE is used to
+            // score good captures and it needs access to the Game structure.
             if !self.skip_ordering {
                 // Find the next best move by selection sort
                 let mut j = i;

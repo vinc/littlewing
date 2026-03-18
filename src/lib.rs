@@ -120,6 +120,7 @@ pub mod search;
 pub mod square;
 
 /// Tune eval
+#[cfg(feature = "std")]
 pub mod tune;
 
 /// Chess prelude

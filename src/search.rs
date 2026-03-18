@@ -4,26 +4,30 @@ use std::ops::Range;
 #[cfg(feature = "std")]
 use std::thread;
 
-use crate::color::*;
 use crate::piece::*;
 use crate::common::*;
 use crate::attack::Attack;
 use crate::bitboard::BitboardExt;
 use crate::eval::Eval;
-#[cfg(feature = "std")]
-use crate::fen::FEN;
 use crate::game::Game;
 use crate::history::HistoryHeuristic;
 use crate::piece_move::PieceMove;
 use crate::piece_move_generator::PieceMoveGenerator;
-use crate::piece_move_notation::PieceMoveNotation;
 use crate::transposition::Bound;
+
+#[cfg(feature = "std")]
+use crate::color::*;
+#[cfg(feature = "std")]
+use crate::fen::FEN;
+#[cfg(feature = "std")]
+use crate::piece_move_notation::PieceMoveNotation;
 #[cfg(feature = "std")]
 use crate::protocols::Protocol;
 
+const DP_MARGIN: Score = 1000;
 const RFP_MARGIN: Score = 75;
 const RFP_IMPROV: Score = 20;
-//const NMP_IMPROV: Score = 25;
+const FP_MARGIN: Score = 50;
 const LMR_MIN: Score = 75;
 const LMR_DIV: Score = 250;
 
@@ -34,10 +38,10 @@ lazy_static! {
         let div = (LMR_DIV as f64) / 100.0;
         for depth in 1..MAX_PLY {
             for moves in 1..MAX_MOVES {
-                let r = min + (depth as f64).ln() * (moves as f64).ln() / div;
+                let r = min + libm::log(depth as f64) * libm::log(moves as f64) / div;
                 debug_assert!(r >= 0.0);
                 debug_assert!(r < Depth::MAX as f64);
-                lmr[depth][moves] = r.round() as Depth;
+                lmr[depth][moves] = libm::round(r) as Depth;
             }
         }
         lmr
@@ -66,14 +70,11 @@ pub trait Search {
     fn get_moves(&mut self) -> Vec<PieceMove>;
 }
 
+#[cfg(feature = "std")]
 trait SearchExt {
     fn get_pv(&mut self, depth: Depth) -> String;
-
-    #[cfg(feature = "std")]
     fn print_debug_init(&self, depth: Depth);
-    #[cfg(feature = "std")]
     fn print_thinking_init(&self);
-    #[cfg(feature = "std")]
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove);
 }
 
@@ -137,7 +138,7 @@ impl Search for Game {
                     clone.is_debug = false;
                 }
 
-                let min_depth = depths.start; // TODO: + i as usize;
+                let min_depth = depths.start;
                 let max_depth = depths.end;
 
                 let builder = thread::Builder::new().
@@ -361,13 +362,12 @@ impl Search for Game {
         }
 
         // Null Move Pruning (NMP / 95 ELO)
-        // let nmp_improv = NMP_IMPROV * is_improving as Score;
         let nmp_allowed =
             !is_pv &&
             !is_in_check &&
             !is_null_move &&
             !is_pawn_ending &&
-            eval >= beta; // - nmp_improv;
+            eval >= beta;
 
         if nmp_allowed {
             let r = (3 + depth / 4).clamp(0, depth - 1);
@@ -409,6 +409,8 @@ impl Search for Game {
         while let Some(m) = self.next_move() {
             self.make_move(m);
 
+            self.tt.prefetch(self.positions.top().hash);
+
             if self.is_check(side) {
                 self.undo_move(m);
                 continue;
@@ -433,11 +435,10 @@ impl Search for Game {
                     !is_pv &&
                     !is_in_check &&
                     !is_giving_check &&
-                    !m.is_capture() &&
-                    !m.is_promotion();
+                    m.is_quiet();
 
                 if fp_allowed && depth < 6 {
-                    let margin = 50 * depth as Score;
+                    let margin = (FP_MARGIN as Score) * (depth as Score);
                     if eval + margin < alpha {
                         self.undo_move(m);
                         continue;
@@ -446,8 +447,7 @@ impl Search for Game {
 
                 // Late Move Reduction (LMR / 35 ELO)
                 let lmr_allowed =
-                    !m.is_capture() &&
-                    !m.is_promotion() &&
+                    m.is_quiet() &&
                     depth > 2 &&
                     moves_count > 3 + (is_pv as usize);
 
@@ -486,14 +486,14 @@ impl Search for Game {
             if score > alpha {
                 if score >= beta {
                     // Killer Heuristic (KH / 50 ELO)
-                    let kh_allowed = !m.is_capture();
+                    let kh_allowed = m.is_quiet();
 
                     if kh_allowed {
                         self.moves.add_killer_move(m);
                     }
 
                     // History Heuristic (HH / 20 ELO)
-                    let hh_allowed = !m.is_capture();
+                    let hh_allowed = m.is_quiet();
 
                     if hh_allowed {
                         // 1. Give a bonus to the current move
@@ -554,9 +554,8 @@ impl Search for Game {
             return eval;
         }
 
-        // Delta pruning
-        let delta = 1000; // Queen value
-        if eval < alpha - delta {
+        // Delta Pruning (DP)
+        if eval < alpha - DP_MARGIN {
             return alpha;
         }
 
@@ -605,6 +604,8 @@ impl Search for Game {
         }
         while let Some(m) = self.next_capture() {
             self.make_move(m);
+
+            self.tt.prefetch(self.positions.top().hash);
 
             if self.is_check(side) {
                 self.undo_move(m);
@@ -667,8 +668,8 @@ impl Search for Game {
     }
 }
 
+#[cfg(feature = "std")]
 impl SearchExt for Game {
-    #[cfg(feature = "std")]
     fn print_debug_init(&self, depth: Depth) {
         println!("# FEN {}", self.to_fen());
         println!("# allocating {} ms to move", self.clock.allocated_time());
@@ -676,14 +677,12 @@ impl SearchExt for Game {
         println!();
     }
 
-    #[cfg(feature = "std")]
     fn print_thinking_init(&self) {
         if self.protocol != Protocol::UCI {
             println!("  {:>3}  {:>5}  {:>6}  {:>9}  {}", "ply", "score", "time", "nodes", "pv");
         }
     }
 
-    #[cfg(feature = "std")]
     fn print_thinking(&mut self, depth: Depth, score: Score, m: PieceMove) {
         self.undo_move(m);
 
@@ -730,10 +729,7 @@ impl SearchExt for Game {
     }
 
     fn get_pv(&mut self, depth: Depth) -> String {
-        #[cfg(feature = "std")]
         let is_san_format = self.protocol != Protocol::UCI;
-        #[cfg(not(feature = "std"))]
-        let is_san_format = false;
 
         if depth == 0 {
             return String::new();

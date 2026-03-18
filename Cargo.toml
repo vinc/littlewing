@@ -4,7 +4,7 @@ description = """
 A chess engine rated at 2050+ ELO, compatible with both UCI and XBoard
 protocols, with a nice CLI, and a documented library.
 """
-version = "0.7.0"
+version = "0.8.0"
 license = "MIT"
 authors = ["Vincent Ollivier <v@vinc.cc>"]
 repository = "https://github.com/vinc/littlewing"
@@ -28,9 +28,11 @@ bin = ["atty", "getopts"]
 
 [dependencies]
 atty = { version = "0.2.14", optional = true }
+branches = { version = "0.4.4", default-features = false, features = ["prefetch"] }
 dirs = { version = "6.0.0", optional = true }
 getopts = { version = "0.2.21", optional = true }
 lazy_static = "1.4.0"
+libm = "0.2.16"
 no-std-compat = { version = "0.4.1", features = ["alloc", "compat_macros"] }
 rand = { version = "0.9.2", default-features = false }
 rand_xorshift = { version = "0.4.0", default-features = false }

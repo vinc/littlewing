@@ -11,6 +11,7 @@ use crate::square::SquareExt;
 pub const BEST_MOVE_SCORE:    Score = 255;
 pub const KILLER_MOVE_SCORE:  Score = 254;
 pub const GOOD_CAPTURE_SCORE: Score = 64;
+pub const CAPTURE_SCORE:      Score = 2;
 pub const QUIET_MOVE_SCORE:   Score = 0;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -24,6 +25,10 @@ impl PieceMove {
         PieceMove(((from as u16) << 10) | ((to as u16) << 4) | mt as u16)
     }
 
+    // TODO: Rename this `null()` and use NULL_MOVE instead of QUIET_MOVE for
+    // the move type and OUT instead of A1 for the from and to squares.
+    // That way we can differentiate between a null move that we created and
+    // a zeroed move. We could call the later an empty move if needed.
     pub fn new_null() -> PieceMove {
         PieceMove(0)
     }
@@ -40,13 +45,27 @@ impl PieceMove {
         (self.0 & 0b1111) as PieceMoveType
     }
 
+    // TODO: Compare to `OUT << 10 | OUT << 4 | NULL_MOVE`
     pub fn is_null(self) -> bool {
         self.0 == 0
     }
 
-    // TODO: Add en passant?
     pub fn is_capture(self) -> bool {
-        self.kind() == CAPTURE || self.kind() & PROMOTION_KIND_MASK == PROMOTION_KIND_MASK
+        // Include three kinds of captures: generic, en passant, and promotion
+        // TODO: This also include NULL_MOVE that is not currently used
+        self.kind() & CAPTURE_MASK != 0 // && self.kind() != NULL_MOVE
+    }
+
+    pub fn is_promotion(self) -> bool {
+        self.kind() & PROMOTION_MASK != 0
+    }
+
+    pub fn is_noisy(self) -> bool {
+        self.kind() & (CAPTURE_MASK | PROMOTION_MASK) != 0
+    }
+
+    pub fn is_quiet(self) -> bool {
+        !self.is_noisy()
     }
 
     pub fn is_en_passant(self) -> bool {
@@ -61,12 +80,8 @@ impl PieceMove {
         QUEEN_CASTLE << self.kind() - 1
     }
 
-    pub fn is_promotion(self) -> bool {
-        self.kind() & PROMOTION_MASK > 0
-    }
-
     pub fn promotion_kind(self) -> Piece {
-        PROMOTION_KINDS[(self.kind() & PROMOTION_KIND_MASK >> 2) as usize]
+        PROMOTION_KINDS[(self.kind() & (PROMOTION_KIND_MASK >> 2)) as usize]
     }
 
     pub fn to_lan(self) -> String {
