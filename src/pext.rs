@@ -56,8 +56,6 @@ lazy_static! {
         offsets
     };
 
-    //static ref ATTACKS: Vec<Bitboard> = {
-    //    let mut table = vec![0; SIZE];
     static ref ATTACKS: [Bitboard; SIZE] = {
         let mut table = [0; SIZE];
         for sq in 0..64 {
