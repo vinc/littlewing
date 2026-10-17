@@ -1,8 +1,18 @@
 # Changelog
 
 ## Unreleased
+
+## 0.8.1 (2026-10-17)
+### Added
 - Add PEXT bitboards (#141)
 - Add binaries workflow to GitHub Actions (#150)
+### Changed
+- Reduce default TT size from 8 to 1 MB (#156)
+- Enable lazy_static in no_std (#155)
+- Use Box for PieceMoveList in Game to reduce stack usage (#154)
+### Bumped
+- Update rustyline requirement from 15.0.0 to 18.0.1 (#151)
+- Update rustyline-derive requirement from 0.11.1 to 0.12.0 (#152)
 
 ## 0.8.0 (2026-03-03)
 ### Fixed
