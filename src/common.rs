@@ -163,7 +163,7 @@ pub const MAX_PLY: usize = 128;
 pub const MAX_MOVES: usize = 256;
 pub const MAX_KILLERS: usize = 2;
 
-pub const TT_SIZE: usize = 8 << 20; // 8 Mb
+pub const TT_SIZE: usize = 1 << 20; // 1 Mb
 
 pub const HH_MAX: Score = 16 << 10;
 
